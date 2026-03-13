@@ -11,7 +11,7 @@ namespace InsuraTech.Domain.Common
     {
         public Guid PolicyId { get; private set; }
         public PolicyStatus Status { get; private set; }
-        public string Notes { get; private set; }
+        public string Notes { get; private set; } = null!;
         public DateTime ChangedAt { get; private set; }
 
         private PolicyStatusHistory() { }

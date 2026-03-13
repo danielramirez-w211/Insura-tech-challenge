@@ -13,11 +13,11 @@ namespace InsuraTech.Domain.Policies
 {
     public sealed class Policy : AggregateRoot
     {
-        public PolicyNumber Number { get; private set; }
+        public PolicyNumber Number { get; private set; } = null!;
         public PolicyType Type { get; private set; }
         public PolicyStatus Status { get; private set; }
-        public InsuredPerson Insured { get; private set; }
-        public CoveragePeriod Coverage { get; private set; }
+        public InsuredPerson Insured { get; private set; } = null!;
+        public CoveragePeriod Coverage { get; private set; } = null!;
         public decimal MonthlyPremium { get; private set; }
         public decimal InsuredAmount { get; private set; }
         public decimal AvailableInsuredAmount { get; private set; }
