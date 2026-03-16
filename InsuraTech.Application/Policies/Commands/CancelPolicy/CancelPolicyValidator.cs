@@ -24,3 +24,4 @@ namespace InsuraTech.Application.Policies.Commands.CancelPolicy
                 .WithMessage("Effective date cannot be in the past.");
         }
     }
+}
