@@ -19,6 +19,7 @@ namespace InsuraTech.Domain.Common
     public interface IDomainEvent
     {
         Guid Id { get; }
+        Guid EventId { get; }
         DateTime OccurredOn { get; }
         string EventType { get; }
     }

@@ -11,9 +11,12 @@ namespace InsuraTech.Domain.Events
     {
 
 
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid EventId { get; } = Guid.NewGuid();
+        public Guid Id => EventId;
+
         public DateTime OccurredOn { get; } = DateTime.UtcNow;
         public string EventType => nameof(PolicyActivatedEvent);
+
 
         public Guid PolicyId           {  get; }
         public string PolicyNumber     {  get; }
