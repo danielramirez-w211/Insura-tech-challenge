@@ -25,6 +25,8 @@ namespace InsuraTech.Domain.Interfaces
         Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default);
         Task<long> GetNextSequenceAsync(CancellationToken cancellationToken = default);
 
+        Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default);
+
 
     }
 }

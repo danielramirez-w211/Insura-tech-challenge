@@ -9,20 +9,20 @@ namespace InsuraTech.Domain.Common
     public abstract class Entity
     {
         public Guid Id { get; set; }
-        public DateTime CreateAt { get; set; }
-        public DateTime UpdateAt { get; set; }
+        public DateTime CreatedAt { get; protected set; }
+        public DateTime UpdatedAt { get; protected set; }
         public bool IsDeleted { get; set; }
         private int _version {  get; set; }
         public int Version => _version;
 
         protected Entity() {
             Id = Guid.NewGuid();
-            CreateAt = DateTime.UtcNow;
+            CreatedAt = DateTime.UtcNow;
         }
 
         public void IncrementVersion () => _version++;
 
-        protected void MarkAsUpdated() => UpdateAt = DateTime.UtcNow;
+        protected void MarkAsUpdated() => UpdatedAt = DateTime.UtcNow;
 
         public override bool Equals(object? obj)
         {

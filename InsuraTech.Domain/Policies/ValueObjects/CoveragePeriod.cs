@@ -21,19 +21,19 @@ namespace InsuraTech.Domain.Policies.ValueObjects
             EndDate = endDate;
         }
 
-        public CoveragePeriod Create(DateOnly startDate, DateOnly endDate)
+        public static CoveragePeriod Create(DateOnly startDate, DateOnly endDate)
         {
-            if (StartDate >= EndDate)
+            if (startDate >= endDate)
                 throw new ArgumentException("Start Date must be before end date. ");
 
-            var days = endDate.DayNumber - StartDate.DayNumber;
+            var days = endDate.DayNumber - startDate.DayNumber;
             if (days < MinDays)
                 throw new ArgumentException($"Coverage period must be at least {MinDays} days. ");
 
             if (startDate.AddYears(MaxYears) < endDate)
                 throw new ArgumentException($"Coverage peirod cannot exceed {MaxYears} years. ");
 
-            return new CoveragePeriod(StartDate, endDate);
+            return new CoveragePeriod(startDate, endDate);
         }
 
         public bool IsActive(DateOnly date) =>
