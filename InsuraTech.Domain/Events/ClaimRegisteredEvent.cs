@@ -20,9 +20,8 @@ namespace InsuraTech.Domain.Events
         public string PolicyNumer {  get; }
         public Decimal ClaimAmount {  get; }
 
-        public ClaimRegisteredEvent(DateTime occurredOn, Guid claimId, Guid policyId, string policyNumer, decimal claimAmount)
+        public ClaimRegisteredEvent(Guid claimId, Guid policyId, string policyNumer, decimal claimAmount)
         {
-            OccurredOn = occurredOn;
             ClaimId = claimId;
             PolicyId = policyId;
             PolicyNumer = policyNumer;
