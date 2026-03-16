@@ -16,4 +16,8 @@
     <ProjectReference Include="..\InsuraTech.Domain\InsuraTech.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Policies\Commands\ActivatePolicy\" />
+  </ItemGroup>
+
 </Project>
