@@ -9,7 +9,9 @@ namespace InsuraTech.Domain.Events
 {
     public sealed class PolicyCancelledEvent : IDomainEvent
     {
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid EventId { get; } = Guid.NewGuid();
+        public Guid Id => EventId;
+
         public DateTime OccurredOn { get; } = DateTime.UtcNow;
         public string EventType => nameof(PolicyCancelledEvent);
 
