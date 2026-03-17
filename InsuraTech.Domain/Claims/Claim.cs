@@ -123,6 +123,25 @@ namespace InsuraTech.Domain.Claims
                 Id, PolicyId, previous, Status, responsibleUser, observations));
 
         }
+
+        public void Reject(string reason, string responsibleUser)
+        {
+            if (Status != ClaimStatus.UnderInvestigation && Status != ClaimStatus.Appealed)
+                throw new InvalidClaimStateException(Status.ToString(), nameof(Reject));
+
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Rejection reason is required.", nameof(reason));
+
+            var previous = Status;
+            Status = ClaimStatus.Rejected;
+            RejectionReason = reason;
+            MarkAsUpdated();
+            IncrementVersion();
+
+            AddStatusHistory(ClaimStatus.Rejected, responsibleUser, reason);
+            AddDomainEvent(new ClaimStatusChangedEvent(
+                Id, PolicyId, previous, Status, responsibleUser, reason));
+        }
         public void RegisterPayment(string responsibleUser, string? observations = null)
         {
             if (Status != ClaimStatus.Approved)
