@@ -16,7 +16,7 @@ namespace InsuraTech.Infrastructure.Persistence
 
         public DbSet<Policy> Policies => Set<Policy>();
         public DbSet<PolicyStatusHistory> PolicyStatusHistories => Set<PolicyStatusHistory>();
-        public DbSet<Claim> claims => Set<Claim>();
+        public DbSet<Claim> Claims => Set<Claim>();
         public DbSet<ClaimStatusHistory> ClaimStatusHistories => Set<ClaimStatusHistory>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
