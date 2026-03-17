@@ -8,7 +8,7 @@ using MediatR;
 
 namespace InsuraTech.Application.Policies.Commands.RenewPolicy
 {
-    public sealed class RenewPolicyCommand : IRequest<PolicyResponse>
+    public sealed record RenewPolicyCommand : IRequest<PolicyResponse>
     {
         public Guid PolicyId { get; init; }
         public DateOnly NewCoverageStartDate { get; init; }
