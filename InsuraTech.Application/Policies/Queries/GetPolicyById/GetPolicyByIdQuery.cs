@@ -8,7 +8,7 @@ using MediatR;
 
 namespace InsuraTech.Application.Policies.Queries.GetPolicyById
 {
-    public sealed class GetPolicyByIdQuery : IRequest<PolicyResponse>
+    public sealed record GetPolicyByIdQuery : IRequest<PolicyResponse>
     {
         public Guid PolicyId { get; init; }
     }
