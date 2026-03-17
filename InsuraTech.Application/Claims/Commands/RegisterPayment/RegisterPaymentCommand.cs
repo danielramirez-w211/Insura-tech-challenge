@@ -8,7 +8,7 @@ using MediatR;
 
 namespace InsuraTech.Application.Claims.Commands.RegisterPayment
 {
-    public sealed class RegisterPaymentCommand : IRequest<ClaimResponse>
+    public sealed record RegisterPaymentCommand : IRequest<ClaimResponse>
     {
         public Guid ClaimId { get; init; }
         public string ResponsibleUser { get; init; } = null!;

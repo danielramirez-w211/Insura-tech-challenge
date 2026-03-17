@@ -12,8 +12,12 @@ namespace InsuraTech.Domain.Common
         public DateTime CreatedAt { get; protected set; }
         public DateTime UpdatedAt { get; protected set; }
         public bool IsDeleted { get; set; }
-        private int _version {  get; set; }
-        public int Version => _version;
+        private int _version;
+        public int Version
+        {
+            get => _version;
+            private set => _version = value;
+        }
 
         protected Entity() {
             Id = Guid.NewGuid();

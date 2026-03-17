@@ -8,7 +8,7 @@ using MediatR;
 
 namespace InsuraTech.Application.Claims.Commands.AppealClaim
 {
-    public sealed class AppealClaimCommand : IRequest<ClaimResponse>
+    public sealed record AppealClaimCommand : IRequest<ClaimResponse>
     {
         public Guid ClaimId { get; init; }
         public string ResponsibleUser { get; init; } = null!;

@@ -8,7 +8,7 @@ using MediatR;
 
 namespace InsuraTech.Application.Policies.Commands.SuspendPolicy
 {
-    public sealed class SuspendPolicyCommand : IRequest<PolicyResponse>
+    public sealed record SuspendPolicyCommand : IRequest<PolicyResponse>
     {
         public Guid PolicyId { get; init; }
         public string Reason { get; init; } = null!;
