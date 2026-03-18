@@ -45,9 +45,9 @@ namespace InsuraTech.Domain.Claims
             if(incidentDate < policyStartDate || incidentDate > policyEndDate)
                 throw new ClaimOnExpiredPolicyException(policyId, incidentDate);
 
-            if(claimedAmount <= 0)
-                throw new ArgumentException("AMOUNT_EXCEEDS_COVERAGE",
-                $"Claimed amount ${claimedAmount} exceeds available insured amount ${availableInsuredAmount}.");
+            if (claimedAmount > availableInsuredAmount)
+                throw new BusinessRuleException("AMOUNT_EXCEEDS_COVERAGE",
+                    $"Claimed amount ${claimedAmount} exceeds available insured amount ${availableInsuredAmount}.");
 
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Claim description is required.", nameof(description));
@@ -106,14 +106,15 @@ namespace InsuraTech.Domain.Claims
 
         public void Appeal(string responsibleUser, string? observations = null)
         {
-            if (Status != ClaimStatus.Registered)
+            if (Status != ClaimStatus.Rejected)
                 throw new InvalidClaimStateException(Status.ToString(), nameof(Appeal));
+
             if (HasBeenAppealed)
                 throw new BusinessRuleException("APPEAL_ALREADY_USED",
-                $"Claim '{Id}' has already been appealed once. No further appeals are allowed.");
+                    $"Claim '{Id}' has already been appealed once.");
 
             var previous = Status;
-            Status = ClaimStatus.Approved;
+            Status = ClaimStatus.Appealed;
             HasBeenAppealed = true;
             MarkAsUpdated();
             IncrementVersion();
@@ -126,7 +127,8 @@ namespace InsuraTech.Domain.Claims
 
         public void Reject(string reason, string responsibleUser)
         {
-            if (Status != ClaimStatus.UnderInvestigation && Status != ClaimStatus.Appealed)
+            if (Status != ClaimStatus.UnderInvestigation &&
+                Status != ClaimStatus.Appealed)
                 throw new InvalidClaimStateException(Status.ToString(), nameof(Reject));
 
             if (string.IsNullOrWhiteSpace(reason))
