@@ -1,23 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using InsuraTech.Domain.Claims;
+﻿using InsuraTech.Domain.Claims;
 using InsuraTech.Domain.Common;
+using InsuraTech.Domain.Notifications;
 using InsuraTech.Domain.Policies;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace InsuraTech.Infrastructure.Persistence
 {
     public sealed class InsuraTechDbContext : DbContext
     {
-        public InsuraTechDbContext(DbContextOptions<InsuraTechDbContext> options) : base(options) { }
+        private readonly IPublisher _publisher;
+
+        public InsuraTechDbContext(DbContextOptions<InsuraTechDbContext> options, IPublisher publisher)
+            : base(options)
+        {
+            _publisher = publisher;
+        }
 
         public DbSet<Policy> Policies => Set<Policy>();
         public DbSet<PolicyStatusHistory> PolicyStatusHistories => Set<PolicyStatusHistory>();
         public DbSet<Claim> Claims => Set<Claim>();
         public DbSet<ClaimStatusHistory> ClaimStatusHistories => Set<ClaimStatusHistory>();
+        public DbSet<Notification> Notifications => Set<Notification>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,7 +40,12 @@ namespace InsuraTech.Infrastructure.Persistence
             var result = await base.SaveChangesAsync(cancellationToken);
 
             foreach (var aggregate in aggregates)
+            {
+                foreach (var domainEvent in aggregate.DomainEvents)
+                    await _publisher.Publish(domainEvent, cancellationToken);
+
                 aggregate.ClearDomainEvent();
+            }
 
             return result;
         }

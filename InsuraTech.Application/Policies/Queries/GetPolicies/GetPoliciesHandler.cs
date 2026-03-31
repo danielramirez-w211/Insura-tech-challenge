@@ -26,7 +26,13 @@ namespace InsuraTech.Application.Policies.Queries.GetPolicies
                 cancellationToken
                 );
 
-            var totalCount = await _policyRepository.CountAsync(cancellationToken);
+            var totalCount = await _policyRepository.CountAsync(
+                request.Status,
+                request.Type,
+                request.DocumentId,
+                request.StartDate,
+                request.EndDate,
+                cancellationToken);
 
             var item = policies.Select(p => p.ToResponse());
             return new PagedResult<PolicyResponse>(item, totalCount, request.Page, request.PageSize);

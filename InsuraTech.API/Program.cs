@@ -48,23 +48,19 @@ var app = builder.Build();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "InsuraTech API v1");
-        c.RoutePrefix = "swagger";
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "InsuraTech API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.MapControllers();
 
-// ─── Migrations automáticas en desarrollo ─────────────────────────────────────
-if (app.Environment.IsDevelopment())
+// ─── Migrations automáticas al iniciar ────────────────────────────────────────
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider
         .GetRequiredService<InsuraTech.Infrastructure.Persistence.InsuraTechDbContext>();
     db.Database.Migrate();

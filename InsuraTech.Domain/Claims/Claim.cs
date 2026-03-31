@@ -63,7 +63,7 @@ namespace InsuraTech.Domain.Claims
                 HasBeenAppealed = false,
             };
 
-            claim.AddStatusHistory(ClaimStatus.Registered, responsibleUser, "Claim resgistered. ");
+            claim.AddStatusHistory(ClaimStatus.Registered, responsibleUser, "Claim registered.");
             claim.AddDomainEvent(new ClaimRegisteredEvent(
                 claim.Id, policyId, string.Empty, claimedAmount));
 
@@ -119,7 +119,7 @@ namespace InsuraTech.Domain.Claims
             MarkAsUpdated();
             IncrementVersion();
 
-            AddStatusHistory(ClaimStatus.Approved, responsibleUser, observations);
+            AddStatusHistory(ClaimStatus.Appealed, responsibleUser, observations);
             AddDomainEvent(new ClaimStatusChangedEvent(
                 Id, PolicyId, previous, Status, responsibleUser, observations));
 

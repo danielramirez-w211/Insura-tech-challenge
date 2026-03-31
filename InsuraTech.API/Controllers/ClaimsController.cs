@@ -8,7 +8,6 @@ using InsuraTech.Application.Claims.Commands.RejectClaim;
 using InsuraTech.Application.Claims.Commands.StartInvestigation;
 using InsuraTech.Application.Claims.DTOs;
 using InsuraTech.Application.Claims.Queries.GetClaimById;
-using InsuraTech.Application.Claims.Queries.GetClaimsByPolicy;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,17 +43,6 @@ public sealed class ClaimsController : ControllerBase
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetClaimByIdQuery { ClaimId = id }, cancellationToken);
-        return Ok(result);
-    }
-
-    /// <summary>Gets all claims for a policy.</summary>
-    [HttpGet("policy/{policyId:guid}")]
-    [ProducesResponseType(typeof(IEnumerable<ClaimResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetByPolicy(Guid policyId, CancellationToken cancellationToken)
-    {
-        var result = await _mediator.Send(
-            new GetClaimsByPolicyQuery { PolicyId = policyId }, cancellationToken);
         return Ok(result);
     }
 

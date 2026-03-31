@@ -31,7 +31,7 @@ namespace InsuraTech.Domain.Policies.ValueObjects
                 throw new ArgumentException($"Coverage period must be at least {MinDays} days. ");
 
             if (startDate.AddYears(MaxYears) < endDate)
-                throw new ArgumentException($"Coverage peirod cannot exceed {MaxYears} years. ");
+                throw new ArgumentException($"Coverage period cannot exceed {MaxYears} years. ");
 
             return new CoveragePeriod(startDate, endDate);
         }

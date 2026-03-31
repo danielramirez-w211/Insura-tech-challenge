@@ -20,13 +20,18 @@ namespace InsuraTech.Domain.Interfaces
         int page,
         int pageSize,
         CancellationToken cancellationToken = default);
-        Task<int> CountAsync(CancellationToken cancellationToken = default);
+        Task<int> CountAsync(
+            PolicyStatus? status,
+            PolicyType? type,
+            string? documentId,
+            DateOnly? startDate,
+            DateOnly? endDate,
+            CancellationToken cancellationToken = default);
         Task AddAsync(Policy policy, CancellationToken cancellationToken = default);
         Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default);
         Task<long> GetNextSequenceAsync(CancellationToken cancellationToken = default);
 
         Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default);
-
-
+        void SetIdempotencyKey(Policy policy, string idempotencyKey);
     }
 }

@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Interfaces;
-using InsuraTech.Infrastructure.Persistence.Repositories;
 using InsuraTech.Infrastructure.Persistence;
+using InsuraTech.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +27,7 @@ namespace InsuraTech.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPolicyRepository, PolicyRepository>();
             services.AddScoped<IClaimRepository, ClaimRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
 
             return services;
         }

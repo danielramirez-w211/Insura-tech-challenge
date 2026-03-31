@@ -13,9 +13,9 @@ namespace InsuraTech.Application.Claims.Commands.ApproveClaim
 {
     public sealed class ApproveClaimHandler : IRequestHandler<ApproveClaimCommand, ClaimResponse>
     {
-        public readonly IClaimRepository _claimRepository;
-        public readonly IPolicyRepository _policyRepository;
-        public readonly IUnitOfWork _unitOfWork;
+        private readonly IClaimRepository _claimRepository;
+        private readonly IPolicyRepository _policyRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
         public ApproveClaimHandler(IClaimRepository claimRepository, IPolicyRepository policyRepository, IUnitOfWork unitOfWork)
         {

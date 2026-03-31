@@ -53,6 +53,7 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
                  request.InsuredAmount);
 
             await _policyRepository.AddAsync(policy, cancellationToken);
+            _policyRepository.SetIdempotencyKey(policy, request.IdempotencyKey);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return policy.ToResponse();

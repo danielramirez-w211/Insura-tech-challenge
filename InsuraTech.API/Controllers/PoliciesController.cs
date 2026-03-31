@@ -1,5 +1,7 @@
 ﻿namespace InsuraTech.API.Controllers;
 
+using InsuraTech.Application.Claims.DTOs;
+using InsuraTech.Application.Claims.Queries.GetClaimsByPolicy;
 using InsuraTech.Application.Policies.Commands.ActivatePolicy;
 using InsuraTech.Application.Policies.Commands.CancelPolicy;
 using InsuraTech.Application.Policies.Commands.CreatePolicy;
@@ -118,6 +120,17 @@ public sealed class PoliciesController : ControllerBase
         CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command with { PolicyId = id }, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Gets all claims for a policy.</summary>
+    [HttpGet("{id:guid}/claims")]
+    [ProducesResponseType(typeof(IEnumerable<ClaimResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetClaims(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new GetClaimsByPolicyQuery { PolicyId = id }, cancellationToken);
         return Ok(result);
     }
 

@@ -75,14 +75,42 @@ namespace InsuraTech.Infrastructure.Persistence.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        public async Task<int> CountAsync(
+            PolicyStatus? status,
+            PolicyType? type,
+            string? documentId,
+            DateOnly? startDate,
+            DateOnly? endDate,
+            CancellationToken cancellationToken = default)
         {
-            return await _context.Policies.CountAsync(cancellationToken);
+            var query = _context.Policies.AsQueryable();
+
+            if (status.HasValue)
+                query = query.Where(p => p.Status == status.Value);
+
+            if (type.HasValue)
+                query = query.Where(p => p.Type == type.Value);
+
+            if (!string.IsNullOrWhiteSpace(documentId))
+                query = query.Where(p => p.Insured.DocumentId == documentId);
+
+            if (startDate.HasValue)
+                query = query.Where(p => p.Coverage.StartDate >= startDate.Value);
+
+            if (endDate.HasValue)
+                query = query.Where(p => p.Coverage.EndDate <= endDate.Value);
+
+            return await query.CountAsync(cancellationToken);
         }
 
         public async Task AddAsync(Policy policy, CancellationToken cancellationToken = default)
         {
             await _context.Policies.AddAsync(policy, cancellationToken);
+        }
+
+        public void SetIdempotencyKey(Policy policy, string idempotencyKey)
+        {
+            _context.Entry(policy).Property("IdempotencyKey").CurrentValue = idempotencyKey;
         }
 
         public async Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default)
