@@ -3,27 +3,26 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain", "InsuraTech.Domain\InsuraTech.Domain.csproj", "{94CFC8A5-4CAF-4083-AE07-FB0F5F5A8506}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain", "src\InsuraTech.Domain\InsuraTech.Domain.csproj", "{94CFC8A5-4CAF-4083-AE07-FB0F5F5A8506}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Application", "InsuraTech.Application\InsuraTech.Application.csproj", "{E4C784C0-A7FE-4F1B-BF63-04D5A932589D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Application", "src\InsuraTech.Application\InsuraTech.Application.csproj", "{E4C784C0-A7FE-4F1B-BF63-04D5A932589D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Infrastructure", "InsuraTech.Infrastructure\InsuraTech.Infrastructure.csproj", "{908B7F59-2D45-4EEB-9845-FC77CF83B8D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Infrastructure", "src\InsuraTech.Infrastructure\InsuraTech.Infrastructure.csproj", "{908B7F59-2D45-4EEB-9845-FC77CF83B8D2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C69B7E64-CDF9-45A9-B286-39E889BCC000}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.API", "InsuraTech.API\InsuraTech.API.csproj", "{17A382F1-28F7-4A0D-B521-EFE0E8E91061}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.API", "src\InsuraTech.API\InsuraTech.API.csproj", "{17A382F1-28F7-4A0D-B521-EFE0E8E91061}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{19284E3C-DE22-4EFE-8255-3C9808DC1D84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain.Tests", "InsuraTech.Domain.Tests\InsuraTech.Domain.Tests.csproj", "{20BE6B0F-2EAD-4126-BF6F-F038F80BAE3F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain.Tests", "tests\InsuraTech.Domain.Tests\InsuraTech.Domain.Tests.csproj", "{20BE6B0F-2EAD-4126-BF6F-F038F80BAE3F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Application.Tests", "InsuraTech.Application.Tests\InsuraTech.Application.Tests.csproj", "{7AA9FE62-D149-4EFF-8D92-15C04ACC2F46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Application.Tests", "tests\InsuraTech.Application.Tests\InsuraTech.Application.Tests.csproj", "{7AA9FE62-D149-4EFF-8D92-15C04ACC2F46}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3EAD28D5-FA0B-4FA0-B725-C21E54667884}"
 	ProjectSection(SolutionItems) = preProject
 		Dockerfile = Dockerfile
-		podman-compose.yml = podman-compose.yml
-		README.md = README.md
+		README.md = ..\README.md
 	EndProjectSection
 EndProject
 Global

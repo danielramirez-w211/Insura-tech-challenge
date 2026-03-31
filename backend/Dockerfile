@@ -11,7 +11,7 @@ COPY ["src/InsuraTech.Infrastructure/InsuraTech.Infrastructure.csproj", "src/Ins
 # Restore
 RUN dotnet restore "src/InsuraTech.API/InsuraTech.API.csproj"
 
-# Copiar todo el código fuente
+# Copiar todo el cï¿½digo fuente
 COPY . .
 
 # Build y publish
