@@ -45,9 +45,9 @@ namespace InsuraTech.Domain.Claims
             if(incidentDate < policyStartDate || incidentDate > policyEndDate)
                 throw new ClaimOnExpiredPolicyException(policyId, incidentDate);
 
-            if(claimedAmount <= 0)
-                throw new ArgumentException("AMOUNT_EXCEEDS_COVERAGE",
-                $"Claimed amount ${claimedAmount} exceeds available insured amount ${availableInsuredAmount}.");
+            if (claimedAmount > availableInsuredAmount)
+                throw new BusinessRuleException("AMOUNT_EXCEEDS_COVERAGE",
+                    $"Claimed amount ${claimedAmount} exceeds available insured amount ${availableInsuredAmount}.");
 
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Claim description is required.", nameof(description));
@@ -63,7 +63,7 @@ namespace InsuraTech.Domain.Claims
                 HasBeenAppealed = false,
             };
 
-            claim.AddStatusHistory(ClaimStatus.Registered, responsibleUser, "Claim resgistered. ");
+            claim.AddStatusHistory(ClaimStatus.Registered, responsibleUser, "Claim registered.");
             claim.AddDomainEvent(new ClaimRegisteredEvent(
                 claim.Id, policyId, string.Empty, claimedAmount));
 
@@ -106,22 +106,43 @@ namespace InsuraTech.Domain.Claims
 
         public void Appeal(string responsibleUser, string? observations = null)
         {
-            if (Status != ClaimStatus.Registered)
+            if (Status != ClaimStatus.Rejected)
                 throw new InvalidClaimStateException(Status.ToString(), nameof(Appeal));
+
             if (HasBeenAppealed)
                 throw new BusinessRuleException("APPEAL_ALREADY_USED",
-                $"Claim '{Id}' has already been appealed once. No further appeals are allowed.");
+                    $"Claim '{Id}' has already been appealed once.");
 
             var previous = Status;
-            Status = ClaimStatus.Approved;
+            Status = ClaimStatus.Appealed;
             HasBeenAppealed = true;
             MarkAsUpdated();
             IncrementVersion();
 
-            AddStatusHistory(ClaimStatus.Approved, responsibleUser, observations);
+            AddStatusHistory(ClaimStatus.Appealed, responsibleUser, observations);
             AddDomainEvent(new ClaimStatusChangedEvent(
                 Id, PolicyId, previous, Status, responsibleUser, observations));
 
+        }
+
+        public void Reject(string reason, string responsibleUser)
+        {
+            if (Status != ClaimStatus.UnderInvestigation &&
+                Status != ClaimStatus.Appealed)
+                throw new InvalidClaimStateException(Status.ToString(), nameof(Reject));
+
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Rejection reason is required.", nameof(reason));
+
+            var previous = Status;
+            Status = ClaimStatus.Rejected;
+            RejectionReason = reason;
+            MarkAsUpdated();
+            IncrementVersion();
+
+            AddStatusHistory(ClaimStatus.Rejected, responsibleUser, reason);
+            AddDomainEvent(new ClaimStatusChangedEvent(
+                Id, PolicyId, previous, Status, responsibleUser, reason));
         }
         public void RegisterPayment(string responsibleUser, string? observations = null)
         {

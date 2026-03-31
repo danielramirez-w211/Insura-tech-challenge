@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35707.178 d17.12
+VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain", "InsuraTech.Domain\InsuraTech.Domain.csproj", "{94CFC8A5-4CAF-4083-AE07-FB0F5F5A8506}"
 EndProject
@@ -18,6 +18,13 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Domain.Tests", "InsuraTech.Domain.Tests\InsuraTech.Domain.Tests.csproj", "{20BE6B0F-2EAD-4126-BF6F-F038F80BAE3F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsuraTech.Application.Tests", "InsuraTech.Application.Tests\InsuraTech.Application.Tests.csproj", "{7AA9FE62-D149-4EFF-8D92-15C04ACC2F46}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3EAD28D5-FA0B-4FA0-B725-C21E54667884}"
+	ProjectSection(SolutionItems) = preProject
+		Dockerfile = Dockerfile
+		podman-compose.yml = podman-compose.yml
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
