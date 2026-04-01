@@ -1,9 +1,10 @@
 ---
 id: SPEC-002
-status: DRAFT
+status: APPROVED
 feature: frontend-base-structure
 created: 2026-03-31
 updated: 2026-03-31
+approved: 2026-03-31
 author: spec-generator
 version: "1.0"
 related-specs: ["SPEC-001"]
@@ -11,7 +12,7 @@ related-specs: ["SPEC-001"]
 
 # Spec: Frontend Angular 20 — Estructura Base + Módulos de Negocio
 
-> **Estado:** `DRAFT` → aprobar con `status: APPROVED` antes de iniciar implementación.
+> **Estado:** `APPROVED` — listo para implementación.
 > **Ciclo de vida:** DRAFT → APPROVED → IN_PROGRESS → IMPLEMENTED → DEPRECATED
 
 ---

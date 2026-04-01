@@ -1,0 +1,21 @@
+<mat-toolbar color="primary" class="toolbar">
+  <button mat-icon-button (click)="sidenavOpened = !sidenavOpened" aria-label="Toggle menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="brand">InsuraTech</span>
+  <span class="spacer"></span>
+  <mat-icon>account_circle</mat-icon>
+</mat-toolbar>
+
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav
+    mode="side"
+    [opened]="sidenavOpened"
+    class="sidenav">
+    <app-sidenav />
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main-content">
+    <router-outlet />
+  </mat-sidenav-content>
+</mat-sidenav-container>
