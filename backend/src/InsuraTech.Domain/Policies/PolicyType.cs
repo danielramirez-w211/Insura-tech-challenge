@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+namespace InsuraTech.Domain.Policies;
 
-namespace InsuraTech.Domain.Policies
+public enum PolicyType
 {
-    public enum PolicyType
-    {
-        Life = 1,
-        Auto = 2,
-        Home = 3
-    }
+    Life    = 1,
+    Health  = 2,
+    Vehicle = 3,
+    Home    = 4,
+    Travel  = 5
 }

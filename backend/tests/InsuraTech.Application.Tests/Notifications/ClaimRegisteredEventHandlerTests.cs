@@ -58,8 +58,8 @@ public sealed class ClaimRegisteredEventHandlerTests
         // THEN
         await _notificationRepository.Received(1).AddAsync(
             Arg.Is<Notification>(n =>
-                n.Body.Contains("5,000.00") &&
-                n.Body.Contains(claimId.ToString())),
+                n.Body.Contains(claimId.ToString()) &&
+                n.Body.Contains("POL-2024-00000001")),
             Arg.Any<CancellationToken>());
     }
 }

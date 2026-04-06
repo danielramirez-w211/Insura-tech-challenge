@@ -25,7 +25,7 @@ public sealed class GetPolicyByIdHandlerTests
         // Arrange
         var policy = Policy.Create(
             PolicyNumber.Create(2024, 1),
-            PolicyType.Auto,
+            PolicyType.Vehicle,
             InsuredPerson.Create("Jane Doe", "987654321", new DateOnly(1985, 6, 15)),
             CoveragePeriod.Create(
                 DateOnly.FromDateTime(DateTime.UtcNow),
@@ -43,7 +43,7 @@ public sealed class GetPolicyByIdHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Id.Should().Be(policy.Id);
-        result.Type.Should().Be("Auto");
+        result.Type.Should().Be("Vehicle");
         result.InsuredDocumentId.Should().Be("987654321");
     }
 
