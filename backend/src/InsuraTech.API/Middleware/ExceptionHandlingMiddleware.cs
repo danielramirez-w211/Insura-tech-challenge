@@ -1,5 +1,4 @@
-﻿using InsuraTech.Application.Common.Exceptions;
-using InsuraTech.Domain.Exceptions;
+﻿using InsuraTech.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 

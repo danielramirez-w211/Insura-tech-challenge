@@ -1,6 +1,6 @@
 ---
 id: SPEC-003
-status: APPROVED
+status: IN_PROGRESS
 feature: health-plan-pricing
 created: 2026-04-06
 updated: 2026-04-06

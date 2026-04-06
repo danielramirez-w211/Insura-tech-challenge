@@ -1,4 +1,5 @@
-﻿namespace InsuraTech.Domain.Exceptions;
+﻿using  InsuraTech.Domain.Exceptions;
+
 
 public sealed class NotFoundException : DomainException
 {

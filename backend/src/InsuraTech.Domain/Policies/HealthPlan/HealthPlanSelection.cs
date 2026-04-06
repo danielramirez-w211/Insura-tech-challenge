@@ -11,7 +11,7 @@ public sealed class HealthPlanSelection : ValueObject
     public decimal AgeFactorAmount { get; }
     public decimal FinalAmount { get; }
 
-    internal HealthPlanSelection(
+    public HealthPlanSelection(
         string planId,
         string planName,
         decimal baseAmount,

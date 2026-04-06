@@ -36,7 +36,7 @@ public sealed class CreateHealthPolicyHandlerTests
             InsuredBirthDate  = birthDate ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-40),
             CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),
             CoverageEndDate   = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1),
-            MonthlyPremium    = 20_000m,
+            MonthlyPremium    = 5_000m,   // < 5% de cualquier plan (min base: $300.000 → max prima $15.000)
             HealthPlanId      = planId
         };
 
