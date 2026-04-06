@@ -44,13 +44,21 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
                 request.CoverageStartDate,
                 request.CoverageEndDate);
 
-            var  policy = Policy.Create(
-                 policyNumber,
-                 request.Type,
-                 insured,
-                 coverage,
-                 request.MonthlyPremium,
-                 request.InsuredAmount);
+            var policy = request.Type == PolicyType.Health && !string.IsNullOrWhiteSpace(request.HealthPlanId)
+                ? Policy.CreateHealthPolicy(
+                    policyNumber,
+                    insured,
+                    coverage,
+                    request.MonthlyPremium,
+                    request.HealthPlanId,
+                    DateOnly.FromDateTime(DateTime.UtcNow))
+                : Policy.Create(
+                    policyNumber,
+                    request.Type,
+                    insured,
+                    coverage,
+                    request.MonthlyPremium,
+                    request.InsuredAmount);
 
             await _policyRepository.AddAsync(policy, cancellationToken);
             _policyRepository.SetIdempotencyKey(policy, request.IdempotencyKey);

@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Subject, takeUntil, catchError, EMPTY } from 'rxjs';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,9 +14,13 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PoliciesService } from '../services/policies.service';
-import { PolicyType } from '../models/policy.model';
+import { HealthPlansService } from '../services/health-plans.service';
+import { HealthPlanDto, HealthPlanCalculationDto, PolicyType } from '../models/policy.model';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
+import { HealthPlanSelectorComponent } from '../components/health-plan-selector/health-plan-selector.component';
+import { HealthPlanPreviewComponent } from '../components/health-plan-preview/health-plan-preview.component';
+import { AgeRestrictionComponent } from '../components/age-restriction/age-restriction.component';
 
 @Component({
   selector: 'app-policy-create',
@@ -34,6 +39,9 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
     MatDividerModule,
     PageHeaderComponent,
     StatusLabelPipe,
+    HealthPlanSelectorComponent,
+    HealthPlanPreviewComponent,
+    AgeRestrictionComponent,
   ],
   template: `
     <app-page-header
@@ -44,7 +52,7 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
 
     <mat-stepper [linear]="true" #stepper class="stepper">
 
-      <!-- ── Paso 1: Asegurado ────────────────────────────────────────── -->
+      <!-- ── Paso 1: Asegurado ──────────────────────────────────────────── -->
       <mat-step [stepControl]="insuredForm" label="Asegurado">
         <form [formGroup]="insuredForm">
           <p class="step-hint">Ingresa los datos personales del titular de la póliza.</p>
@@ -116,27 +124,56 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
             <mat-form-field appearance="outline">
               <mat-label>Tipo de póliza</mat-label>
               <mat-icon matPrefix>category</mat-icon>
-              <mat-select formControlName="type">
+              <mat-select formControlName="type" (valueChange)="onTypeChange($event)">
                 @for (t of typeOptions; track t) {
                   <mat-option [value]="t">{{ t | statusLabel }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Monto asegurado (USD)</mat-label>
-              <mat-icon matPrefix>attach_money</mat-icon>
-              <input matInput formControlName="insuredAmount" type="number" min="1" placeholder="Ej. 50000" />
-              @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('required')) {
-                <mat-error>El monto es obligatorio</mat-error>
-              }
-              @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('min')) {
-                <mat-error>El monto debe ser mayor a 0</mat-error>
-              }
-            </mat-form-field>
+            <!-- Bloqueo por edad ≥ 74 solo para Health -->
+            @if (isHealthType() && ageRestricted()) {
+              <div class="full-width">
+                <app-age-restriction />
+              </div>
+            }
+
+            <!-- Selector de planes — solo para Health -->
+            @if (isHealthType() && !ageRestricted()) {
+              <div class="full-width">
+                <p class="field-label">Selecciona un plan de salud</p>
+                @if (loadingPlans()) {
+                  <p class="loading-text">Cargando planes...</p>
+                } @else {
+                  <app-health-plan-selector
+                    [plans]="healthPlans()"
+                    [selectedPlanId]="selectedPlanId()"
+                    (planSelected)="onPlanSelected($event)" />
+                }
+
+                @if (healthCalculation()) {
+                  <app-health-plan-preview [calculation]="healthCalculation()" />
+                }
+              </div>
+            }
+
+            <!-- Monto manual — solo para tipos no-Health -->
+            @if (!isHealthType()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Monto asegurado (COP)</mat-label>
+                <mat-icon matPrefix>attach_money</mat-icon>
+                <input matInput formControlName="insuredAmount" type="number" min="1" placeholder="Ej. 50000" />
+                @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('required')) {
+                  <mat-error>El monto es obligatorio</mat-error>
+                }
+                @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('min')) {
+                  <mat-error>El monto debe ser mayor a 0</mat-error>
+                }
+              </mat-form-field>
+            }
 
             <mat-form-field appearance="outline">
-              <mat-label>Prima mensual (USD)</mat-label>
+              <mat-label>Prima mensual (COP)</mat-label>
               <mat-icon matPrefix>payments</mat-icon>
               <input matInput formControlName="monthlyPremium" type="number" min="1" placeholder="Ej. 150" />
               @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('required')) {
@@ -176,7 +213,8 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
             <button mat-stroked-button matStepperPrevious>
               <mat-icon>arrow_back</mat-icon> Anterior
             </button>
-            <button mat-raised-button color="primary" matStepperNext [disabled]="coverageForm.invalid">
+            <button mat-raised-button color="primary" matStepperNext
+                    [disabled]="coverageForm.invalid || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted()))">
               Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
             </button>
           </div>
@@ -210,10 +248,21 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
           <div class="summary-grid">
             <span class="label">Tipo</span>
             <span>{{ coverageForm.value.type ?? '' | statusLabel }}</span>
-            <span class="label">Monto asegurado</span>
-            <span>{{ coverageForm.value.insuredAmount | currency:'USD' }}</span>
+
+            @if (isHealthType() && healthCalculation()) {
+              <span class="label">Plan de salud</span>
+              <span>{{ healthCalculation()!.planName }}</span>
+              <span class="label">Monto asegurado</span>
+              <span>{{ healthCalculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+              <span class="label">Factor edad</span>
+              <span>{{ healthCalculation()!.ageFactorPercentage }}%</span>
+            } @else {
+              <span class="label">Monto asegurado</span>
+              <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+            }
+
             <span class="label">Prima mensual</span>
-            <span>{{ coverageForm.value.monthlyPremium | currency:'USD' }}</span>
+            <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
             <span class="label">Inicio</span>
             <span>{{ coverageForm.value.startDate | date:'dd/MM/yyyy' }}</span>
             <span class="label">Fin</span>
@@ -247,6 +296,20 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
       padding: 8px 0;
+    }
+
+    .full-width { grid-column: 1 / -1; }
+
+    .field-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--mat-sys-on-surface-variant, #666);
+      margin: 0 0 8px;
+    }
+
+    .loading-text {
+      font-size: 13px;
+      color: var(--mat-sys-on-surface-variant, #666);
     }
 
     .step-actions {
@@ -285,14 +348,25 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
     }
   `],
 })
-export class PolicyCreateComponent {
-  service = inject(PoliciesService);
-  router = inject(Router);
-  snackBar = inject(MatSnackBar);
-  fb = inject(FormBuilder);
+export class PolicyCreateComponent implements OnDestroy {
+  service      = inject(PoliciesService);
+  healthSvc    = inject(HealthPlansService);
+  router       = inject(Router);
+  snackBar     = inject(MatSnackBar);
+  fb           = inject(FormBuilder);
+
+  private destroy$ = new Subject<void>();
 
   typeOptions: PolicyType[] = ['Life', 'Health', 'Vehicle', 'Home', 'Travel'];
-  submitting = false;
+  submitting   = false;
+
+  // Health plan state
+  healthPlans    = signal<HealthPlanDto[]>([]);
+  loadingPlans   = signal(false);
+  selectedPlanId = signal<string | null>(null);
+  healthCalculation = signal<HealthPlanCalculationDto | null>(null);
+  ageRestricted  = signal(false);
+  isHealthType   = signal(false);
 
   insuredForm = this.fb.group({
     name:       ['', Validators.required],
@@ -304,11 +378,77 @@ export class PolicyCreateComponent {
 
   coverageForm = this.fb.group({
     type:           ['Life' as PolicyType, Validators.required],
-    insuredAmount:  [null as number | null, [Validators.required, Validators.min(1)]],
+    insuredAmount:  [null as number | null, [Validators.min(1)]],
     monthlyPremium: [null as number | null, [Validators.required, Validators.min(1)]],
     startDate:      [null as Date | null, Validators.required],
     endDate:        [null as Date | null, Validators.required],
   });
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onTypeChange(type: PolicyType): void {
+    this.isHealthType.set(type === 'Health');
+    this.selectedPlanId.set(null);
+    this.healthCalculation.set(null);
+    this.ageRestricted.set(false);
+
+    if (type === 'Health') {
+      this.loadHealthPlans();
+      this.checkAgeRestriction();
+    }
+  }
+
+  onPlanSelected(plan: HealthPlanDto): void {
+    this.selectedPlanId.set(plan.planId);
+    this.healthCalculation.set(null);
+    this.recalculate(plan.planId);
+  }
+
+  private loadHealthPlans(): void {
+    if (this.healthPlans().length > 0) return;
+    this.loadingPlans.set(true);
+    this.healthSvc.getPlans()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: plans => {
+          this.healthPlans.set(plans);
+          this.loadingPlans.set(false);
+        },
+        error: () => this.loadingPlans.set(false),
+      });
+  }
+
+  private checkAgeRestriction(): void {
+    const birthDate = this.insuredForm.value.birthDate;
+    if (!birthDate) return;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+    this.ageRestricted.set(age >= 74);
+  }
+
+  private recalculate(planId: string): void {
+    const birthDate = this.insuredForm.value.birthDate;
+    if (!birthDate) return;
+
+    const dateStr = this.toDateStr(birthDate);
+
+    this.healthSvc.calculate(planId, dateStr)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => {
+          this.healthCalculation.set(null);
+          return EMPTY;
+        })
+      )
+      .subscribe(calc => this.healthCalculation.set(calc));
+  }
 
   submit() {
     if (this.insuredForm.invalid || this.coverageForm.invalid) return;
@@ -316,25 +456,24 @@ export class PolicyCreateComponent {
 
     const iv = this.insuredForm.value;
     const cv = this.coverageForm.value;
-
-    const toDateStr = (d: Date | null | undefined) =>
-      d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : '';
+    const isHealth = this.isHealthType();
 
     this.service.createPolicy({
       type: cv.type!,
       insured: {
         name:       iv.name!,
         documentId: iv.documentId!,
-        birthDate:  toDateStr(iv.birthDate),
+        birthDate:  this.toDateStr(iv.birthDate!),
         email:      iv.email!,
         phone:      iv.phone ?? '',
       },
       coveragePeriod: {
-        startDate: toDateStr(cv.startDate),
-        endDate:   toDateStr(cv.endDate),
+        startDate: this.toDateStr(cv.startDate!),
+        endDate:   this.toDateStr(cv.endDate!),
       },
-      insuredAmount:  cv.insuredAmount!,
+      insuredAmount:  isHealth ? (this.healthCalculation()?.finalAmount ?? 0) : cv.insuredAmount!,
       monthlyPremium: cv.monthlyPremium!,
+      ...(isHealth && this.selectedPlanId() ? { healthPlanId: this.selectedPlanId()! } : {}),
     }).subscribe({
       next: () => {
         this.snackBar.open('Póliza creada exitosamente', 'Cerrar', { duration: 3000 });
@@ -342,5 +481,9 @@ export class PolicyCreateComponent {
       },
       error: () => { this.submitting = false; },
     });
+  }
+
+  private toDateStr(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 }

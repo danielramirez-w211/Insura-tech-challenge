@@ -41,4 +41,31 @@ export interface CreatePolicyRequest {
   coveragePeriod: CoveragePeriodDto;
   insuredAmount: number;
   monthlyPremium: number;
+  /** Solo para type === 'Health'. El backend calcula insuredAmount automáticamente. */
+  healthPlanId?: string;
+}
+
+export interface HealthPlanDto {
+  planId: string;
+  planName: string;
+  baseAmount: number;
+}
+
+export interface HealthPlanCalculationDto {
+  planId: string;
+  planName: string;
+  baseAmount: number;
+  ageFactorPercentage: number;
+  ageFactorAmount: number;
+  finalAmount: number;
+  insuredAge: number;
+}
+
+export interface HealthPlanSelectionDto {
+  planId: string;
+  planName: string;
+  baseAmount: number;
+  ageFactorPercentage: number;
+  ageFactorAmount: number;
+  finalAmount: number;
 }

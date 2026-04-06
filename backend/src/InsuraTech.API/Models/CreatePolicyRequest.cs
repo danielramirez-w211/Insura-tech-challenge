@@ -9,6 +9,8 @@ public sealed record CreatePolicyRequest
     public CoveragePeriodRequest CoveragePeriod { get; init; } = null!;
     public decimal InsuredAmount { get; init; }
     public decimal MonthlyPremium { get; init; }
+    /// <summary>Solo para Type = Health. Reemplaza InsuredAmount (se calcula automáticamente).</summary>
+    public string? HealthPlanId { get; init; }
 }
 
 public sealed record InsuredRequest

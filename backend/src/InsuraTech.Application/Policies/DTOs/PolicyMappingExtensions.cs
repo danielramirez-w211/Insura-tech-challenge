@@ -34,7 +34,16 @@ namespace InsuraTech.Application.Policies.DTOs
                         Status = h.Status.ToString(),
                         Notes = h.Notes,
                         ChangedAt = h.ChangedAt
-                    })
+                    }),
+                    HealthPlan = policy.HealthPlan is null ? null : new HealthPlanSelectionDto
+                    {
+                        PlanId = policy.HealthPlan.PlanId,
+                        PlanName = policy.HealthPlan.PlanName,
+                        BaseAmount = policy.HealthPlan.BaseAmount,
+                        AgeFactorPercentage = policy.HealthPlan.AgeFactorPercentage,
+                        AgeFactorAmount = policy.HealthPlan.AgeFactorAmount,
+                        FinalAmount = policy.HealthPlan.FinalAmount
+                    }
                 };
     }
 }
