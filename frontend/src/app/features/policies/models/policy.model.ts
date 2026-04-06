@@ -4,6 +4,7 @@ export type PolicyType = 'Life' | 'Health' | 'Vehicle' | 'Home' | 'Travel';
 export interface InsuredDto {
   name: string;
   documentId: string;
+  birthDate: string;
   email: string;
   phone: string;
 }
@@ -39,4 +40,5 @@ export interface CreatePolicyRequest {
   insured: InsuredDto;
   coveragePeriod: CoveragePeriodDto;
   insuredAmount: number;
+  monthlyPremium: number;
 }

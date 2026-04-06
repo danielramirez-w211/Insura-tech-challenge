@@ -1,36 +1,39 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: insuratech-sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=InsuraTech@2024!
-      - MSSQL_PID=Express
-    ports:
-      - "1433:1433"
-    volumes:
-      - sqlserver_data:/var/opt/mssql
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P InsuraTech@2024! -Q 'SELECT 1'"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  mongo:
+    image: mongo:7
+    container_name: mongo-db
+    restart: always
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: insuratech-api
     ports:
-      - "5000:8080"
+      - "27017:27017"
+
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=InsuraTechDb;User Id=sa;Password=InsuraTech@2024!;TrustServerCertificate=True;
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: mongo-ui
+    restart: always
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_SERVER: mongo
+
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+
     depends_on:
-      sqlserver:
-        condition: service_healthy
+      - mongo
 
 volumes:
-  sqlserver_data:
+  mongo_data:

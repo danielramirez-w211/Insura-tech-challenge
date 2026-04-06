@@ -8,6 +8,9 @@ using InsuraTech.Application.Claims.Commands.RejectClaim;
 using InsuraTech.Application.Claims.Commands.StartInvestigation;
 using InsuraTech.Application.Claims.DTOs;
 using InsuraTech.Application.Claims.Queries.GetClaimById;
+using InsuraTech.Application.Claims.Queries.GetClaims;
+using InsuraTech.Application.Common.Models;
+using InsuraTech.Domain.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +24,22 @@ public sealed class ClaimsController : ControllerBase
     public ClaimsController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    /// <summary>Gets all claims with optional filters.</summary>
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedResult<ClaimResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] ClaimStatus? status,
+        [FromQuery] Guid? policyId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _mediator.Send(
+            new GetClaimsQuery { Status = status, PolicyId = policyId, Page = page, PageSize = pageSize },
+            cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>Registers a new claim.</summary>

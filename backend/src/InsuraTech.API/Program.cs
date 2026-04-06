@@ -1,7 +1,7 @@
-﻿using InsuraTech.API.Middleware;
+using InsuraTech.API.Middleware;
 using InsuraTech.Application;
 using InsuraTech.Infrastructure;
-using Microsoft.EntityFrameworkCore;
+using InsuraTech.Infrastructure.Persistence;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 // ─── Capas ────────────────────────────────────────────────────────────────────
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyHeader()
+              .AllowAnyMethod());
+});
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 builder.Services.AddControllers()
@@ -56,14 +65,14 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.MapControllers();
 
-// ─── Migrations automáticas al iniciar ────────────────────────────────────────
+// ─── Ensure MongoDB indexes on startup ────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider
-        .GetRequiredService<InsuraTech.Infrastructure.Persistence.InsuraTechDbContext>();
-    db.Database.Migrate();
+    var ctx = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+    await ctx.EnsureIndexesAsync();
 }
 
-app.Run();
+await app.RunAsync();

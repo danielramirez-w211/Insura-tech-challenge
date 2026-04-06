@@ -1,35 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Infrastructure.Persistence;
 using InsuraTech.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
-namespace InsuraTech.Infrastructure
+namespace InsuraTech.Infrastructure;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructure(
-            this IServiceCollection services,
-            IConfiguration configuration)
+        MongoDbContext.RegisterClassMaps();
+
+        var connectionString = configuration.GetConnectionString("MongoDb")
+            ?? throw new InvalidOperationException("Missing connection string 'MongoDb'.");
+
+        var databaseName = configuration["MongoDb:DatabaseName"] ?? "InsuraTechDb";
+
+        services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
+
+        services.AddScoped<MongoDbContext>(sp =>
         {
-            services.AddDbContext<InsuraTechDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly(typeof(InsuraTechDbContext).Assembly.FullName)));
+            var client = sp.GetRequiredService<IMongoClient>();
+            var publisher = sp.GetRequiredService<MediatR.IPublisher>();
+            return new MongoDbContext(client, databaseName, publisher);
+        });
 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IPolicyRepository, PolicyRepository>();
-            services.AddScoped<IClaimRepository, ClaimRepository>();
-            services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUnitOfWork, MongoUnitOfWork>();
+        services.AddScoped<IPolicyRepository, PolicyRepository>();
+        services.AddScoped<IClaimRepository, ClaimRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
-            return services;
-        }
+        return services;
     }
 }
