@@ -1,22 +1,20 @@
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Notifications;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace InsuraTech.Infrastructure.Persistence.Repositories;
 
 public sealed class NotificationRepository : INotificationRepository
 {
-    private readonly InsuraTechDbContext _context;
+    private readonly MongoDbContext _context;
 
-    public NotificationRepository(InsuraTechDbContext context)
-    {
-        _context = context;
-    }
+    public NotificationRepository(MongoDbContext context) => _context = context;
 
     public async Task<Notification?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Notifications
-            .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
+            .Find(n => n.Id == id && !n.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<(IEnumerable<Notification> Items, int TotalCount)> GetAllAsync(
@@ -25,17 +23,19 @@ public sealed class NotificationRepository : INotificationRepository
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var query = _context.Notifications.AsQueryable();
+        var filter = status.HasValue
+            ? Builders<Notification>.Filter.And(
+                Builders<Notification>.Filter.Eq(n => n.Status, status.Value),
+                Builders<Notification>.Filter.Eq(n => n.IsDeleted, false))
+            : Builders<Notification>.Filter.Eq(n => n.IsDeleted, false);
 
-        if (status.HasValue)
-            query = query.Where(n => n.Status == status.Value);
+        var totalCount = (int)await _context.Notifications.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
 
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var items = await query
-            .OrderByDescending(n => n.CreatedAt)
+        var items = await _context.Notifications
+            .Find(filter)
+            .SortByDescending(n => n.CreatedAt)
             .Skip((page - 1) * pageSize)
-            .Take(pageSize)
+            .Limit(pageSize)
             .ToListAsync(cancellationToken);
 
         return (items, totalCount);
@@ -43,12 +43,15 @@ public sealed class NotificationRepository : INotificationRepository
 
     public async Task AddAsync(Notification notification, CancellationToken cancellationToken = default)
     {
-        await _context.Notifications.AddAsync(notification, cancellationToken);
+        await _context.Notifications.InsertOneAsync(notification, cancellationToken: cancellationToken);
     }
 
     public async Task UpdateAsync(Notification notification, CancellationToken cancellationToken = default)
     {
-        _context.Notifications.Update(notification);
-        await Task.CompletedTask;
+        await _context.Notifications.ReplaceOneAsync(
+            n => n.Id == notification.Id,
+            notification,
+            new ReplaceOptions { IsUpsert = false },
+            cancellationToken);
     }
 }

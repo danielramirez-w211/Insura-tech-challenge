@@ -1,5 +1,6 @@
 ﻿namespace InsuraTech.API.Controllers;
 
+using InsuraTech.API.Models;
 using InsuraTech.Application.Claims.DTOs;
 using InsuraTech.Application.Claims.Queries.GetClaimsByPolicy;
 using InsuraTech.Application.Policies.Commands.ActivatePolicy;
@@ -33,16 +34,24 @@ public sealed class PoliciesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Create(
-        [FromBody] CreatePolicyCommand command,
+        [FromBody] CreatePolicyRequest request,
         [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
         CancellationToken cancellationToken)
     {
-        var commandWithKey = command with
+        var command = new CreatePolicyCommand
         {
-            IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString()
+            IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString(),
+            Type = request.Type,
+            InsuredFullName = request.Insured.Name,
+            InsuredDocumentId = request.Insured.DocumentId,
+            InsuredBirthDate = request.Insured.BirthDate,
+            CoverageStartDate = request.CoveragePeriod.StartDate,
+            CoverageEndDate = request.CoveragePeriod.EndDate,
+            InsuredAmount = request.InsuredAmount,
+            MonthlyPremium = request.MonthlyPremium,
         };
 
-        var result = await _mediator.Send(commandWithKey, cancellationToken);
+        var result = await _mediator.Send(command, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 

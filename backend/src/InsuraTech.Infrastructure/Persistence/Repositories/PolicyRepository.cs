@@ -1,131 +1,144 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
-using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
-namespace InsuraTech.Infrastructure.Persistence.Repositories
+namespace InsuraTech.Infrastructure.Persistence.Repositories;
+
+public sealed class PolicyRepository : IPolicyRepository
 {
-    public sealed class PolicyRepository : IPolicyRepository
+    private readonly MongoDbContext _context;
+
+    public PolicyRepository(MongoDbContext context) => _context = context;
+
+    public async Task<Policy?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        private readonly InsuraTechDbContext _context;
+        return await _context.Policies
+            .Find(p => p.Id == id && !p.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 
-        public PolicyRepository(InsuraTechDbContext context)
+    public async Task<Policy?> GetByNumberAsync(string policyNumber, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Policy>.Filter.And(
+            Builders<Policy>.Filter.Eq("number.value", policyNumber),
+            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false));
+
+        return await _context.Policies.Find(filter).FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
+    {
+        var keyDoc = await _context.PolicyIdempotencyKeys
+            .Find(Builders<BsonDocument>.Filter.Eq("key", idempotencyKey))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (keyDoc is null) return null;
+
+        var policyId = keyDoc["policyId"].AsGuid;
+        return await GetByIdAsync(policyId, cancellationToken);
+    }
+
+    public async Task<IEnumerable<Policy>> GetAllAsync(
+        PolicyStatus? status,
+        PolicyType? type,
+        string? documentId,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = BuildFilter(status, type, documentId, startDate, endDate);
+
+        return await _context.Policies
+            .Find(filter)
+            .SortByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(
+        PolicyStatus? status,
+        PolicyType? type,
+        string? documentId,
+        DateOnly? startDate,
+        DateOnly? endDate,
+        CancellationToken cancellationToken = default)
+    {
+        var filter = BuildFilter(status, type, documentId, startDate, endDate);
+        return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+    }
+
+    public async Task AddAsync(Policy policy, CancellationToken cancellationToken = default)
+    {
+        await _context.Policies.InsertOneAsync(policy, cancellationToken: cancellationToken);
+        await _context.PublishDomainEventsAsync(policy, cancellationToken);
+    }
+
+    public void SetIdempotencyKey(Policy policy, string idempotencyKey)
+    {
+        // Fire-and-forget insert; the caller always does SaveChangesAsync after this.
+        // We store the key asynchronously — safe because AddAsync already persisted the policy.
+        var doc = new BsonDocument
         {
-            _context = context;
-        }
+            ["key"] = idempotencyKey,
+            ["policyId"] = policy.Id.ToString()
+        };
+        _ = _context.PolicyIdempotencyKeys.InsertOneAsync(doc);
+    }
 
-        public async Task<Policy?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default)
+    {
+        await _context.Policies.ReplaceOneAsync(
+            p => p.Id == policy.Id,
+            policy,
+            new ReplaceOptions { IsUpsert = false },
+            cancellationToken);
+
+        await _context.PublishDomainEventsAsync(policy, cancellationToken);
+    }
+
+    public async Task<long> GetNextSequenceAsync(CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<BsonDocument>.Filter.Eq("_id", "policies");
+        var update = Builders<BsonDocument>.Update.Inc("seq", 1L);
+        var options = new FindOneAndUpdateOptions<BsonDocument>
         {
-            return await _context.Policies
-                .Include(p => p.StatusHistory)
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-        }
+            IsUpsert = true,
+            ReturnDocument = ReturnDocument.After
+        };
 
-        public async Task<Policy?> GetByNumberAsync(string policyNumber, CancellationToken cancellationToken = default)
+        var result = await _context.Counters.FindOneAndUpdateAsync(filter, update, options, cancellationToken);
+        return result["seq"].AsInt64;
+    }
+
+    // ------------------------------------------------------------------
+    private static FilterDefinition<Policy> BuildFilter(
+        PolicyStatus? status, PolicyType? type, string? documentId,
+        DateOnly? startDate, DateOnly? endDate)
+    {
+        var filters = new List<FilterDefinition<Policy>>
         {
-            return await _context.Policies
-                .Include(p => p.StatusHistory)
-                .FirstOrDefaultAsync(p => p.Number.Value == policyNumber, cancellationToken);
-        }
+            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false)
+        };
 
-        public async Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
-        {
-            return await _context.Policies
-                .Include(p => p.StatusHistory)
-                .FirstOrDefaultAsync(p => EF.Property<string>(p, "IdempotencyKey") == idempotencyKey, cancellationToken);
-        }
+        if (status.HasValue)
+            filters.Add(Builders<Policy>.Filter.Eq(p => p.Status, status.Value));
 
-        public async Task<IEnumerable<Policy>> GetAllAsync(
-            PolicyStatus? status,
-            PolicyType? type,
-            string? documentId,
-            DateOnly? startDate,
-            DateOnly? endDate,
-            int page,
-            int pageSize,
-            CancellationToken cancellationToken = default)
-        {
-            var query = _context.Policies
-                .Include(p => p.StatusHistory)
-                .AsQueryable();
+        if (type.HasValue)
+            filters.Add(Builders<Policy>.Filter.Eq(p => p.Type, type.Value));
 
-            if (status.HasValue)
-                query = query.Where(p => p.Status == status.Value);
+        if (!string.IsNullOrWhiteSpace(documentId))
+            filters.Add(Builders<Policy>.Filter.Eq("insured.documentId", documentId));
 
-            if (type.HasValue)
-                query = query.Where(p => p.Type == type.Value);
+        if (startDate.HasValue)
+            filters.Add(Builders<Policy>.Filter.Gte("coverage.startDate", startDate.Value.ToString("yyyy-MM-dd")));
 
-            if (!string.IsNullOrWhiteSpace(documentId))
-                query = query.Where(p => p.Insured.DocumentId == documentId);
+        if (endDate.HasValue)
+            filters.Add(Builders<Policy>.Filter.Lte("coverage.endDate", endDate.Value.ToString("yyyy-MM-dd")));
 
-            if (startDate.HasValue)
-                query = query.Where(p => p.Coverage.StartDate >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(p => p.Coverage.EndDate <= endDate.Value);
-
-            return await query
-                .OrderByDescending(p => p.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync(cancellationToken);
-        }
-
-        public async Task<int> CountAsync(
-            PolicyStatus? status,
-            PolicyType? type,
-            string? documentId,
-            DateOnly? startDate,
-            DateOnly? endDate,
-            CancellationToken cancellationToken = default)
-        {
-            var query = _context.Policies.AsQueryable();
-
-            if (status.HasValue)
-                query = query.Where(p => p.Status == status.Value);
-
-            if (type.HasValue)
-                query = query.Where(p => p.Type == type.Value);
-
-            if (!string.IsNullOrWhiteSpace(documentId))
-                query = query.Where(p => p.Insured.DocumentId == documentId);
-
-            if (startDate.HasValue)
-                query = query.Where(p => p.Coverage.StartDate >= startDate.Value);
-
-            if (endDate.HasValue)
-                query = query.Where(p => p.Coverage.EndDate <= endDate.Value);
-
-            return await query.CountAsync(cancellationToken);
-        }
-
-        public async Task AddAsync(Policy policy, CancellationToken cancellationToken = default)
-        {
-            await _context.Policies.AddAsync(policy, cancellationToken);
-        }
-
-        public void SetIdempotencyKey(Policy policy, string idempotencyKey)
-        {
-            _context.Entry(policy).Property("IdempotencyKey").CurrentValue = idempotencyKey;
-        }
-
-        public async Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default)
-        {
-            _context.Policies.Update(policy);
-            await Task.CompletedTask;
-        }
-
-        public async Task<long> GetNextSequenceAsync(CancellationToken cancellationToken = default)
-        {
-            var count = await _context.Policies
-                .IgnoreQueryFilters()
-                .CountAsync(cancellationToken);
-
-            return count + 1;
-        }
+        return Builders<Policy>.Filter.And(filters);
     }
 }
