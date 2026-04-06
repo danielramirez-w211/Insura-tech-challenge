@@ -26,6 +26,7 @@ namespace InsuraTech.Application.Policies.DTOs
         public DateTime CreatedAt { get; init; }
         public DateTime? UpdatedAt { get; init; }
         public IEnumerable<PolicyStatusHistoryResponse> StatusHistory { get; init; } = [];
+        public HealthPlanSelectionDto? HealthPlan { get; init; }
     }
 
     public sealed class PolicyStatusHistoryResponse
@@ -33,5 +34,15 @@ namespace InsuraTech.Application.Policies.DTOs
         public string Status { get; init; } = null!;
         public string Notes { get; init; } = null!;
         public DateTime ChangedAt { get; init; }
+    }
+
+    public sealed class HealthPlanSelectionDto
+    {
+        public string PlanId { get; init; } = null!;
+        public string PlanName { get; init; } = null!;
+        public decimal BaseAmount { get; init; }
+        public int AgeFactorPercentage { get; init; }
+        public decimal AgeFactorAmount { get; init; }
+        public decimal FinalAmount { get; init; }
     }
 }

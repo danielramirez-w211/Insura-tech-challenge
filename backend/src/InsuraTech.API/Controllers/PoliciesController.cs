@@ -40,15 +40,16 @@ public sealed class PoliciesController : ControllerBase
     {
         var command = new CreatePolicyCommand
         {
-            IdempotencyKey = idempotencyKey ?? Guid.NewGuid().ToString(),
-            Type = request.Type,
-            InsuredFullName = request.Insured.Name,
+            IdempotencyKey    = idempotencyKey ?? Guid.NewGuid().ToString(),
+            Type              = request.Type,
+            InsuredFullName   = request.Insured.Name,
             InsuredDocumentId = request.Insured.DocumentId,
-            InsuredBirthDate = request.Insured.BirthDate,
+            InsuredBirthDate  = request.Insured.BirthDate,
             CoverageStartDate = request.CoveragePeriod.StartDate,
-            CoverageEndDate = request.CoveragePeriod.EndDate,
-            InsuredAmount = request.InsuredAmount,
-            MonthlyPremium = request.MonthlyPremium,
+            CoverageEndDate   = request.CoveragePeriod.EndDate,
+            InsuredAmount     = request.InsuredAmount,
+            MonthlyPremium    = request.MonthlyPremium,
+            HealthPlanId      = request.HealthPlanId,
         };
 
         var result = await _mediator.Send(command, cancellationToken);

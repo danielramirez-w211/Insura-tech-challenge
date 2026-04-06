@@ -20,5 +20,9 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         public DateOnly CoverageEndDate { get; init; }
         public decimal MonthlyPremium { get; init; }
         public decimal InsuredAmount { get; init; }
+        /// <summary>
+        /// Solo para pólizas de tipo Health. El monto asegurado se calcula automáticamente.
+        /// </summary>
+        public string? HealthPlanId { get; init; }
     }
 }

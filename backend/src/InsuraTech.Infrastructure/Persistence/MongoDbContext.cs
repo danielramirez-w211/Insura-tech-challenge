@@ -2,6 +2,7 @@ using InsuraTech.Domain.Claims;
 using InsuraTech.Domain.Common;
 using InsuraTech.Domain.Notifications;
 using InsuraTech.Domain.Policies;
+using InsuraTech.Domain.Policies.HealthPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
 using MediatR;
 using MongoDB.Bson;
@@ -132,6 +133,20 @@ public sealed class MongoDbContext
                 cm.MapProperty(c => c.StartDate);
                 cm.MapProperty(c => c.EndDate);
                 cm.MapCreator(c => new CoveragePeriod(c.StartDate, c.EndDate));
+            });
+
+            // ---- HealthPlanSelection ----
+            BsonClassMap.RegisterClassMap<HealthPlanSelection>(cm =>
+            {
+                cm.MapProperty(h => h.PlanId);
+                cm.MapProperty(h => h.PlanName);
+                cm.MapProperty(h => h.BaseAmount);
+                cm.MapProperty(h => h.AgeFactorPercentage);
+                cm.MapProperty(h => h.AgeFactorAmount);
+                cm.MapProperty(h => h.FinalAmount);
+                cm.MapCreator(h => new HealthPlanSelection(
+                    h.PlanId, h.PlanName, h.BaseAmount,
+                    h.AgeFactorPercentage, h.AgeFactorAmount, h.FinalAmount));
             });
 
             // ---- Policy ----

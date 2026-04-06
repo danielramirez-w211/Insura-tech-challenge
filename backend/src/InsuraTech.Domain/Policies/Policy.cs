@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using InsuraTech.Domain.Common;
+﻿using InsuraTech.Domain.Common;
 using InsuraTech.Domain.Events;
 using InsuraTech.Domain.Exceptions;
+using InsuraTech.Domain.Policies.HealthPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace InsuraTech.Domain.Policies
 {
@@ -24,6 +19,7 @@ namespace InsuraTech.Domain.Policies
         public string? CancellationReason { get; private set; }
         public DateOnly? CancellationEffectiveDate { get; private set; }
         public Guid? RenewedFromPolicyId { get; private set; }
+        public HealthPlanSelection? HealthPlan { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -31,8 +27,7 @@ namespace InsuraTech.Domain.Policies
 
         private Policy() { }
 
-        // Factory 
-
+        // Factory — tipos no-Health (monto manual)
         public static Policy Create(
             PolicyNumber number,
             PolicyType type,
@@ -56,6 +51,36 @@ namespace InsuraTech.Domain.Policies
             };
 
             policy.AddStatusHistory(PolicyStatus.Pending, "Policy created.");
+            return policy;
+        }
+
+        // Factory — tipo Health (plan predefinido + cálculo automático)
+        public static Policy CreateHealthPolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            decimal monthlyPremium,
+            string healthPlanId,
+            DateOnly today)
+        {
+            var selection = HealthPlanPricingService.Calculate(healthPlanId, insured.BirthDate, today);
+            ValidateFinancials(monthlyPremium, selection.FinalAmount);
+
+            var policy = new Policy
+            {
+                Number = number,
+                Type = PolicyType.Health,
+                Insured = insured,
+                Coverage = coverage,
+                MonthlyPremium = monthlyPremium,
+                InsuredAmount = selection.FinalAmount,
+                AvailableInsuredAmount = selection.FinalAmount,
+                HealthPlan = selection,
+                Status = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Health policy created with plan '{selection.PlanName}'.");
             return policy;
         }
 
