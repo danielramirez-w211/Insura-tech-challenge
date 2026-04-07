@@ -14,9 +14,9 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         RuleFor(x => x.IdempotencyKey).
                 NotEmpty().WithMessage("Id Idempotency Key is requeired. ");
 
-            RuleFor(x => x.InsuredFullName).
+            RuleFor(x => x.InsuredDocumentId).
                 NotEmpty().WithMessage("Document ID is requeired. ")
-                .MaximumLength(50);
+                .MaximumLength(12);
             RuleFor(x => x.InsuredBirthDate)
                 .NotEmpty().WithMessage("Birth date is requeired. ")
                 .LessThan(DateOnly.FromDateTime(DateTime.UtcNow))

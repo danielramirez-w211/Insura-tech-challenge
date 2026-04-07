@@ -13,7 +13,9 @@ const mockPolicy: PolicyDto = {
   status: 'Active',
   type: 'Life',
   insured: {
-    name: 'John Doe',
+    firstName: 'John',
+    lastName: 'Doe',
+    documentType: 'CC',
     documentId: 'DOC-001',
     birthDate: '1990-01-01',
     email: 'john@example.com',
@@ -37,7 +39,9 @@ const mockPagedResult: PagedResult<PolicyDto> = {
 const mockCreateRequest: CreatePolicyRequest = {
   type: 'Life',
   insured: {
-    name: 'John Doe',
+    firstName: 'John',
+    lastName: 'Doe',
+    documentType: 'CC',
     documentId: 'DOC-001',
     birthDate: '1990-01-01',
     email: 'john@example.com',

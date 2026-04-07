@@ -2,6 +2,7 @@
 using InsuraTech.Domain.Events;
 using InsuraTech.Domain.Exceptions;
 using InsuraTech.Domain.Policies.HealthPlan;
+using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
 
 namespace InsuraTech.Domain.Policies
@@ -20,6 +21,7 @@ namespace InsuraTech.Domain.Policies
         public DateOnly? CancellationEffectiveDate { get; private set; }
         public Guid? RenewedFromPolicyId { get; private set; }
         public HealthPlanSelection? HealthPlan { get; private set; }
+        public TravelPlanSelection? TravelPlan { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -84,6 +86,41 @@ namespace InsuraTech.Domain.Policies
             return policy;
         }
 
+        // Factory — tipo Travel (rating engine automático)
+        public static Policy CreateTravelPolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            TripType tripType,
+            Continent? continent,
+            int durationDays,
+            decimal? trmCop,
+            DateOnly? trmDate)
+        {
+            var selection = TravelRatingService.Calculate(
+                tripType, continent, durationDays, trmCop, trmDate, DateTime.UtcNow);
+
+            var policy = new Policy
+            {
+                Number                  = number,
+                Type                    = PolicyType.Travel,
+                Insured                 = insured,
+                Coverage                = coverage,
+                MonthlyPremium          = selection.TotalPriceCop,
+                InsuredAmount           = selection.TotalPriceCop,
+                AvailableInsuredAmount  = selection.TotalPriceCop,
+                TravelPlan              = selection,
+                Status                  = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Travel policy created. Type: {tripType}" +
+                (continent.HasValue ? $", Continent: {continent}" : string.Empty) +
+                $", Duration: {durationDays} days, Total: ${selection.TotalPriceCop:N0} COP.");
+
+            return policy;
+        }
+
         // Poliza Activa
         public void Activate()
         {
@@ -96,7 +133,7 @@ namespace InsuraTech.Domain.Policies
 
             AddStatusHistory(PolicyStatus.Active, "Payment confirmed. Policy activated.");
             AddDomainEvent(new PolicyActivatedEvent(
-                Id, Number.Value, Insured.FullName, Insured.DocumentId));
+                Id, Number.Value, Insured.FirstName, Insured.DocumentId));
         }
         // Poliza suspendida
 

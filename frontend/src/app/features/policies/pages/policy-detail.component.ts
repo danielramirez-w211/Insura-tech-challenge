@@ -50,7 +50,11 @@ import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
             </div>
             <div class="detail-item">
               <span class="label">Asegurado</span>
-              <span>{{ policy.insured.name }}</span>
+              <span>{{ policy.insured.firstName }}</span>
+            </div>
+          <div class="detail-item">
+              <span class="label">Tipo de Documento</span>
+              <span>{{ policy.insured.documentType }}</span>
             </div>
             <div class="detail-item">
               <span class="label">Documento</span>
