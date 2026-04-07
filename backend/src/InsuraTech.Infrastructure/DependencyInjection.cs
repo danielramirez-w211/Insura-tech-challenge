@@ -1,5 +1,6 @@
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Interfaces;
+using InsuraTech.Infrastructure.ExternalServices;
 using InsuraTech.Infrastructure.Persistence;
 using InsuraTech.Infrastructure.Persistence.Repositories;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,10 @@ public static class DependencyInjection
         services.AddScoped<IPolicyRepository, PolicyRepository>();
         services.AddScoped<IClaimRepository, ClaimRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+
+        // TRM — integración con API Socrata
+        services.AddMemoryCache();
+        services.AddHttpClient<ITrmService, TrmService>();
 
         return services;
     }

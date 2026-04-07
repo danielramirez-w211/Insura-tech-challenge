@@ -12,7 +12,10 @@ namespace InsuraTech.Application.Policies.DTOs
         public string PolicyNumber { get; init; } = null!;
         public string Type { get; init; } = null!;
         public string Status { get; init; } = null!;
-        public string InsuredFullName { get; init; } = null!;
+        public string InsuredFirstName { get; init; } = null!;
+        public string InsuredLastName { get; init; } = null!;
+        public string InsuredDocumentType {get; init;} = null!;
+
         public string InsuredDocumentId { get; init; } = null!;
         public int InsuredAge { get; init; }
         public DateOnly CoverageStartDate { get; init; }
@@ -27,6 +30,7 @@ namespace InsuraTech.Application.Policies.DTOs
         public DateTime? UpdatedAt { get; init; }
         public IEnumerable<PolicyStatusHistoryResponse> StatusHistory { get; init; } = [];
         public HealthPlanSelectionDto? HealthPlan { get; init; }
+    public TravelPlanSelectionDto? TravelPlan { get; init; }
     }
 
     public sealed class PolicyStatusHistoryResponse
@@ -34,6 +38,20 @@ namespace InsuraTech.Application.Policies.DTOs
         public string Status { get; init; } = null!;
         public string Notes { get; init; } = null!;
         public DateTime ChangedAt { get; init; }
+    }
+
+    public sealed class TravelPlanSelectionDto
+    {
+        public string TripType           { get; init; } = null!;
+        public string? Continent         { get; init; }
+        public int DurationDays          { get; init; }
+        public decimal? BasePriceUsd     { get; init; }
+        public decimal BasePriceCop      { get; init; }
+        public decimal DailyIncrementCop { get; init; }
+        public decimal TotalPriceCop     { get; init; }
+        public decimal? TrmUsed          { get; init; }
+        public DateOnly? TrmDate         { get; init; }
+        public DateTime CalculatedAt     { get; init; }
     }
 
     public sealed class HealthPlanSelectionDto

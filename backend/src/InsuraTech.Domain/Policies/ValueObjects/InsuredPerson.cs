@@ -9,21 +9,31 @@ namespace InsuraTech.Domain.Policies.ValueObjects
 {
     public sealed class InsuredPerson : ValueObject
     {
-        public string FullName { get; }
+        public string FirstName { get; }
+        public string LastName { get; }
+        public string DocumentType { get; }
         public string DocumentId { get; }
         public DateOnly BirthDate { get; }
 
-        private InsuredPerson(string fullName, string documentId, DateOnly birthDate)
+        private InsuredPerson(string firstName, string lastName, string documentType, string documentId, DateOnly birthDate)
         {
-            FullName = fullName;
+            FirstName = firstName;
+            LastName = lastName;
+            DocumentType = documentType;
             DocumentId = documentId;
             BirthDate = birthDate;
         }
 
-        public static InsuredPerson Create(string fullName, string documentId, DateOnly birthDate)
+        public static InsuredPerson Create(string firstName, string lastName, string documentType, string documentId, DateOnly birthDate)
         {
-            if (string.IsNullOrWhiteSpace(fullName))
-                throw new ArgumentException("Full name is requerid ", nameof(fullName));
+            if (string.IsNullOrWhiteSpace(firstName))
+                throw new ArgumentException("First name is requerid ", nameof(firstName));
+            
+            if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentException("Last name is requerid ", nameof(lastName));
+
+            if (string.IsNullOrWhiteSpace(documentType))
+                throw new ArgumentException("Document Type is requiered ", nameof(documentType));
 
             if (string.IsNullOrWhiteSpace(documentId))
                 throw new ArgumentException("Document ID is requiered ", nameof(documentId));
@@ -35,7 +45,7 @@ namespace InsuraTech.Domain.Policies.ValueObjects
             if (age < 18 || age > 100)
                 throw new ArgumentException("The Insued person must be 18 and 100 years. ", nameof(birthDate));
 
-            return new InsuredPerson(fullName.Trim(), documentId.Trim(), birthDate);
+            return new InsuredPerson(firstName.Trim(), lastName.Trim(), documentType.Trim(),  documentId.Trim(), birthDate);
 
         }
 
@@ -54,7 +64,7 @@ namespace InsuraTech.Domain.Policies.ValueObjects
             yield return DocumentId;
         }
 
-        public override string ToString() => $"{FullName} ({DocumentId})";
+        public override string ToString() => $"{FirstName} {LastName} {DocumentType} ({DocumentId})";
 
      }
 }

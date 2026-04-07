@@ -1,8 +1,8 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Subject, takeUntil, catchError, EMPTY } from 'rxjs';
+import { Subject, takeUntil, catchError, EMPTY, combineLatest } from 'rxjs';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,12 +15,18 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PoliciesService } from '../services/policies.service';
 import { HealthPlansService } from '../services/health-plans.service';
-import { HealthPlanDto, HealthPlanCalculationDto, PolicyType } from '../models/policy.model';
+import { TravelPlansService } from '../services/travel-plans.service';
+import {
+  HealthPlanDto, HealthPlanCalculationDto, PolicyType,
+  TripType, Continent, TravelPlanCalculationDto
+} from '../models/policy.model';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
 import { HealthPlanSelectorComponent } from '../components/health-plan-selector/health-plan-selector.component';
 import { HealthPlanPreviewComponent } from '../components/health-plan-preview/health-plan-preview.component';
 import { AgeRestrictionComponent } from '../components/age-restriction/age-restriction.component';
+import { TravelPlanPreviewComponent } from '../components/travel-plan-preview/travel-plan-preview.component';
+import { TravelDurationRestrictionComponent } from '../components/travel-duration-restriction/travel-duration-restriction.component';
 
 @Component({
   selector: 'app-policy-create',
@@ -42,6 +48,8 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
     HealthPlanSelectorComponent,
     HealthPlanPreviewComponent,
     AgeRestrictionComponent,
+    TravelPlanPreviewComponent,
+    TravelDurationRestrictionComponent,
   ],
   template: `
     <app-page-header
@@ -59,10 +67,28 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
 
           <div class="form-grid">
             <mat-form-field appearance="outline">
-              <mat-label>Nombre completo</mat-label>
+              <mat-label>Primer Nombre</mat-label>
               <mat-icon matPrefix>person</mat-icon>
-              <input matInput formControlName="name" placeholder="Ej. Juan Pérez" />
-              @if (insuredForm.get('name')?.touched && insuredForm.get('name')?.hasError('required')) {
+              <input matInput formControlName="name" placeholder="Ej. Juan" />
+              @if (insuredForm.get('firstName')?.touched && insuredForm.get('firstName')?.hasError('required')) {
+                <mat-error>El nombre es obligatorio</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Apellido</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
+              <input matInput formControlName="name" placeholder="Ej. Pérez" />
+              @if (insuredForm.get('lastName')?.touched && insuredForm.get('LastName')?.hasError('required')) {
+                <mat-error>El apellido es obligatorio</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Ingrese tipo de documento</mat-label>
+              <mat-icon matPrefix>person</mat-icon>
+              <input matInput formControlName="name" placeholder="Ej. CC/ PP/ CE" />
+              @if (insuredForm.get('documentType')?.touched && insuredForm.get('documentType')?.hasError('required')) {
                 <mat-error>El nombre es obligatorio</mat-error>
               }
             </mat-form-field>
@@ -131,14 +157,14 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
               </mat-select>
             </mat-form-field>
 
-            <!-- Bloqueo por edad ≥ 74 solo para Health -->
+            <!-- ── Health: bloqueo por edad ≥ 74 ────────────────────────── -->
             @if (isHealthType() && ageRestricted()) {
               <div class="full-width">
                 <app-age-restriction />
               </div>
             }
 
-            <!-- Selector de planes — solo para Health -->
+            <!-- ── Health: selector de planes ────────────────────────────── -->
             @if (isHealthType() && !ageRestricted()) {
               <div class="full-width">
                 <p class="field-label">Selecciona un plan de salud</p>
@@ -150,15 +176,63 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
                     [selectedPlanId]="selectedPlanId()"
                     (planSelected)="onPlanSelected($event)" />
                 }
-
                 @if (healthCalculation()) {
                   <app-health-plan-preview [calculation]="healthCalculation()" />
                 }
               </div>
             }
 
-            <!-- Monto manual — solo para tipos no-Health -->
-            @if (!isHealthType()) {
+            <!-- ── Travel: tipo de viaje ──────────────────────────────────── -->
+            @if (isTravelType()) {
+              <mat-form-field appearance="outline" data-testid="trip-type-select">
+                <mat-label>Tipo de viaje</mat-label>
+                <mat-icon matPrefix>flight</mat-icon>
+                <mat-select [value]="tripType()" (valueChange)="onTripTypeChange($event)">
+                  <mat-option value="Nacional">Nacional</mat-option>
+                  <mat-option value="Internacional">Internacional</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <!-- Continente — solo Internacional -->
+              @if (tripType() === 'Internacional') {
+                <mat-form-field appearance="outline" data-testid="continent-select">
+                  <mat-label>Continente de destino</mat-label>
+                  <mat-icon matPrefix>public</mat-icon>
+                  <mat-select [value]="continent()" (valueChange)="onContinentChange($event)">
+                    <mat-option value="America">América</mat-option>
+                    <mat-option value="Europe">Europa</mat-option>
+                    <mat-option value="Africa">África</mat-option>
+                    <mat-option value="Asia">Asia</mat-option>
+                    <mat-option value="Oceania">Oceanía</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              <mat-form-field appearance="outline">
+                <mat-label>Días de cobertura</mat-label>
+                <mat-icon matPrefix>date_range</mat-icon>
+                <input matInput readonly data-testid="duration-days-input"
+                       [value]="durationDays() !== null ? durationDays() : '—'" />
+                <mat-hint>Calculado automáticamente según las fechas seleccionadas</mat-hint>
+              </mat-form-field>
+
+              <!-- Banner: duración excedida -->
+              @if (durationExceeded()) {
+                <div class="full-width">
+                  <app-travel-duration-restriction />
+                </div>
+              }
+
+              <!-- Preview del cálculo -->
+              @if (travelCalculation() && !durationExceeded()) {
+                <div class="full-width">
+                  <app-travel-plan-preview [calculation]="travelCalculation()" />
+                </div>
+              }
+            }
+
+            <!-- ── Monto manual — solo para tipos no-Health y no-Travel ─── -->
+            @if (!isHealthType() && !isTravelType()) {
               <mat-form-field appearance="outline">
                 <mat-label>Monto asegurado (COP)</mat-label>
                 <mat-icon matPrefix>attach_money</mat-icon>
@@ -172,17 +246,20 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
               </mat-form-field>
             }
 
-            <mat-form-field appearance="outline">
-              <mat-label>Prima mensual (COP)</mat-label>
-              <mat-icon matPrefix>payments</mat-icon>
-              <input matInput formControlName="monthlyPremium" type="number" min="1" placeholder="Ej. 150" />
-              @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('required')) {
-                <mat-error>La prima mensual es obligatoria</mat-error>
-              }
-              @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('min')) {
-                <mat-error>La prima debe ser mayor a 0</mat-error>
-              }
-            </mat-form-field>
+            <!-- ── Prima mensual — solo para tipos no-Travel ─────────────── -->
+            @if (!isTravelType()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Prima mensual (COP)</mat-label>
+                <mat-icon matPrefix>payments</mat-icon>
+                <input matInput formControlName="monthlyPremium" type="number" min="1" placeholder="Ej. 150" />
+                @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('required')) {
+                  <mat-error>La prima mensual es obligatoria</mat-error>
+                }
+                @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('min')) {
+                  <mat-error>La prima debe ser mayor a 0</mat-error>
+                }
+              </mat-form-field>
+            }
 
             <mat-form-field appearance="outline">
               <mat-label>Inicio de cobertura</mat-label>
@@ -214,7 +291,10 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
               <mat-icon>arrow_back</mat-icon> Anterior
             </button>
             <button mat-raised-button color="primary" matStepperNext
-                    [disabled]="coverageForm.invalid || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted()))">
+                    [disabled]="coverageForm.invalid
+                      || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted()))
+                      || (isTravelType() && (!tripType() || !durationDays() || durationExceeded() || !travelCalculation()))
+                      || (isTravelType() && tripType() === 'Internacional' && !continent())">
               Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
             </button>
           </div>
@@ -230,7 +310,11 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
           <mat-divider />
           <div class="summary-grid">
             <span class="label">Nombre</span>
-            <span>{{ insuredForm.value.name }}</span>
+            <span>{{ insuredForm.value.firstName }}</span>
+            <span class="label">Apellido</span>
+            <span>{{ insuredForm.value.lastName }}</span>
+            <span class="label">Tipo de docuemnto</span>
+            <span>{{ insuredForm.value.docuemntType }}</span>
             <span class="label">Documento</span>
             <span>{{ insuredForm.value.documentId }}</span>
             <span class="label">Nacimiento</span>
@@ -256,13 +340,26 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
               <span>{{ healthCalculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}</span>
               <span class="label">Factor edad</span>
               <span>{{ healthCalculation()!.ageFactorPercentage }}%</span>
+            } @else if (isTravelType() && travelCalculation()) {
+              <span class="label">Tipo de viaje</span>
+              <span>{{ travelCalculation()!.tripType }}</span>
+              @if (travelCalculation()!.continent) {
+                <span class="label">Continente</span>
+                <span>{{ travelCalculation()!.continent }}</span>
+              }
+              <span class="label">Días de cobertura</span>
+              <span>{{ travelCalculation()!.durationDays }}</span>
+              <span class="label">Total póliza (COP)</span>
+              <span>{{ travelCalculation()!.totalPriceCop | currency:'COP':'symbol':'1.0-0' }}</span>
             } @else {
               <span class="label">Monto asegurado</span>
               <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
             }
 
-            <span class="label">Prima mensual</span>
-            <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+            @if (!isTravelType()) {
+              <span class="label">Prima mensual</span>
+              <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+            }
             <span class="label">Inicio</span>
             <span>{{ coverageForm.value.startDate | date:'dd/MM/yyyy' }}</span>
             <span class="label">Fin</span>
@@ -348,9 +445,10 @@ import { AgeRestrictionComponent } from '../components/age-restriction/age-restr
     }
   `],
 })
-export class PolicyCreateComponent implements OnDestroy {
+export class PolicyCreateComponent implements OnInit, OnDestroy {
   service      = inject(PoliciesService);
   healthSvc    = inject(HealthPlansService);
+  travelSvc    = inject(TravelPlansService);
   router       = inject(Router);
   snackBar     = inject(MatSnackBar);
   fb           = inject(FormBuilder);
@@ -360,17 +458,30 @@ export class PolicyCreateComponent implements OnDestroy {
   typeOptions: PolicyType[] = ['Life', 'Health', 'Vehicle', 'Home', 'Travel'];
   submitting   = false;
 
-  // Health plan state
-  healthPlans    = signal<HealthPlanDto[]>([]);
-  loadingPlans   = signal(false);
-  selectedPlanId = signal<string | null>(null);
+  // ── Health state ──────────────────────────────────────────────────────────
+  healthPlans       = signal<HealthPlanDto[]>([]);
+  loadingPlans      = signal(false);
+  selectedPlanId    = signal<string | null>(null);
   healthCalculation = signal<HealthPlanCalculationDto | null>(null);
-  ageRestricted  = signal(false);
-  isHealthType   = signal(false);
+  ageRestricted     = signal(false);
+  isHealthType      = signal(false);
+
+  // ── Travel state ──────────────────────────────────────────────────────────
+  isTravelType      = signal(false);
+  tripType          = signal<TripType | null>(null);
+  continent         = signal<Continent | null>(null);
+  durationDays      = signal<number | null>(null);
+  travelCalculation = signal<TravelPlanCalculationDto | null>(null);
+  durationExceeded  = computed(() => {
+    const d = this.durationDays();
+    return d !== null && d > 180;
+  });
 
   insuredForm = this.fb.group({
-    name:       ['', Validators.required],
-    documentId: ['', Validators.required],
+    firstName:       ['', Validators.required],
+    lastName:        ['', Validators.required],
+    docuemntType:    ['', Validators.required],
+    documentId:      ['', Validators.required],
     birthDate:  [null as Date | null, Validators.required],
     email:      ['', [Validators.required, Validators.email]],
     phone:      [''],
@@ -384,6 +495,26 @@ export class PolicyCreateComponent implements OnDestroy {
     endDate:        [null as Date | null, Validators.required],
   });
 
+  ngOnInit(): void {
+    combineLatest([
+      this.coverageForm.get('startDate')!.valueChanges,
+      this.coverageForm.get('endDate')!.valueChanges,
+    ]).pipe(takeUntil(this.destroy$))
+      .subscribe(([start, end]) => {
+        if (start && end) {
+          const days = Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
+          this.durationDays.set(days > 0 ? days : null);
+          this.travelCalculation.set(null);
+          if (this.isTravelType() && !this.durationExceeded()) {
+            this.tryCalculateTravel();
+          }
+        } else {
+          this.durationDays.set(null);
+          this.travelCalculation.set(null);
+        }
+      });
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -391,14 +522,48 @@ export class PolicyCreateComponent implements OnDestroy {
 
   onTypeChange(type: PolicyType): void {
     this.isHealthType.set(type === 'Health');
+    this.isTravelType.set(type === 'Travel');
+
+    // reset health
     this.selectedPlanId.set(null);
     this.healthCalculation.set(null);
     this.ageRestricted.set(false);
+
+    // reset travel
+    this.tripType.set(null);
+    this.continent.set(null);
+    this.durationDays.set(null);
+    this.travelCalculation.set(null);
 
     if (type === 'Health') {
       this.loadHealthPlans();
       this.checkAgeRestriction();
     }
+  }
+
+  // ── Travel handlers ───────────────────────────────────────────────────────
+
+  onTripTypeChange(type: TripType): void {
+    this.tripType.set(type);
+    this.continent.set(null);
+    this.travelCalculation.set(null);
+    this.tryCalculateTravel();
+  }
+
+  onContinentChange(continent: Continent): void {
+    this.continent.set(continent);
+    this.tryCalculateTravel();
+  }
+
+  private tryCalculateTravel(): void {
+    const type = this.tripType();
+    const days = this.durationDays();
+    if (!type || !days || days < 1 || days > 365) return;
+    if (type === 'Internacional' && !this.continent()) return;
+
+    this.travelSvc.calculate(type, days, this.continent() ?? undefined)
+      .pipe(takeUntil(this.destroy$), catchError(() => EMPTY))
+      .subscribe(calc => this.travelCalculation.set(calc));
   }
 
   onPlanSelected(plan: HealthPlanDto): void {
@@ -454,26 +619,42 @@ export class PolicyCreateComponent implements OnDestroy {
     if (this.insuredForm.invalid || this.coverageForm.invalid) return;
     this.submitting = true;
 
-    const iv = this.insuredForm.value;
-    const cv = this.coverageForm.value;
+    const iv       = this.insuredForm.value;
+    const cv       = this.coverageForm.value;
     const isHealth = this.isHealthType();
+    const isTravel = this.isTravelType();
+    const calc     = this.travelCalculation();
+
+    // Para Travel: las fechas de cobertura coinciden con los días del viaje
+    const startDate = cv.startDate ? this.toDateStr(cv.startDate) : '';
+    const endDate   = cv.endDate
+      ? this.toDateStr(cv.endDate)
+      : (cv.startDate && this.durationDays()
+          ? this.toDateStr(new Date(cv.startDate!.getTime() + (this.durationDays()! - 1) * 86_400_000))
+          : '');
 
     this.service.createPolicy({
       type: cv.type!,
       insured: {
-        name:       iv.name!,
+        firstName:       iv.firstName!,
+        lastName:        iv.lastName!,
+        documentType:   iv.docuemntType!,
         documentId: iv.documentId!,
         birthDate:  this.toDateStr(iv.birthDate!),
         email:      iv.email!,
         phone:      iv.phone ?? '',
       },
-      coveragePeriod: {
-        startDate: this.toDateStr(cv.startDate!),
-        endDate:   this.toDateStr(cv.endDate!),
-      },
-      insuredAmount:  isHealth ? (this.healthCalculation()?.finalAmount ?? 0) : cv.insuredAmount!,
-      monthlyPremium: cv.monthlyPremium!,
+      coveragePeriod: { startDate, endDate },
+      insuredAmount:  isHealth ? (this.healthCalculation()?.finalAmount ?? 0)
+                    : isTravel ? (calc?.totalPriceCop ?? 0)
+                    : cv.insuredAmount!,
+      monthlyPremium: isTravel ? (calc?.totalPriceCop ?? 0) : cv.monthlyPremium!,
       ...(isHealth && this.selectedPlanId() ? { healthPlanId: this.selectedPlanId()! } : {}),
+      ...(isTravel && this.tripType() ? {
+        tripType:    this.tripType()!,
+        continent:   this.continent() ?? undefined,
+        durationDays: this.durationDays()!,
+      } : {}),
     }).subscribe({
       next: () => {
         this.snackBar.open('Póliza creada exitosamente', 'Cerrar', { duration: 3000 });
