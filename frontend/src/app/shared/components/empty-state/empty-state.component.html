@@ -1,0 +1,10 @@
+ <div class="empty-state">
+      <mat-icon class="empty-icon">{{ icon }}</mat-icon>
+      <p class="empty-message">{{ message }}</p>
+      @if (showRetry) {
+        <button mat-stroked-button color="primary" (click)="retry.emit()">
+          <mat-icon>refresh</mat-icon>
+          Reintentar
+        </button>
+      }
+    </div>

@@ -15,30 +15,8 @@ interface NavItem {
   selector: 'app-sidenav',
   standalone: true,
   imports: [RouterModule, MatListModule, MatIconModule, MatBadgeModule],
-  template: `
-    <mat-nav-list>
-      @for (item of navItems; track item.route) {
-        <a mat-list-item [routerLink]="item.route" routerLinkActive="active-link">
-          @if (item.route === '/notifications' && notificationsService.failedCount() > 0) {
-            <mat-icon
-              matListItemIcon
-              [matBadge]="notificationsService.failedCount()"
-              matBadgeColor="warn"
-              matBadgeSize="small">
-              {{ item.icon }}
-            </mat-icon>
-          } @else {
-            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
-          }
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
-      }
-    </mat-nav-list>
-  `,
-  styles: [`
-    :host { display: block; }
-    .active-link { background-color: rgba(63,81,181,0.1); }
-  `],
+  templateUrl: './sidenav.component.html',
+  styleUrl: './sidenav.component.css',
 })
 export class SidenavComponent {
   notificationsService = inject(NotificationsCoreService);

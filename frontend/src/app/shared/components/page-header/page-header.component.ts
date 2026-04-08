@@ -7,30 +7,9 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-page-header',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatIconModule],
-  template: `
-    <div class="page-header">
-      <h1 class="page-title">{{ title }}</h1>
-      @if (actionLabel) {
-        <button mat-raised-button color="primary" (click)="action.emit()">
-          <mat-icon>{{ actionIcon }}</mat-icon>
-          {{ actionLabel }}
-        </button>
-      }
-    </div>
-  `,
-  styles: [`
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .page-title {
-      font-size: 24px;
-      font-weight: 500;
-      margin: 0;
-    }
-  `],
+  templateUrl: './page-header.component.html',
+  styleUrl: './page-header.component.css',
+
 })
 export class PageHeaderComponent {
   @Input({ required: true }) title!: string;
