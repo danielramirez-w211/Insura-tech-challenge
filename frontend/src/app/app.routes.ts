@@ -11,13 +11,15 @@ export const routes: Routes = [
   },
   {
     path: 'policies',
+    // TODO SPEC-6: canActivate: [AuthGuard]
     loadComponent: () =>
-      import('./features/policies/pages/policies-list.component').then(
-        (m) => m.PoliciesListComponent
+      import('./features/policies/container/policies-container.component').then(
+        (m) => m.PoliciesContainerComponent
       ),
   },
   {
     path: 'policies/new',
+    // TODO SPEC-6: canActivate: [AuthGuard], canMatch: [RoleGuard('admin', 'agent')]
     loadComponent: () =>
       import('./features/policies/pages/policy-create.component').then(
         (m) => m.PolicyCreateComponent
@@ -25,6 +27,7 @@ export const routes: Routes = [
   },
   {
     path: 'policies/:id',
+    // TODO SPEC-6: canActivate: [AuthGuard]
     loadComponent: () =>
       import('./features/policies/pages/policy-detail.component').then(
         (m) => m.PolicyDetailComponent

@@ -1,0 +1,29 @@
+import { PolicyType } from '../models/policy.model';
+import { TripType, Continent } from '../models/travel-plan-selection.model';
+
+export interface InsuredPersonRequest {
+  firstName: string;
+  lastName: string;
+  documentType: string;
+  documentId: string;
+  birthDate: string;
+  email: string;
+  phone: string;
+}
+
+export interface CoveragePeriodRequest {
+  startDate: string;
+  endDate: string;
+}
+
+export interface CreatePolicyRequest {
+  type: PolicyType;
+  insured: InsuredPersonRequest;
+  coveragePeriod: CoveragePeriodRequest;
+  insuredAmount: number;
+  monthlyPremium: number;
+  healthPlanId?: string;
+  tripType?: TripType;
+  continent?: Continent;
+  durationDays?: number;
+}

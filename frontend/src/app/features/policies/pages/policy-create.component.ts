@@ -69,7 +69,7 @@ import { TravelDurationRestrictionComponent } from '../components/travel-duratio
             <mat-form-field appearance="outline">
               <mat-label>Primer Nombre</mat-label>
               <mat-icon matPrefix>person</mat-icon>
-              <input matInput formControlName="name" placeholder="Ej. Juan" />
+              <input matInput formControlName="firstName" placeholder="Ej. Juan" />
               @if (insuredForm.get('firstName')?.touched && insuredForm.get('firstName')?.hasError('required')) {
                 <mat-error>El nombre es obligatorio</mat-error>
               }
@@ -78,7 +78,7 @@ import { TravelDurationRestrictionComponent } from '../components/travel-duratio
             <mat-form-field appearance="outline">
               <mat-label>Apellido</mat-label>
               <mat-icon matPrefix>person</mat-icon>
-              <input matInput formControlName="name" placeholder="Ej. Pérez" />
+              <input matInput formControlName="lastName" placeholder="Ej. Pérez" />
               @if (insuredForm.get('lastName')?.touched && insuredForm.get('LastName')?.hasError('required')) {
                 <mat-error>El apellido es obligatorio</mat-error>
               }
@@ -87,7 +87,7 @@ import { TravelDurationRestrictionComponent } from '../components/travel-duratio
             <mat-form-field appearance="outline">
               <mat-label>Ingrese tipo de documento</mat-label>
               <mat-icon matPrefix>person</mat-icon>
-              <input matInput formControlName="name" placeholder="Ej. CC/ PP/ CE" />
+              <input matInput formControlName="docuemntType" placeholder="Ej. CC/ PP/ CE" />
               @if (insuredForm.get('documentType')?.touched && insuredForm.get('documentType')?.hasError('required')) {
                 <mat-error>El nombre es obligatorio</mat-error>
               }
@@ -534,6 +534,15 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     this.continent.set(null);
     this.durationDays.set(null);
     this.travelCalculation.set(null);
+
+    const monthlyPremiumCtrl = this.coverageForm.get('monthlyPremium')!;
+    if (type === 'Travel') {
+      monthlyPremiumCtrl.clearValidators();
+      monthlyPremiumCtrl.setValue(null);
+    } else {
+      monthlyPremiumCtrl.setValidators([Validators.required, Validators.min(1)]);
+    }
+    monthlyPremiumCtrl.updateValueAndValidity();
 
     if (type === 'Health') {
       this.loadHealthPlans();

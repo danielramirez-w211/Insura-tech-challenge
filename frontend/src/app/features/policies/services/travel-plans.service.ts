@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class TravelPlansService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/travel-plans`;
+  private readonly base = `${environment.apiUrl}/api/v1/travel-plans`;
 
   calculate(
     tripType: TripType,

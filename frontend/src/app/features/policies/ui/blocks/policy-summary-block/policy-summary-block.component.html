@@ -1,0 +1,62 @@
+<div class="summary-block">
+  <div class="summary-header">
+    <div class="header-left">
+      <span class="policy-number">{{ policy.policyNumber }}</span>
+      <app-policy-type-badge [type]="policy.type" />
+    </div>
+    <app-policy-status-chip [status]="policy.status" />
+  </div>
+
+  <mat-divider />
+
+  <div class="summary-grid">
+    <span class="label">Asegurado</span>
+    <span>{{ insuredFullName }}</span>
+
+    <span class="label">Documento</span>
+    <span>{{ policy.insured.documentType }} {{ policy.insured.documentId }}</span>
+
+    <span class="label">Monto asegurado</span>
+    <span>{{ policy.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+
+    @if (policy.monthlyPremium) {
+      <span class="label">Prima mensual</span>
+      <span>{{ policy.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+    }
+
+    <span class="label">Inicio</span>
+    <span>{{ policy.coveragePeriod.startDate | date:'dd/MM/yyyy' }}</span>
+
+    <span class="label">Fin</span>
+    <span>{{ policy.coveragePeriod.endDate | date:'dd/MM/yyyy' }}</span>
+
+    <span class="label">Creada</span>
+    <span>{{ policy.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+  </div>
+
+  @if (policy.healthPlan) {
+    <mat-divider />
+    <p class="section-title">Plan de Salud</p>
+    <div class="summary-grid">
+      <span class="label">Plan</span>
+      <span>{{ policy.healthPlan.planName }}</span>
+      <span class="label">Factor edad</span>
+      <span>{{ policy.healthPlan.ageFactorPercentage }}%</span>
+    </div>
+  }
+
+  @if (policy.travelPlan) {
+    <mat-divider />
+    <p class="section-title">Plan de Viaje</p>
+    <div class="summary-grid">
+      <span class="label">Tipo de viaje</span>
+      <span>{{ policy.travelPlan.tripType }}</span>
+      @if (policy.travelPlan.continent) {
+        <span class="label">Continente</span>
+        <span>{{ policy.travelPlan.continent }}</span>
+      }
+      <span class="label">Días</span>
+      <span>{{ policy.travelPlan.durationDays }}</span>
+    </div>
+  }
+</div>

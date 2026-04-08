@@ -1,0 +1,15 @@
+<app-policies-list-layout
+  [policies]="policies()"
+  [loading]="loading()"
+  [error]="error()"
+  [total]="total()"
+  [currentFilter]="currentFilter()"
+  [currentPage]="currentPage()"
+  [currentPageSize]="currentPageSize()"
+  (typeFilterChange)="onTypeFilterChange($event)"
+  (statusFilterChange)="onStatusFilterChange($event)"
+  (pageChange)="onPageChange($event)"
+  (activate)="onActivate($event)"
+  (viewDetail)="onViewDetail($event)"
+  (viewClaims)="onViewClaims($event)"
+  (newPolicy)="onNewPolicy()" />
