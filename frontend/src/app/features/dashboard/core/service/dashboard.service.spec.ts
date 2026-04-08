@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { DashboardService } from './dashboard.service';
-import { PagedResult } from '../../../core/models/api-response.model';
+import { DashboardService } from '../../services/dashboard.service';
+import { PagedResult } from '../../../../core/models/api-response.model';
 
 const API_URL = 'http://localhost:5000';
 
