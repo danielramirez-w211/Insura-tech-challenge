@@ -1,0 +1,26 @@
+.restriction-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.icon {
+  color: #856404;
+  margin-top: 2px;
+}
+
+strong {
+  color: #856404;
+  display: block;
+  margin-bottom: 4px;
+}
+
+p {
+  margin: 0;
+  font-size: 13px;
+  color: #664d03;
+}

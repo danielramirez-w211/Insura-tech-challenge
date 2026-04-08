@@ -1,0 +1,43 @@
+.preview-card {
+  background: var(--mat-sys-surface-container, #f5f5f5);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.preview-title {
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--mat-sys-primary, #6750a4);
+  margin: 0 0 8px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 16px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.label {
+  color: var(--mat-sys-on-surface-variant, #666);
+  font-size: 13px;
+}
+
+.full-divider {
+  grid-column: 1 / -1;
+  margin: 4px 0;
+}
+
+.total-label {
+  font-weight: 600;
+}
+
+.total-value {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--mat-sys-primary, #6750a4);
+}
