@@ -5,7 +5,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () =>
-      import('./features/dashboard/pages/dashboard.component').then(
+      import('./features/dashboard/ui/pages/dashboard.component').then(
         (m) => m.DashboardComponent
       ),
   },
@@ -36,14 +36,14 @@ export const routes: Routes = [
   {
     path: 'claims',
     loadComponent: () =>
-      import('./features/claims/pages/claims-list.component').then(
+      import('./features/claims/ui/pages/claim-list/claims-list.component').then(
         (m) => m.ClaimsListComponent
       ),
   },
   {
     path: 'claims/:id',
     loadComponent: () =>
-      import('./features/claims/pages/claim-detail.component').then(
+      import('./features/claims/ui/pages/claim-detail/claim-detail.component').then(
         (m) => m.ClaimDetailComponent
       ),
   },
