@@ -1,0 +1,62 @@
+<app-page-header
+  title="Detalle de Póliza"
+  actionLabel="Volver"
+  actionIcon="arrow_back"
+  (action)="router.navigate(['/policies'])" />
+
+@if (loading) {
+  <app-loading-spinner [loading]="true" />
+} @else if (policy) {
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ policy.policyNumber }}</mat-card-title>
+      <mat-card-subtitle>
+        <app-status-badge [status]="policy.status" />
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">Tipo</span>
+          <span>{{ policy.type | statusLabel }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Asegurado</span>
+          <span>{{ policy.insured.firstName }} {{ policy.insured.lastName }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Tipo de Documento</span>
+          <span>{{ policy.insured.documentType }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Documento</span>
+          <span>{{ policy.insured.documentId }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Email</span>
+          <span>{{ policy.insured.email }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Monto asegurado</span>
+          <span>{{ policy.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Vigencia</span>
+          <span>{{ policy.coveragePeriod.startDate }} — {{ policy.coveragePeriod.endDate }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      @if (policy.status === 'Pending') {
+        <button mat-raised-button color="primary" (click)="activate()">
+          <mat-icon>play_circle</mat-icon>
+          Activar Póliza
+        </button>
+      }
+      <button mat-stroked-button (click)="router.navigate(['/claims'], { queryParams: { policyId: policy!.id } })">
+        <mat-icon>report_problem</mat-icon>
+        Ver Siniestros
+      </button>
+    </mat-card-actions>
+  </mat-card>
+}

@@ -1,0 +1,19 @@
+.step-hint {
+  color: var(--mat-sys-on-surface-variant, #666);
+  font-size: 14px;
+  margin: 8px 0 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.step-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-bottom: 8px;
+}

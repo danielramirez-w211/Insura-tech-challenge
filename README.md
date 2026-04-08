@@ -1,6 +1,22 @@
 ﻿# InsuraTech — Sistema de Gestión de Pólizas y Siniestros
 
-## Arquitectura
+## Estructura del Proyecto
+
+```
+InsuraTech/
+├── Backend/                    # .NET 8 API — Clean Architecture + DDD + CQRS
+├── frontend/                   # Angular 19 SPA — Arquitectura por capas
+├── docs/
+│   └── output/
+│       ├── frontend-architecture.md   # Arquitectura detallada del frontend
+│       └── adr/                       # Architecture Decision Records
+├── podman-compose.yml
+└── README.md
+```
+
+---
+
+## Backend — Arquitectura
 
 Este proyecto implementa **Clean Architecture** con **DDD (Domain-Driven Design)** y **CQRS** usando MediatR.
 ```
@@ -139,6 +155,7 @@ reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport"
 
 ## Stack Tecnológico
 
+### Backend
 | Categoría | Tecnología |
 |-----------|------------|
 | Runtime | .NET 8 / C# 12 |
@@ -149,6 +166,61 @@ reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport"
 | Validación | FluentValidation 12 |
 | Contenedores | Podman + podman-compose |
 | Testing | xUnit + FluentAssertions + NSubstitute |
+
+### Frontend
+| Categoría | Tecnología |
+|-----------|------------|
+| Framework | Angular 19 (Standalone Components) |
+| UI | Angular Material 19 |
+| Estado | Angular Signals (`signal`, `computed`) |
+| HTTP | `HttpClient` + interceptores |
+| Formularios | Reactive Forms |
+| Build | Angular CLI 19 |
+
+---
+
+## Frontend
+
+### Arquitectura
+
+El frontend sigue una **arquitectura en capas por módulo** (SPEC-005). Cada feature tiene:
+
+```
+features/<feature>/
+├── core/
+│   ├── models/     # tipos de dominio
+│   └── service/    # servicios HTTP con signals de estado
+└── ui/
+    ├── blocks/     # componentes reutilizables (@Input/@Output)
+    └── pages/      # componentes de página (lazy loaded)
+```
+
+> Ver [docs/output/frontend-architecture.md](docs/output/frontend-architecture.md) para la arquitectura completa.
+
+### Módulos
+
+| Módulo | Ruta | Descripción |
+|--------|------|-------------|
+| Dashboard | `/dashboard` | Métricas: pólizas activas, siniestros pendientes, notif. fallidas |
+| Policies | `/policies` | Lista, creación (stepper 3 pasos), detalle y acciones |
+| Claims | `/claims` | Lista con filtros, detalle con timeline y acciones de gestión |
+| Notifications | `/notifications` | Centro de notificaciones con reintento de fallidas |
+
+### Levantar el frontend
+
+```bash
+cd frontend
+npm install
+ng serve
+# App disponible en http://localhost:4200
+```
+
+### Convenciones obligatorias
+
+- Cada componente Angular usa **3 archivos separados** (`.ts` + `.html` + `.css`)
+- Prohibido `template:` o `styles:` inline
+- Standalone components con imports explícitos
+- Signals para estado reactivo
 
 ## Supuestos y Decisiones
 

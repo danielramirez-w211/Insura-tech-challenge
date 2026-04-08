@@ -1,0 +1,45 @@
+@if (calculation()) {
+  <div class="preview-card" data-testid="travel-plan-preview">
+    <p class="preview-title">Resumen del cálculo</p>
+    <mat-divider />
+
+    <div class="preview-grid">
+      <span class="label">Tipo de viaje</span>
+      <span>{{ calculation()!.tripType }}</span>
+
+      @if (calculation()!.continent) {
+        <span class="label">Continente</span>
+        <span>{{ calculation()!.continent }}</span>
+      }
+
+      <span class="label">Días de cobertura</span>
+      <span>{{ calculation()!.durationDays }} días</span>
+
+      @if (calculation()!.basePriceUsd) {
+        <span class="label">Precio base (USD)</span>
+        <span>{{ calculation()!.basePriceUsd | currency:'USD':'symbol':'1.2-2' }}</span>
+      }
+
+      <span class="label">Precio base (COP)</span>
+      <span>{{ calculation()!.basePriceCop | currency:'COP':'symbol':'1.0-0' }}</span>
+
+      <span class="label">Incremento diario</span>
+      <span>{{ calculation()!.dailyIncrementCop | currency:'COP':'symbol':'1.0-0' }}</span>
+
+      @if (calculation()!.trmUsed) {
+        <span class="label">TRM aplicada</span>
+        <span data-testid="trm-value">{{ calculation()!.trmUsed | currency:'COP':'symbol':'1.2-2' }}</span>
+
+        <span class="label">Fecha TRM</span>
+        <span>{{ calculation()!.trmDate }}</span>
+      }
+
+      <mat-divider class="full-divider" />
+
+      <span class="label total-label">Total a pagar (COP)</span>
+      <span class="total-value" data-testid="final-amount-cop">
+        {{ calculation()!.totalPriceCop | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+  </div>
+}

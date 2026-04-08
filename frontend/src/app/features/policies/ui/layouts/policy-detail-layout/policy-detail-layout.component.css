@@ -1,0 +1,23 @@
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 720px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fce4ec;
+  color: #880e4f;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+}

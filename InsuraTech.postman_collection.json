@@ -1,0 +1,334 @@
+{
+  "info": {
+    "name": "InsuraTech API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección completa de endpoints InsuraTech — Pólizas, Planes de Salud y Motor de Tarifas de Viaje."
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "policyId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Travel Plans",
+      "item": [
+        {
+          "name": "Calculate — Nacional (10 días)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Nacional" },
+                { "key": "durationDays", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Nacional (30 días — techo COP $37.000)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Nacional" },
+                { "key": "durationDays", "value": "30" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Nacional (180 días — mismo precio que 30)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=180",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Nacional" },
+                { "key": "durationDays", "value": "180" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Internacional Europa (10 días)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Internacional&durationDays=10&continent=Europe",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Internacional" },
+                { "key": "durationDays", "value": "10" },
+                { "key": "continent", "value": "Europe" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Internacional América (30 días)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Internacional&durationDays=30&continent=America",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Internacional" },
+                { "key": "durationDays", "value": "30" },
+                { "key": "continent", "value": "America" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Error 422: duración excedida (181 días)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=181",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Nacional" },
+                { "key": "durationDays", "value": "181" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Calculate — Error 422: duración inválida (0 días)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["travel-plans", "calculate"],
+              "query": [
+                { "key": "tripType", "value": "Nacional" },
+                { "key": "durationDays", "value": "0" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Policies",
+      "item": [
+        {
+          "name": "List Policies",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            }
+          }
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/policies/{{policyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "{{policyId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create — Travel Nacional (10 días)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Carlos\",\n    \"lastName\": \"Viajero\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"987654321\",\n    \"birthDate\": \"1990-05-15\",\n    \"email\": \"carlos@ejemplo.com\",\n    \"phone\": \"+57 300 111 2222\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-10\",\n    \"endDate\": \"2026-04-19\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Nacional\",\n  \"durationDays\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — Travel Internacional Europa (10 días)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"María\",\n    \"lastName\": \"Internacional\",\n    \"documentType\": \"PP\",\n    \"documentId\": \"111222333\",\n    \"birthDate\": \"1985-08-20\",\n    \"email\": \"maria@ejemplo.com\",\n    \"phone\": \"+57 301 555 6666\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-05-01\",\n    \"endDate\": \"2026-05-10\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Internacional\",\n  \"continent\": \"Europe\",\n  \"durationDays\": 10\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — Travel Internacional Asia (30 días)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Pedro\",\n    \"lastName\": \"Asia\",\n    \"documentType\": \"CE\",\n    \"documentId\": \"444555666\",\n    \"birthDate\": \"1978-03-10\",\n    \"email\": \"pedro@ejemplo.com\",\n    \"phone\": \"+57 302 777 8888\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-06-01\",\n    \"endDate\": \"2026-06-30\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Internacional\",\n  \"continent\": \"Asia\",\n  \"durationDays\": 30\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — Life",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Life\",\n  \"insured\": {\n    \"firstName\": \"Luis\",\n    \"lastName\": \"Vida\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"123123123\",\n    \"birthDate\": \"1980-07-25\",\n    \"email\": \"luis@ejemplo.com\",\n    \"phone\": \"+57 315 000 0002\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2027-04-01\"\n  },\n  \"insuredAmount\": 100000000,\n  \"monthlyPremium\": 250000\n}"
+            }
+          }
+        },
+        {
+          "name": "Create — Error 422: Travel duración excedida (181 días)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"Error\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"000000001\",\n    \"birthDate\": \"1990-01-01\",\n    \"email\": \"test@error.com\",\n    \"phone\": \"\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2026-10-01\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Nacional\",\n  \"durationDays\": 181\n}"
+            }
+          }
+        },
+        {
+          "name": "Activate Policy",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "{{baseUrl}}/policies/{{policyId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "{{policyId}}", "activate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health Plans",
+      "item": [
+        {
+          "name": "List Health Plans",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health-plans",
+              "host": ["{{baseUrl}}"],
+              "path": ["health-plans"]
+            }
+          }
+        },
+        {
+          "name": "Calculate Health Plan",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health-plans/calculate?planId=REEMPLAZA_CON_ID_REAL&birthDate=1990-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["health-plans", "calculate"],
+              "query": [
+                { "key": "planId", "value": "REEMPLAZA_CON_ID_REAL" },
+                { "key": "birthDate", "value": "1990-01-01" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create — Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Health\",\n  \"insured\": {\n    \"firstName\": \"Ana\",\n    \"lastName\": \"Salud\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"555444333\",\n    \"birthDate\": \"1995-01-01\",\n    \"email\": \"ana@ejemplo.com\",\n    \"phone\": \"+57 310 000 0001\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2027-04-01\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"healthPlanId\": \"REEMPLAZA_CON_ID_REAL\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

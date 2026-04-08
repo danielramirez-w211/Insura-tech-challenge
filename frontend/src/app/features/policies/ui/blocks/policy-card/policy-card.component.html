@@ -1,0 +1,42 @@
+<div class="policy-card">
+  <div class="card-header">
+    <span class="policy-number">{{ policy.policyNumber }}</span>
+    <app-policy-type-badge [type]="policy.type" />
+  </div>
+
+  <div class="card-body">
+    <div class="info-row">
+      <mat-icon class="info-icon">person</mat-icon>
+      <span>{{ insuredFullName }}</span>
+    </div>
+    <div class="info-row">
+      <mat-icon class="info-icon">attach_money</mat-icon>
+      <span>{{ policy.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+    </div>
+    <div class="info-row">
+      <mat-icon class="info-icon">calendar_today</mat-icon>
+      <span>{{ policy.coveragePeriod.startDate | date:'dd/MM/yyyy' }} — {{ policy.coveragePeriod.endDate | date:'dd/MM/yyyy' }}</span>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <app-policy-status-chip [status]="policy.status" />
+
+    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu>
+      <button mat-menu-item (click)="viewDetail.emit(policy.id)">
+        <mat-icon>visibility</mat-icon> Ver detalle
+      </button>
+      @if (policy.status === 'Pending') {
+        <button mat-menu-item (click)="activate.emit(policy.id)">
+          <mat-icon>play_circle</mat-icon> Activar
+        </button>
+      }
+      <button mat-menu-item (click)="viewClaims.emit(policy.id)">
+        <mat-icon>report_problem</mat-icon> Ver siniestros
+      </button>
+    </mat-menu>
+  </div>
+</div>

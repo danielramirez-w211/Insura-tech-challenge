@@ -1,0 +1,12 @@
+mat-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+
+.no-actions {
+  color: #666;
+  font-size: 14px;
+  padding: 8px 0;
+}

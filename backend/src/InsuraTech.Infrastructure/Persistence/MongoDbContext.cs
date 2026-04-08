@@ -2,6 +2,8 @@ using InsuraTech.Domain.Claims;
 using InsuraTech.Domain.Common;
 using InsuraTech.Domain.Notifications;
 using InsuraTech.Domain.Policies;
+using InsuraTech.Domain.Policies.HealthPlan;
+using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
 using MediatR;
 using MongoDB.Bson;
@@ -110,20 +112,22 @@ public sealed class MongoDbContext
             });
 
             // ---- PolicyNumber ----
-            // AutoMap skips getter-only properties — map Value explicitly
+            // SetElementName explícito: garantiza "value" (minúscula) sin depender de la convención
             BsonClassMap.RegisterClassMap<PolicyNumber>(cm =>
             {
-                cm.MapProperty(pn => pn.Value);
+                cm.MapProperty(pn => pn.Value).SetElementName("value");
                 cm.MapCreator(pn => PolicyNumber.Parse(pn.Value));
             });
 
             // ---- InsuredPerson ----
             BsonClassMap.RegisterClassMap<InsuredPerson>(cm =>
             {
-                cm.MapProperty(p => p.FullName);
+                cm.MapProperty(p => p.FirstName);
+                cm.MapProperty(p => p.LastName);
+                cm.MapProperty(p => p.DocumentType);
                 cm.MapProperty(p => p.DocumentId);
                 cm.MapProperty(p => p.BirthDate);
-                cm.MapCreator(p => InsuredPerson.Create(p.FullName, p.DocumentId, p.BirthDate));
+                cm.MapCreator(p => InsuredPerson.Create(p.FirstName, p.LastName, p.DocumentType, p.DocumentId, p.BirthDate));
             });
 
             // ---- CoveragePeriod ----
@@ -132,6 +136,39 @@ public sealed class MongoDbContext
                 cm.MapProperty(c => c.StartDate);
                 cm.MapProperty(c => c.EndDate);
                 cm.MapCreator(c => new CoveragePeriod(c.StartDate, c.EndDate));
+            });
+
+            // ---- HealthPlanSelection ----
+            BsonClassMap.RegisterClassMap<HealthPlanSelection>(cm =>
+            {
+                cm.MapProperty(h => h.PlanId);
+                cm.MapProperty(h => h.PlanName);
+                cm.MapProperty(h => h.BaseAmount);
+                cm.MapProperty(h => h.AgeFactorPercentage);
+                cm.MapProperty(h => h.AgeFactorAmount);
+                cm.MapProperty(h => h.FinalAmount);
+                cm.MapCreator(h => new HealthPlanSelection(
+                    h.PlanId, h.PlanName, h.BaseAmount,
+                    h.AgeFactorPercentage, h.AgeFactorAmount, h.FinalAmount));
+            });
+
+            // ---- TravelPlanSelection ----
+            BsonClassMap.RegisterClassMap<TravelPlanSelection>(cm =>
+            {
+                cm.MapProperty(t => t.TripType);
+                cm.MapProperty(t => t.Continent);
+                cm.MapProperty(t => t.DurationDays);
+                cm.MapProperty(t => t.BasePriceUsd);
+                cm.MapProperty(t => t.BasePriceCop);
+                cm.MapProperty(t => t.DailyIncrementCop);
+                cm.MapProperty(t => t.TotalPriceCop);
+                cm.MapProperty(t => t.TrmUsed);
+                cm.MapProperty(t => t.TrmDate);
+                cm.MapProperty(t => t.CalculatedAt);
+                cm.MapCreator(t => new TravelPlanSelection(
+                    t.TripType, t.Continent, t.DurationDays, t.BasePriceUsd,
+                    t.BasePriceCop, t.DailyIncrementCop, t.TotalPriceCop,
+                    t.TrmUsed, t.TrmDate, t.CalculatedAt));
             });
 
             // ---- Policy ----

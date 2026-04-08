@@ -12,13 +12,15 @@ public sealed class CreatePolicyHandlerTests
 {
     private readonly IPolicyRepository _policyRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ITrmService _trmService;
     private readonly CreatePolicyHandler _handler;
 
     public CreatePolicyHandlerTests()
     {
         _policyRepository = Substitute.For<IPolicyRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _handler = new CreatePolicyHandler(_policyRepository, _unitOfWork);
+        _unitOfWork       = Substitute.For<IUnitOfWork>();
+        _trmService       = Substitute.For<ITrmService>();
+        _handler          = new CreatePolicyHandler(_policyRepository, _unitOfWork, _trmService);
     }
 
     private static CreatePolicyCommand BuildCommand(string idempotencyKey = "key-001") =>

@@ -6,21 +6,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   selector: 'app-loading-spinner',
   standalone: true,
   imports: [CommonModule, MatProgressSpinnerModule],
-  template: `
-    @if (loading) {
-      <div class="spinner-overlay">
-        <mat-spinner diameter="48" />
-      </div>
-    }
-  `,
-  styles: [`
-    .spinner-overlay {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 48px;
-    }
-  `],
+  templateUrl: './loading-spinner.component.html',
+  styleUrl: './loading-spinner.component.css',
 })
 export class LoadingSpinnerComponent {
   @Input() loading = false;

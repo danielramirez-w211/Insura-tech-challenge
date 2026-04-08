@@ -5,49 +5,52 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     loadComponent: () =>
-      import('./features/dashboard/pages/dashboard.component').then(
+      import('./features/dashboard/ui/pages/dashboard.component').then(
         (m) => m.DashboardComponent
       ),
   },
   {
     path: 'policies',
+    // TODO SPEC-6: canActivate: [AuthGuard]
     loadComponent: () =>
-      import('./features/policies/pages/policies-list.component').then(
-        (m) => m.PoliciesListComponent
+      import('./features/policies/container/policies-container.component').then(
+        (m) => m.PoliciesContainerComponent
       ),
   },
   {
     path: 'policies/new',
+    // TODO SPEC-6: canActivate: [AuthGuard], canMatch: [RoleGuard('admin', 'agent')]
     loadComponent: () =>
-      import('./features/policies/pages/policy-create.component').then(
+      import('./features/policies/ui/Pages/policy-create/policy-create.component').then(
         (m) => m.PolicyCreateComponent
       ),
   },
   {
     path: 'policies/:id',
+    // TODO SPEC-6: canActivate: [AuthGuard]
     loadComponent: () =>
-      import('./features/policies/pages/policy-detail.component').then(
+      import('./features/policies/ui/Pages/policy-detail/policy-detail.component').then(
         (m) => m.PolicyDetailComponent
       ),
   },
   {
     path: 'claims',
     loadComponent: () =>
-      import('./features/claims/pages/claims-list.component').then(
+      import('./features/claims/ui/pages/claim-list/claims-list.component').then(
         (m) => m.ClaimsListComponent
       ),
   },
   {
     path: 'claims/:id',
     loadComponent: () =>
-      import('./features/claims/pages/claim-detail.component').then(
+      import('./features/claims/ui/pages/claim-detail/claim-detail.component').then(
         (m) => m.ClaimDetailComponent
       ),
   },
   {
     path: 'notifications',
     loadComponent: () =>
-      import('./features/notifications/pages/notifications.component').then(
+      import('./features/notifications/ui/pages/notifications/notifications.component').then(
         (m) => m.NotificationsComponent
       ),
   },

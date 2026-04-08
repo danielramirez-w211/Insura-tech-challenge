@@ -1,0 +1,77 @@
+<form [formGroup]="form">
+  <p class="step-hint">Ingresa los datos personales del titular de la póliza.</p>
+
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Primer Nombre</mat-label>
+      <mat-icon matPrefix>person</mat-icon>
+      <input matInput formControlName="firstName" placeholder="Ej. Juan" />
+      @if (form.get('firstName')?.touched && form.get('firstName')?.hasError('required')) {
+        <mat-error>El nombre es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Apellido</mat-label>
+      <mat-icon matPrefix>person</mat-icon>
+      <input matInput formControlName="lastName" placeholder="Ej. Pérez" />
+      @if (form.get('lastName')?.touched && form.get('lastName')?.hasError('required')) {
+        <mat-error>El apellido es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo de documento</mat-label>
+      <mat-icon matPrefix>badge</mat-icon>
+      <input matInput formControlName="documentType" placeholder="Ej. CC / PP / CE" />
+      @if (form.get('documentType')?.touched && form.get('documentType')?.hasError('required')) {
+        <mat-error>El tipo de documento es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Número de documento</mat-label>
+      <mat-icon matPrefix>badge</mat-icon>
+      <input matInput formControlName="documentId" placeholder="Ej. 123456789" />
+      @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('required')) {
+        <mat-error>El documento es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fecha de nacimiento</mat-label>
+      <mat-icon matPrefix>cake</mat-icon>
+      <input matInput [matDatepicker]="birthPicker" formControlName="birthDate"
+             placeholder="DD/MM/AAAA" readonly />
+      <mat-datepicker-toggle matIconSuffix [for]="birthPicker" />
+      <mat-datepicker #birthPicker startView="multi-year" />
+      @if (form.get('birthDate')?.touched && form.get('birthDate')?.hasError('required')) {
+        <mat-error>La fecha de nacimiento es obligatoria</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <mat-icon matPrefix>email</mat-icon>
+      <input matInput formControlName="email" type="email" placeholder="correo@ejemplo.com" />
+      @if (form.get('email')?.touched && form.get('email')?.hasError('required')) {
+        <mat-error>El email es obligatorio</mat-error>
+      }
+      @if (form.get('email')?.touched && form.get('email')?.hasError('email')) {
+        <mat-error>Formato de email inválido</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Teléfono</mat-label>
+      <mat-icon matPrefix>phone</mat-icon>
+      <input matInput formControlName="phone" placeholder="Ej. +57 300 000 0000" />
+    </mat-form-field>
+  </div>
+
+  <div class="step-actions">
+    <button mat-raised-button color="primary" [disabled]="form.invalid" (click)="onNext()">
+      Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  </div>
+</form>

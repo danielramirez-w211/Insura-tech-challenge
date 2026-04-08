@@ -1,0 +1,27 @@
+<div class="plans-grid">
+  @for (plan of plans(); track plan.planId) {
+    <mat-card
+      class="plan-card"
+      [class.selected]="selectedPlanId() === plan.planId"
+      (click)="select(plan)"
+      role="button"
+      [attr.aria-pressed]="selectedPlanId() === plan.planId"
+      [attr.data-testid]="'plan-' + plan.planId">
+
+      <mat-card-content>
+        <div class="plan-icon">
+          <mat-icon>health_and_safety</mat-icon>
+        </div>
+        <h3 class="plan-name">{{ plan.planName }}</h3>
+        <p class="plan-amount">{{ plan.baseAmount | currency:'COP':'symbol':'1.0-0' }}</p>
+        <p class="plan-label">Valor base</p>
+
+        @if (selectedPlanId() === plan.planId) {
+          <div class="selected-badge">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

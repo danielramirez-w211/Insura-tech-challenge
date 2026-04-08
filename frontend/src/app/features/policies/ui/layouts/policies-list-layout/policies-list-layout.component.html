@@ -1,0 +1,85 @@
+<app-page-header
+  title="Pólizas"
+  actionLabel="Nueva Póliza"
+  actionIcon="add"
+  (action)="newPolicy.emit()" />
+
+<app-policy-filter-bar
+  [selectedType]="currentFilter"
+  (typeFilterChange)="typeFilterChange.emit($event)"
+  (statusFilterChange)="statusFilterChange.emit($event)" />
+
+@if (error) {
+  <div class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+}
+
+@if (loading) {
+  <app-loading-spinner [loading]="true" />
+} @else {
+  <mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="policyNumber">
+      <mat-header-cell *matHeaderCellDef>Número</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.policyNumber }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="insured">
+      <mat-header-cell *matHeaderCellDef>Asegurado</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.insured.firstName }} {{ row.insured.lastName }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="type">
+      <mat-header-cell *matHeaderCellDef>Tipo</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <app-policy-type-badge [type]="row.type" />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <app-policy-status-chip [status]="row.status" />
+      </mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="insuredAmount">
+      <mat-header-cell *matHeaderCellDef>Monto</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</mat-cell>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #menu>
+          <button mat-menu-item (click)="viewDetail.emit(row.id)">
+            <mat-icon>visibility</mat-icon> Ver detalle
+          </button>
+          @if (row.status === 'Pending') {
+            <button mat-menu-item (click)="activate.emit(row.id)">
+              <mat-icon>play_circle</mat-icon> Activar
+            </button>
+          }
+          <button mat-menu-item (click)="viewClaims.emit(row.id)">
+            <mat-icon>report_problem</mat-icon> Ver siniestros
+          </button>
+        </mat-menu>
+      </mat-cell>
+    </ng-container>
+
+    <mat-header-row *matHeaderRowDef="displayedColumns" />
+    <mat-row *matRowDef="let row; columns: displayedColumns;" />
+  </mat-table>
+
+  <mat-paginator
+    [length]="total"
+    [pageSize]="currentPageSize"
+    [pageIndex]="currentPage - 1"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageEvent($event)"
+    showFirstLastButtons />
+}

@@ -1,0 +1,56 @@
+ <app-page-header
+      title="Detalle de Siniestro"
+      actionLabel="Volver"
+      actionIcon="arrow_back"
+      (action)="router.navigate(['/claims'])" />
+
+    @if (loading) {
+      <app-loading-spinner [loading]="true" />
+    } @else if (claim) {
+      <div class="claim-layout">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ claim.claimNumber }}</mat-card-title>
+            <mat-card-subtitle>
+              <app-status-badge [status]="claim.status" />
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="label">Póliza</span>
+                <span>{{ claim.policyNumber }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Monto reclamado</span>
+                <span>{{ claim.claimAmount | currency:'USD' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Descripción</span>
+                <span>{{ claim.description }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">Fecha de registro</span>
+                <span>{{ claim.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Historial de Estados</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <app-claim-status-timeline [statusHistory]="claim.statusHistory" />
+          </mat-card-content>
+        </mat-card>
+
+        <app-claim-actions
+          [claim]="claim"
+          (approve)="onApprove()"
+          (reject)="onReject()"
+          (appeal)="onAppeal()"
+          (pay)="onPay()" />
+      </div>
+    }

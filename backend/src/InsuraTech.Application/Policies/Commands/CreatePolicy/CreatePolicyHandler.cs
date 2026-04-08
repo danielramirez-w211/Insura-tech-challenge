@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using InsuraTech.Application.Common.Interfaces;
+﻿using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Application.Policies.DTOs;
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
@@ -15,50 +10,77 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
     public sealed class CreatePolicyHandler : IRequestHandler<CreatePolicyCommand, PolicyResponse>
     {
         private readonly IPolicyRepository _policyRepository;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork       _unitOfWork;
+        private readonly ITrmService       _trmService;
 
-        public CreatePolicyHandler(IPolicyRepository policyRepository, IUnitOfWork unitOfWork)
+        public CreatePolicyHandler(
+            IPolicyRepository policyRepository,
+            IUnitOfWork unitOfWork,
+            ITrmService trmService)
         {
             _policyRepository = policyRepository;
-            _unitOfWork = unitOfWork;
+            _unitOfWork       = unitOfWork;
+            _trmService       = trmService;
         }
 
         public async Task<PolicyResponse> Handle(CreatePolicyCommand request, CancellationToken cancellationToken)
         {
             var existing = await _policyRepository
-            .GetByIdempotencyKeyAsync(request.IdempotencyKey, cancellationToken);
+                .GetByIdempotencyKeyAsync(request.IdempotencyKey, cancellationToken);
 
             if (existing is not null)
                 return existing.ToResponse();
 
-            // Generar número de póliza
-            var sequence = await _policyRepository.GetNextSequenceAsync(cancellationToken);
+            var sequence     = await _policyRepository.GetNextSequenceAsync(cancellationToken);
             var policyNumber = PolicyNumber.Create(DateTime.UtcNow.Year, sequence);
 
-            var insured = InsuredPerson.Create(
-                request.InsuredFullName,
-                request.InsuredDocumentId,
-                request.InsuredBirthDate);
+            var insured  = InsuredPerson.Create(
+                request.InsuredFirstName, request.InsuredLastName, request.InsuredDocumentType, request.InsuredDocumentId, request.InsuredBirthDate);
 
-            var coverage = CoveragePeriod.Create(
-                request.CoverageStartDate,
-                request.CoverageEndDate);
+            Policy policy;
 
-            var  policy = Policy.Create(
-                 policyNumber,
-                 request.Type,
-                 insured,
-                 coverage,
-                 request.MonthlyPremium,
-                 request.InsuredAmount);
+            if (request.Type == PolicyType.Health && !string.IsNullOrWhiteSpace(request.HealthPlanId))
+            {
+                var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
+                policy = Policy.CreateHealthPolicy(
+                    policyNumber, insured, coverage,
+                    request.MonthlyPremium, request.HealthPlanId,
+                    DateOnly.FromDateTime(DateTime.UtcNow));
+            }
+            else if (request.Type == PolicyType.Travel && request.TripType.HasValue && request.DurationDays.HasValue)
+            {
+                // Para Travel se usa el constructor directo para evitar la validación de mínimo 30 días
+                // (un viaje de 1-29 días es válido en Travel aunque no lo sea en otros productos)
+                var coverage = new CoveragePeriod(request.CoverageStartDate, request.CoverageEndDate);
+
+                decimal? trmValue = null;
+                DateOnly? trmDate = null;
+
+                if (request.TripType == Domain.Policies.TravelPlan.TripType.Internacional)
+                {
+                    var trm  = await _trmService.GetCurrentTrmAsync(cancellationToken);
+                    trmValue = trm.ValueCop;
+                    trmDate  = trm.Date;
+                }
+
+                policy = Policy.CreateTravelPolicy(
+                    policyNumber, insured, coverage,
+                    request.TripType.Value, request.Continent,
+                    request.DurationDays.Value, trmValue, trmDate);
+            }
+            else
+            {
+                var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
+                policy = Policy.Create(
+                    policyNumber, request.Type, insured, coverage,
+                    request.MonthlyPremium, request.InsuredAmount);
+            }
 
             await _policyRepository.AddAsync(policy, cancellationToken);
             _policyRepository.SetIdempotencyKey(policy, request.IdempotencyKey);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return policy.ToResponse();
-
-
         }
     }
 }
