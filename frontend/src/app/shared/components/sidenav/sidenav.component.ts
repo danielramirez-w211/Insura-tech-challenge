@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
-import { NotificationsService } from '../../../features/notifications/services/notifications.service';
+import { NotificationsCoreService } from '../../../features/notifications/core/service/notifications.service';
 
 interface NavItem {
   label: string;
@@ -41,7 +41,7 @@ interface NavItem {
   `],
 })
 export class SidenavComponent {
-  notificationsService = inject(NotificationsService);
+  notificationsService = inject(NotificationsCoreService);
 
   navItems: NavItem[] = [
     { label: 'Dashboard',       icon: 'dashboard',       route: '/dashboard' },

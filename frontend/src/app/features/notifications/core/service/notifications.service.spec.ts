@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { NotificationsService } from './notifications.service';
-import { NotificationDto } from '../models/notification.model';
-import { PagedResult } from '../../../core/models/api-response.model';
+import { NotificationsService } from '../../services/notifications.service';
+import { NotificationDto } from '../../models/notification.model';
+import { PagedResult } from '../../../../core/models/api-response.model';
 
 const BASE_URL = 'http://localhost:5000/api/v1/notifications';
 
