@@ -13,19 +13,19 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PoliciesCoreService } from '../core/service/policies.service';
-import { HealthPlansService } from '../core/service/health-plans.service';
-import { TravelPlansService } from '../core/service/travel-plans.service';
-import { PolicyType } from '../core/models/policy.model';
-import { HealthPlan, HealthPlanCalculation } from '../core/models/health-plan-selection.model';
-import { TravelPlanSelection, TripType, Continent } from '../core/models/travel-plan-selection.model';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
-import { HealthPlanSelectorComponent } from '../ui/blocks/health-plan-selector/health-plan-selector.component';
-import { HealthPlanPreviewComponent } from '../ui/blocks/health-plan-preview/health-plan-preview.component';
-import { AgeRestrictionComponent } from '../ui/blocks/age-restriction/age-restriction.component';
-import { TravelPlanPreviewComponent } from '../ui/blocks/travel-plan-preview/travel-plan-preview.component';
-import { TravelDurationRestrictionComponent } from '../ui/blocks/travel-duration-restriction/travel-duration-restriction.component';
+import { PoliciesCoreService } from '../../../core/service/policies.service';
+import { HealthPlansService } from '../../../core/service/health-plans.service';
+import { TravelPlansService } from '../../../core/service/travel-plans.service';
+import { PolicyType } from '../../../core/models/policy.model';
+import { HealthPlan, HealthPlanCalculation } from '../../../core/models/health-plan-selection.model';
+import { TravelPlanSelection, TripType, Continent } from '../../../core/models/travel-plan-selection.model';
+import { PageHeaderComponent } from '../../../../../shared/components/page-header/page-header.component';
+import { StatusLabelPipe } from '../../../../../shared/pipes/status-label.pipe';
+import { HealthPlanSelectorComponent } from '../../blocks/health-plan-selector/health-plan-selector.component';
+import { HealthPlanPreviewComponent } from '../../blocks/health-plan-preview/health-plan-preview.component';
+import { AgeRestrictionComponent } from '../../blocks/age-restriction/age-restriction.component';
+import { TravelPlanPreviewComponent } from '../../blocks/travel-plan-preview/travel-plan-preview.component';
+import { TravelDurationRestrictionComponent } from '../../blocks/travel-duration-restriction/travel-duration-restriction.component';
 
 @Component({
   selector: 'app-policy-create',

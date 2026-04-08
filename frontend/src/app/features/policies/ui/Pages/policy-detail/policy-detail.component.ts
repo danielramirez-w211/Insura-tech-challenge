@@ -5,12 +5,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { PoliciesCoreService } from '../core/service/policies.service';
-import { Policy } from '../core/models/policy.model';
-import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
-import { StatusLabelPipe } from '../../../shared/pipes/status-label.pipe';
+import { PoliciesCoreService } from '../../../core/service/policies.service';
+import { Policy } from '../../../core/models/policy.model';
+import { StatusBadgeComponent } from '../../../../../shared/components/status-badge/status-badge.component';
+import { PageHeaderComponent } from '../../../../../shared/components/page-header/page-header.component';
+import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner.component';
+import { StatusLabelPipe } from '../../../../../shared/pipes/status-label.pipe';
 
 @Component({
   selector: 'app-policy-detail',

@@ -1,0 +1,8 @@
+.full-width {
+  width: 100%;
+  min-width: 360px;
+}
+
+mat-dialog-content {
+  padding-top: 16px !important;
+}
