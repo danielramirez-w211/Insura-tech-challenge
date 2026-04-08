@@ -1,0 +1,62 @@
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.plan-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+  text-align: center;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.selected {
+  border-color: var(--mat-sys-primary, #6750a4);
+  background: var(--mat-sys-primary-container, #eaddff);
+}
+
+.plan-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  color: var(--mat-sys-primary, #6750a4);
+}
+
+.plan-icon mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.plan-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.plan-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--mat-sys-primary, #6750a4);
+  margin: 0 0 4px;
+}
+
+.plan-label {
+  font-size: 11px;
+  color: var(--mat-sys-on-surface-variant, #666);
+  margin: 0;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: var(--mat-sys-primary, #6750a4);
+}

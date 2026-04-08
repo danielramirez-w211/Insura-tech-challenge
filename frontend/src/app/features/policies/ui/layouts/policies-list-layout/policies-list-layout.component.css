@@ -1,0 +1,13 @@
+mat-table { width: 100%; }
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fce4ec;
+  color: #880e4f;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}

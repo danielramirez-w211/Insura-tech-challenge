@@ -1,0 +1,45 @@
+<div class="travel-block">
+  <div class="travel-row">
+    <mat-icon>flight</mat-icon>
+    <div>
+      <span class="label">Tipo de viaje</span>
+      <span class="value">{{ travelPlan.tripType }}</span>
+    </div>
+  </div>
+
+  @if (travelPlan.continent) {
+    <div class="travel-row">
+      <mat-icon>public</mat-icon>
+      <div>
+        <span class="label">Continente</span>
+        <span class="value">{{ travelPlan.continent }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="travel-row">
+    <mat-icon>date_range</mat-icon>
+    <div>
+      <span class="label">Días de cobertura</span>
+      <span class="value">{{ travelPlan.durationDays }} días</span>
+    </div>
+  </div>
+
+  <div class="travel-row">
+    <mat-icon>payments</mat-icon>
+    <div>
+      <span class="label">Total póliza</span>
+      <span class="value highlight">{{ travelPlan.totalPriceCop | currency:'COP':'symbol':'1.0-0' }}</span>
+    </div>
+  </div>
+
+  @if (travelPlan.trmUsed) {
+    <div class="travel-row">
+      <mat-icon>currency_exchange</mat-icon>
+      <div>
+        <span class="label">TRM usada</span>
+        <span class="value">{{ travelPlan.trmUsed | currency:'COP':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+  }
+</div>

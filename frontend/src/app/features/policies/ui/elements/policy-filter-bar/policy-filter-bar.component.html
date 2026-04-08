@@ -1,0 +1,21 @@
+<div class="filter-bar">
+  <mat-form-field appearance="outline">
+    <mat-label>Tipo</mat-label>
+    <mat-select [ngModel]="selectedType" (ngModelChange)="onTypeChange($event)">
+      <mat-option [value]="undefined">Todos</mat-option>
+      @for (t of typeOptions; track t) {
+        <mat-option [value]="t">{{ t | statusLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Estado</mat-label>
+    <mat-select [ngModel]="selectedStatus" (ngModelChange)="onStatusChange($event)">
+      <mat-option [value]="undefined">Todos</mat-option>
+      @for (s of statusOptions; track s) {
+        <mat-option [value]="s">{{ s | statusLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>

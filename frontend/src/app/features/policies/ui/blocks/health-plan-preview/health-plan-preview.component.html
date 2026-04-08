@@ -1,0 +1,38 @@
+@if (calculation()) {
+  <div class="preview-card" data-testid="health-plan-preview">
+    <div class="preview-header">
+      <mat-icon>calculate</mat-icon>
+      <span>Resumen del plan seleccionado</span>
+    </div>
+
+    <mat-divider />
+
+    <div class="preview-grid">
+      <span class="label">Plan</span>
+      <span class="value">{{ calculation()!.planName }}</span>
+
+      <span class="label">Edad del asegurado</span>
+      <span class="value">{{ calculation()!.insuredAge }} años</span>
+
+      <span class="label">Valor base</span>
+      <span class="value">{{ calculation()!.baseAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+
+      <span class="label">Incremento por edad</span>
+      <span class="value">
+        {{ calculation()!.ageFactorPercentage }}%
+        @if (calculation()!.ageFactorAmount > 0) {
+          <em>(+{{ calculation()!.ageFactorAmount | currency:'COP':'symbol':'1.0-0' }})</em>
+        }
+      </span>
+    </div>
+
+    <mat-divider />
+
+    <div class="final-row">
+      <span class="final-label">Monto asegurado final</span>
+      <span class="final-amount" data-testid="final-amount">
+        {{ calculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+  </div>
+}

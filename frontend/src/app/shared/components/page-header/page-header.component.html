@@ -1,0 +1,9 @@
+<div class="page-header">
+      <h1 class="page-title">{{ title }}</h1>
+      @if (actionLabel) {
+        <button mat-raised-button color="primary" (click)="action.emit()">
+          <mat-icon>{{ actionIcon }}</mat-icon>
+          {{ actionLabel }}
+        </button>
+      }
+</div>

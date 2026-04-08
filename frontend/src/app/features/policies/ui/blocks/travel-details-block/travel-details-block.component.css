@@ -1,0 +1,27 @@
+.travel-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--mat-sys-surface-container-low, #f0f0f0);
+  border-radius: 8px;
+  border-left: 4px solid var(--mat-sys-primary, #6750a4);
+}
+
+.travel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.travel-row mat-icon { color: var(--mat-sys-primary, #6750a4); }
+
+.travel-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.label { font-size: 11px; color: var(--mat-sys-on-surface-variant, #888); }
+.value { font-size: 14px; font-weight: 500; }
+.highlight { color: var(--mat-sys-primary, #6750a4); font-weight: 600; }

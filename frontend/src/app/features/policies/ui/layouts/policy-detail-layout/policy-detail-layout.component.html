@@ -1,0 +1,33 @@
+<app-page-header
+  title="Detalle de Póliza"
+  actionLabel="Volver"
+  actionIcon="arrow_back"
+  (action)="goBack.emit()" />
+
+@if (loading) {
+  <app-loading-spinner [loading]="true" />
+} @else if (error) {
+  <div class="error-banner">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+} @else if (policy) {
+  <div class="detail-content">
+    <app-policy-summary-block [policy]="policy" />
+
+    @if (policy.travelPlan) {
+      <app-travel-details-block [travelPlan]="policy.travelPlan" />
+    }
+
+    <div class="actions">
+      @if (policy.status === 'Pending') {
+        <button mat-raised-button color="primary" (click)="activate.emit(policy.id)">
+          <mat-icon>play_circle</mat-icon> Activar Póliza
+        </button>
+      }
+      <button mat-stroked-button (click)="viewClaims.emit(policy.id)">
+        <mat-icon>report_problem</mat-icon> Ver Siniestros
+      </button>
+    </div>
+  </div>
+}

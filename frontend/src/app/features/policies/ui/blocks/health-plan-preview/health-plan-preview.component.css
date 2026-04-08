@@ -1,0 +1,50 @@
+.preview-card {
+  background: var(--mat-sys-surface-container, #f5f5f5);
+  border-radius: 8px;
+  padding: 16px;
+  border-left: 4px solid var(--mat-sys-primary, #6750a4);
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary, #6750a4);
+  margin-bottom: 12px;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px 16px;
+  padding: 12px 0;
+}
+
+.label {
+  color: var(--mat-sys-on-surface-variant, #666);
+  font-size: 13px;
+}
+
+.value {
+  font-weight: 500;
+}
+
+.final-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.final-label {
+  font-weight: 600;
+}
+
+.final-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--mat-sys-primary, #6750a4);
+}

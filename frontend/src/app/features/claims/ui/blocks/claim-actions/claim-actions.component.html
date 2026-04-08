@@ -1,0 +1,28 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Acciones</mat-card-title>
+  </mat-card-header>
+  <mat-card-actions>
+    @if (claim.status === 'Registered' || claim.status === 'Appealed') {
+      <button mat-raised-button color="primary" (click)="approve.emit()">
+        <mat-icon>check_circle</mat-icon> Aprobar
+      </button>
+      <button mat-raised-button color="warn" (click)="reject.emit()">
+        <mat-icon>cancel</mat-icon> Rechazar
+      </button>
+    }
+    @if (claim.status === 'Rejected') {
+      <button mat-raised-button color="accent" (click)="appeal.emit()">
+        <mat-icon>gavel</mat-icon> Apelar
+      </button>
+    }
+    @if (claim.status === 'Approved') {
+      <button mat-raised-button color="primary" (click)="pay.emit()">
+        <mat-icon>payments</mat-icon> Marcar como Pagado
+      </button>
+    }
+    @if (claim.status === 'Paid') {
+      <span class="no-actions">Siniestro cerrado — no hay acciones disponibles.</span>
+    }
+  </mat-card-actions>
+</mat-card>

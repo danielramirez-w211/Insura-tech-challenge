@@ -1,0 +1,74 @@
+<app-page-header title="Centro de Notificaciones" />
+
+    <div class="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Estado</mat-label>
+        <mat-select [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()">
+          <mat-option [value]="undefined">Todos</mat-option>
+          @for (s of statusOptions; track s) {
+            <mat-option [value]="s">{{ s | statusLabel }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (service.loading()) {
+      <app-loading-spinner [loading]="true" />
+    } @else {
+      <mat-table [dataSource]="dataSource">
+        <ng-container matColumnDef="event">
+          <mat-header-cell *matHeaderCellDef>Evento</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.event | statusLabel }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="recipient">
+          <mat-header-cell *matHeaderCellDef>Destinatario</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.recipientName }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="subject">
+          <mat-header-cell *matHeaderCellDef>Asunto</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.subject }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            <app-status-badge [status]="row.status" />
+          </mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="retryCount">
+          <mat-header-cell *matHeaderCellDef>Reintentos</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.retryCount }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <mat-header-cell *matHeaderCellDef>Fecha</mat-header-cell>
+          <mat-cell *matCellDef="let row">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</mat-cell>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <mat-header-cell *matHeaderCellDef></mat-header-cell>
+          <mat-cell *matCellDef="let row">
+            @if (row.status === 'Failed') {
+              <button mat-icon-button color="accent"
+                (click)="retry(row)"
+                aria-label="Reintentar notificación">
+                <mat-icon>refresh</mat-icon>
+              </button>
+            }
+          </mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns" />
+        <mat-row *matRowDef="let row; columns: displayedColumns;" />
+      </mat-table>
+
+      <mat-paginator
+        [length]="service.totalCount()"
+        [pageSize]="filters.pageSize"
+        [pageSizeOptions]="[10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons />
+    }
