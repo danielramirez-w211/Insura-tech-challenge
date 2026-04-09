@@ -4,11 +4,36 @@
   padding: 3px 10px;
   border-radius: 12px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  border: 1.5px solid transparent;
 }
 
-.chip--pending   { background: #fff8e1; color: #f57f17; }
-.chip--active    { background: #e8f5e9; color: #2e7d32; }
-.chip--suspended { background: #fff3e0; color: #e65100; }
-.chip--expired   { background: #fafafa; color: #616161; }
-.chip--cancelled { background: #fce4ec; color: #880e4f; }
+/* Active — acento naranja */
+.chip--active {
+  background-color: #FFFFFF;
+  border-color: #FF6B2C;
+  color: #FF6B2C;
+}
+
+/* Pending — contorno negro */
+.chip--pending {
+  background-color: #FFFFFF;
+  border-color: #111111;
+  color: #111111;
+}
+
+/* Suspended — fondo naranja claro */
+.chip--suspended {
+  background-color: #FFF3ED;
+  border-color: #FF6B2C;
+  color: #C84B10;
+}
+
+/* Expired y Cancelled — neutro gris */
+.chip--expired,
+.chip--cancelled {
+  background-color: #F5F5F5;
+  border-color: #BDBDBD;
+  color: #757575;
+}

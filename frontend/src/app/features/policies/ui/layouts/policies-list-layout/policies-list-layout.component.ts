@@ -5,13 +5,15 @@ import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/p
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Policy, PolicyStatus, PolicyType } from '../../../core/models/policy.model';
 import { PolicyFilterBarComponent } from '../../elements/policy-filter-bar/policy-filter-bar.component';
 import { PolicyStatusChipComponent } from '../../elements/policy-status-chip/policy-status-chip.component';
 import { PolicyTypeBadgeComponent } from '../../elements/policy-type-badge/policy-type-badge.component';
 import { PageHeaderComponent } from '../../../../../shared/components/page-header/page-header.component';
 import { LoadingSpinnerComponent } from '../../../../../shared/components/loading-spinner/loading-spinner.component';
-import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-policies-list-layout',
@@ -23,6 +25,8 @@ import { MatMenuModule } from '@angular/material/menu';
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatDividerModule,
+    MatTooltipModule,
     MatProgressBarModule,
     PolicyFilterBarComponent,
     PolicyStatusChipComponent,
@@ -50,6 +54,8 @@ export class PoliciesListLayoutComponent {
   @Output() activate           = new EventEmitter<string>();
   @Output() viewDetail         = new EventEmitter<string>();
   @Output() viewClaims         = new EventEmitter<string>();
+  @Output() delete             = new EventEmitter<string>();
+  @Output() markWithClaim      = new EventEmitter<string>();
   @Output() newPolicy          = new EventEmitter<void>();
 
   readonly displayedColumns = ['policyNumber', 'insured', 'type', 'status', 'insuredAmount', 'actions'];

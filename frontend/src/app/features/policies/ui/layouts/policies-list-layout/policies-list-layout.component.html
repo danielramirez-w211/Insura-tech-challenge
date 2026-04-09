@@ -67,6 +67,18 @@
           <button mat-menu-item (click)="viewClaims.emit(row.id)">
             <mat-icon>report_problem</mat-icon> Ver siniestros
           </button>
+          <mat-divider />
+          <button mat-menu-item
+            [disabled]="row.status === 'Cancelled' || row.status === 'Expired'"
+            (click)="delete.emit(row.id)">
+            <mat-icon>delete_outline</mat-icon> Eliminar
+          </button>
+          <button mat-menu-item
+            [disabled]="row.status !== 'Active'"
+            [matTooltip]="row.status !== 'Active' ? 'La póliza no está activa' : ''"
+            (click)="markWithClaim.emit(row.id)">
+            <mat-icon>flag</mat-icon> Marcar con siniestros
+          </button>
         </mat-menu>
       </mat-cell>
     </ng-container>
