@@ -16,4 +16,8 @@ public sealed class HealthPlanCalculationDto
     public decimal AgeFactorAmount { get; init; }
     public decimal FinalAmount { get; init; }
     public int InsuredAge { get; init; }
+    /// <summary>Prima mensual = FinalAmount / 12 (periodo fijo). Ver QuotationService.</summary>
+    public decimal MonthlyPremium { get; init; }
+    /// <summary>Duración fija de cobertura en días (siempre 365).</summary>
+    public int DurationDays { get; init; }
 }

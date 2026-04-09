@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Subject, takeUntil, catchError, EMPTY, combineLatest } from 'rxjs';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +28,14 @@ import { TravelPlanPreviewComponent } from '../../blocks/travel-plan-preview/tra
 import { TravelDurationRestrictionComponent } from '../../blocks/travel-duration-restriction/travel-duration-restriction.component';
 import { PolicyTypeSelectorComponent } from '../../blocks/policy-type-selector/policy-type-selector.component';
 import { ContinentSelectorComponent } from '../../blocks/continent-selector/continent-selector.component';
+
+function startDateNotInPastValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as Date | null;
+  if (!value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return value < today ? { pastDate: true } : null;
+}
 
 @Component({
   selector: 'app-policy-create',
@@ -92,6 +100,16 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     return d !== null && d > 180;
   });
 
+  startDateValue    = signal<Date | null>(null);
+
+  /** Fecha de fin derivada para pólizas de Salud (startDate + 364 días). */
+  healthEndDate = computed<Date | null>(() => {
+    if (!this.isHealthType()) return null;
+    const start = this.startDateValue();
+    if (!start) return null;
+    return new Date(start.getTime() + 364 * 86_400_000);
+  });
+
   insuredForm = this.fb.group({
     firstName:    ['', Validators.required],
     lastName:     ['', Validators.required],
@@ -105,12 +123,16 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   coverageForm = this.fb.group({
     type:           ['Life' as PolicyType, Validators.required],
     insuredAmount:  [null as number | null, [Validators.min(1)]],
-    monthlyPremium: [null as number | null, [Validators.required, Validators.min(1)]],
-    startDate:      [null as Date | null, Validators.required],
+    monthlyPremium: [null as number | null, [Validators.min(1)]],
+    startDate:      [null as Date | null, [Validators.required, startDateNotInPastValidator]],
     endDate:        [null as Date | null, Validators.required],
   });
 
   ngOnInit(): void {
+    this.coverageForm.get('startDate')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(v => this.startDateValue.set(v as Date | null));
+
     combineLatest([
       this.coverageForm.get('startDate')!.valueChanges,
       this.coverageForm.get('endDate')!.valueChanges,
@@ -161,18 +183,27 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     this.travelCalculation.set(null);
 
     const monthlyPremiumCtrl = this.coverageForm.get('monthlyPremium')!;
-    if (type === 'Travel') {
-      monthlyPremiumCtrl.clearValidators();
-      monthlyPremiumCtrl.setValue(null);
-    } else {
-      monthlyPremiumCtrl.setValidators([Validators.required, Validators.min(1)]);
-    }
-    monthlyPremiumCtrl.updateValueAndValidity();
+    const endDateCtrl        = this.coverageForm.get('endDate')!;
 
     if (type === 'Health') {
+      // Prima y endDate se calculan automáticamente — no son requeridos en el form
+      monthlyPremiumCtrl.clearValidators();
+      monthlyPremiumCtrl.setValue(null);
+      endDateCtrl.clearValidators();
+      endDateCtrl.setValue(null);
       this.loadHealthPlans();
       this.checkAgeRestriction();
+    } else if (type === 'Travel') {
+      monthlyPremiumCtrl.clearValidators();
+      monthlyPremiumCtrl.setValue(null);
+      endDateCtrl.setValidators(Validators.required);
+    } else {
+      monthlyPremiumCtrl.setValidators([Validators.required, Validators.min(1)]);
+      endDateCtrl.setValidators(Validators.required);
     }
+
+    monthlyPremiumCtrl.updateValueAndValidity();
+    endDateCtrl.updateValueAndValidity();
   }
 
   onTripTypeChange(type: TripType): void {
@@ -256,11 +287,13 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     const calc     = this.travelCalculation();
 
     const startDate = cv.startDate ? this.toDateStr(cv.startDate) : '';
-    const endDate   = cv.endDate
-      ? this.toDateStr(cv.endDate)
-      : (cv.startDate && this.durationDays()
-          ? this.toDateStr(new Date(cv.startDate!.getTime() + (this.durationDays()! - 1) * 86_400_000))
-          : '');
+    const endDate   = isHealth && cv.startDate
+      ? this.toDateStr(new Date(cv.startDate.getTime() + 364 * 86_400_000))
+      : cv.endDate
+        ? this.toDateStr(cv.endDate)
+        : (cv.startDate && this.durationDays()
+            ? this.toDateStr(new Date(cv.startDate!.getTime() + (this.durationDays()! - 1) * 86_400_000))
+            : '');
 
     this.service.create({
       type: cv.type!,
@@ -277,7 +310,9 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       insuredAmount:  isHealth ? (this.healthCalculation()?.finalAmount ?? 0)
                     : isTravel ? (calc?.totalPriceCop ?? 0)
                     : cv.insuredAmount!,
-      monthlyPremium: isTravel ? (calc?.totalPriceCop ?? 0) : cv.monthlyPremium!,
+      monthlyPremium: isHealth ? (this.healthCalculation()?.monthlyPremium ?? 0)
+                    : isTravel ? (calc?.totalPriceCop ?? 0)
+                    : cv.monthlyPremium!,
       ...(isHealth && this.selectedPlanId() ? { healthPlanId: this.selectedPlanId()! } : {}),
       ...(isTravel && this.tripType() ? {
         tripType:     this.tripType()!,
