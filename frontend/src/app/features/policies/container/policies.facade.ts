@@ -34,6 +34,10 @@ export class PoliciesFacade {
     return this.state.activatePolicy(id);
   }
 
+  cancelPolicy(id: string): Promise<void> {
+    return this.state.cancelPolicy(id);
+  }
+
   selectPolicy(id: string): void {
     this.state.selectPolicy(id);
   }

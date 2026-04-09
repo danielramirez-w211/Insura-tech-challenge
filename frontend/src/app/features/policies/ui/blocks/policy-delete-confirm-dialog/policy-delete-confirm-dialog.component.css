@@ -1,0 +1,20 @@
+mat-dialog-content p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #111111;
+  line-height: 1.5;
+}
+
+.warning-text {
+  font-size: 13px;
+  color: #757575;
+}
+
+.btn-confirm {
+  background-color: #FF6B2C;
+  color: #FFFFFF;
+}
+
+.btn-confirm:hover {
+  background-color: #e55a1e;
+}

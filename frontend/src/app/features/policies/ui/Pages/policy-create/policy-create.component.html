@@ -6,12 +6,31 @@
 
 <mat-stepper [linear]="true" #stepper class="stepper">
 
+  <!-- ── Paso 0: Tipo de Póliza ─────────────────────────────────────── -->
+  <mat-step label="Tipo de Póliza" [completed]="selectedType() !== null">
+    <p class="step-hint">Selecciona el tipo de seguro que deseas contratar.</p>
+
+    <app-policy-type-selector
+      [selectedType]="selectedType()"
+      (typeSelected)="onTypeCardSelected($event)" />
+
+    @if (!selectedType()) {
+      <p class="selection-hint">Selecciona un tipo de póliza para continuar</p>
+    }
+
+    <div class="step-actions">
+      <button mat-raised-button color="primary" matStepperNext [disabled]="!selectedType()">
+        Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </mat-step>
+
   <!-- ── Paso 1: Asegurado ──────────────────────────────────────────── -->
   <mat-step [stepControl]="insuredForm" label="Asegurado">
     <form [formGroup]="insuredForm">
       <p class="step-hint">Ingresa los datos personales del titular de la póliza.</p>
 
-      <div class="form-grid">
+      <div class="form-vertical">
         <mat-form-field appearance="outline">
           <mat-label>Primer Nombre</mat-label>
           <mat-icon matPrefix>person</mat-icon>
@@ -80,6 +99,9 @@
       </div>
 
       <div class="step-actions">
+        <button mat-stroked-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon> Anterior
+        </button>
         <button mat-raised-button color="primary" matStepperNext [disabled]="insuredForm.invalid">
           Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
         </button>
@@ -90,29 +112,27 @@
   <!-- ── Paso 2: Cobertura ─────────────────────────────────────────── -->
   <mat-step [stepControl]="coverageForm" label="Cobertura">
     <form [formGroup]="coverageForm">
-      <p class="step-hint">Define el tipo, periodo y montos de cobertura.</p>
+      <p class="step-hint">Define el periodo y montos de cobertura.</p>
 
-      <div class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Tipo de póliza</mat-label>
-          <mat-icon matPrefix>category</mat-icon>
-          <mat-select formControlName="type" (valueChange)="onTypeChange($event)">
-            @for (t of typeOptions; track t) {
-              <mat-option [value]="t">{{ t | statusLabel }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <div class="form-vertical">
+        <!-- Badge de tipo seleccionado — solo lectura -->
+        <div class="selected-type-badge-wrapper">
+          <span class="selected-type-badge">
+            <mat-icon class="badge-icon">category</mat-icon>
+            {{ selectedType() ?? '' | statusLabel }}
+          </span>
+        </div>
 
         <!-- ── Health: bloqueo por edad ≥ 74 ────────────────────────── -->
         @if (isHealthType() && ageRestricted()) {
-          <div class="full-width">
+          <div>
             <app-age-restriction />
           </div>
         }
 
         <!-- ── Health: selector de planes ────────────────────────────── -->
         @if (isHealthType() && !ageRestricted()) {
-          <div class="full-width">
+          <div>
             <p class="field-label">Selecciona un plan de salud</p>
             @if (loadingPlans()) {
               <p class="loading-text">Cargando planes...</p>
@@ -139,19 +159,15 @@
             </mat-select>
           </mat-form-field>
 
-          <!-- Continente — solo Internacional -->
-          @if (tripType() === 'Internacional') {
-            <mat-form-field appearance="outline" data-testid="continent-select">
-              <mat-label>Continente de destino</mat-label>
-              <mat-icon matPrefix>public</mat-icon>
-              <mat-select [value]="continent()" (valueChange)="onContinentChange($event)">
-                <mat-option value="America">América</mat-option>
-                <mat-option value="Europe">Europa</mat-option>
-                <mat-option value="Africa">África</mat-option>
-                <mat-option value="Asia">Asia</mat-option>
-                <mat-option value="Oceania">Oceanía</mat-option>
-              </mat-select>
-            </mat-form-field>
+          <!-- Selector visual de destino -->
+          @if (tripType()) {
+            <div>
+              <p class="field-label">Destino</p>
+              <app-continent-selector
+                [tripType]="tripType()!"
+                [selectedContinent]="continent()"
+                (continentSelected)="onContinentSelected($event)" />
+            </div>
           }
 
           <mat-form-field appearance="outline">
@@ -164,14 +180,14 @@
 
           <!-- Banner: duración excedida -->
           @if (durationExceeded()) {
-            <div class="full-width">
+            <div>
               <app-travel-duration-restriction />
             </div>
           }
 
           <!-- Preview del cálculo -->
           @if (travelCalculation() && !durationExceeded()) {
-            <div class="full-width">
+            <div>
               <app-travel-plan-preview [calculation]="travelCalculation()" />
             </div>
           }

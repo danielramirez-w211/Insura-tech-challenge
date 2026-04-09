@@ -1,0 +1,23 @@
+<div class="selector-wrapper">
+  @if (tripType() === 'Nacional') {
+    <div class="national-wrapper">
+      <app-continent-card
+        [continent]="nationalOption.continent"
+        [label]="nationalOption.label"
+        [imageSrc]="nationalOption.imageSrc"
+        [selected]="true"
+        (cardClick)="onCardClick($event)" />
+    </div>
+  } @else {
+    <div class="international-grid">
+      @for (opt of internationalOptions; track opt.continent) {
+        <app-continent-card
+          [continent]="opt.continent"
+          [label]="opt.label"
+          [imageSrc]="opt.imageSrc"
+          [selected]="selectedContinent() === opt.continent"
+          (cardClick)="onCardClick($event)" />
+      }
+    </div>
+  }
+</div>

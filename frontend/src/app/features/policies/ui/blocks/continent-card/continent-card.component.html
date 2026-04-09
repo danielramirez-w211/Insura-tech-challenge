@@ -1,0 +1,8 @@
+<div class="continent-card" [class.selected]="selected()" (click)="onClick()">
+  <div class="card-media">
+    <img [src]="imageSrc()" [alt]="label()" class="card-image" />
+  </div>
+  <div class="card-body">
+    <span class="card-label">{{ label() }}</span>
+  </div>
+</div>

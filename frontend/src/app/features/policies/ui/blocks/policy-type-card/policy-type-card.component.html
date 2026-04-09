@@ -1,0 +1,15 @@
+<div class="type-card" [class.selected]="selected()" (click)="onClick()">
+  <div class="card-media">
+    @if (imageSrc()) {
+      <img [src]="imageSrc()" [alt]="label()" class="card-image" />
+    } @else {
+      <div class="card-icon-wrapper">
+        <mat-icon class="card-icon">{{ icon() }}</mat-icon>
+      </div>
+    }
+  </div>
+  <div class="card-body">
+    <span class="card-label">{{ label() }}</span>
+    <span class="card-desc">{{ description() }}</span>
+  </div>
+</div>

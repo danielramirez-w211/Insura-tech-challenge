@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Policy, PolicyFilters, PolicyStatus, PolicyType } from '../models/policy.model';
+import { TripType, Continent } from '../models/travel-plan-selection.model';
 import { PoliciesCoreService } from '../service/policies.service';
 import { CreatePolicyRequest } from '../resource/policy-request.resource';
 import { PolicyResponse } from '../resource/policy-response.resource';
@@ -29,7 +30,32 @@ const INITIAL_STATE: PoliciesStateModel = {
 };
 
 function mapResponseToPolicy(r: PolicyResponse): Policy {
-  return r as unknown as Policy;
+  return {
+    id: r.id,
+    policyNumber: r.policyNumber,
+    status: r.status as Policy['status'],
+    type: r.type as Policy['type'],
+    insured: {
+      firstName: r.insuredFirstName,
+      lastName: r.insuredLastName,
+      documentType: r.insuredDocumentType,
+      documentId: r.insuredDocumentId,
+      birthDate: '',
+      email: '',
+      phone: '',
+    },
+    coveragePeriod: {
+      startDate: r.coverageStartDate,
+      endDate: r.coverageEndDate,
+    },
+    insuredAmount: Number(r.insuredAmount),
+    monthlyPremium: r.monthlyPremium != null ? Number(r.monthlyPremium) : undefined,
+    createdAt: r.createdAt,
+    travelPlan: r.travelPlan
+      ? { ...r.travelPlan, tripType: r.travelPlan.tripType as TripType, continent: r.travelPlan.continent as Continent | undefined }
+      : undefined,
+    healthPlan: r.healthPlan ?? undefined,
+  };
 }
 
 /**
@@ -135,6 +161,32 @@ export class PoliciesState {
             ...s,
             loading: false,
             error: err?.error?.detail ?? 'Error al activar póliza',
+          }));
+          reject(err);
+        },
+      });
+    });
+  }
+
+  cancelPolicy(id: string): Promise<void> {
+    this._state.update(s => ({ ...s, loading: true, error: null }));
+
+    return new Promise((resolve, reject) => {
+      this.svc.cancel(id).subscribe({
+        next: updated => {
+          const policy = mapResponseToPolicy(updated);
+          this._state.update(s => ({
+            ...s,
+            items: s.items.map(p => (p.id === id ? policy : p)),
+            loading: false,
+          }));
+          resolve();
+        },
+        error: err => {
+          this._state.update(s => ({
+            ...s,
+            loading: false,
+            error: err?.error?.detail ?? 'Error al cancelar póliza',
           }));
           reject(err);
         },
