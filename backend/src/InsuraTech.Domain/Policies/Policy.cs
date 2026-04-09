@@ -29,7 +29,7 @@ namespace InsuraTech.Domain.Policies
 
         private Policy() { }
 
-        // Factory — tipos no-Health (monto manual)
+        // Factory — tipos con monto manual (Life transitorio; Vehicle y Home en futuras specs)
         public static Policy Create(
             PolicyNumber number,
             PolicyType type,
@@ -38,7 +38,10 @@ namespace InsuraTech.Domain.Policies
             decimal monthlyPremium,
             decimal insuredAmount)
         {
-            ValidateFinancials(monthlyPremium, insuredAmount);
+            if (insuredAmount <= 0)
+                throw new ArgumentException("Insured amount must be greater than zero.", nameof(insuredAmount));
+            if (monthlyPremium <= 0)
+                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
 
             var policy = new Policy
             {
@@ -66,7 +69,9 @@ namespace InsuraTech.Domain.Policies
             DateOnly today)
         {
             var selection = HealthPlanPricingService.Calculate(healthPlanId, insured.BirthDate, today);
-            ValidateFinancials(monthlyPremium, selection.FinalAmount);
+
+            if (monthlyPremium <= 0)
+                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
 
             var policy = new Policy
             {
@@ -218,20 +223,7 @@ namespace InsuraTech.Domain.Policies
             Status == PolicyStatus.Active && Coverage.IsActive(date);
 
 
-        private static void ValidateFinancials(decimal monthlyPremium, decimal insuredAmount)
-        {
-            if (insuredAmount <= 0)
-                throw new ArgumentException("Insured amount must be greater than zero.", nameof(insuredAmount));
 
-            if (monthlyPremium <= 0)
-                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
-
-            var maxPremium = insuredAmount * 0.05m;
-            if (monthlyPremium > maxPremium)
-                throw new ArgumentException(
-                    $"Monthly premium cannot exceed 5% of insured amount (max: ${maxPremium:F2}).",
-                    nameof(monthlyPremium));
-        }
 
         private void AddStatusHistory(PolicyStatus status, string notes) =>
                 _statusHistory.Add(PolicyStatusHistory.Create(Id, status, notes));

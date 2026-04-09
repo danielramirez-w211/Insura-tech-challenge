@@ -15,4 +15,6 @@ export interface HealthPlanSelection {
 
 export interface HealthPlanCalculation extends HealthPlanSelection {
   insuredAge: number;
+  monthlyPremium: number;
+  durationDays: number;
 }

@@ -208,8 +208,8 @@
           </mat-form-field>
         }
 
-        <!-- ── Prima mensual — solo para tipos no-Travel ─────────────── -->
-        @if (!isTravelType()) {
+        <!-- ── Prima mensual — solo para tipos no-Travel y no-Health ─── -->
+        @if (!isTravelType() && !isHealthType()) {
           <mat-form-field appearance="outline">
             <mat-label>Prima mensual (COP)</mat-label>
             <mat-icon matPrefix>payments</mat-icon>
@@ -233,19 +233,33 @@
           @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
             <mat-error>La fecha de inicio es obligatoria</mat-error>
           }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Fin de cobertura</mat-label>
-          <mat-icon matPrefix>event_busy</mat-icon>
-          <input matInput [matDatepicker]="endPicker" formControlName="endDate"
-                 placeholder="DD/MM/AAAA" readonly />
-          <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
-          <mat-datepicker #endPicker />
-          @if (coverageForm.get('endDate')?.touched && coverageForm.get('endDate')?.hasError('required')) {
-            <mat-error>La fecha de fin es obligatoria</mat-error>
+          @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('pastDate')) {
+            <mat-error>La fecha de inicio no puede ser anterior a hoy</mat-error>
           }
         </mat-form-field>
+
+        <!-- ── Fin de cobertura — oculto para Health (se calcula: inicio + 365 días) -->
+        @if (!isHealthType()) {
+          <mat-form-field appearance="outline">
+            <mat-label>Fin de cobertura</mat-label>
+            <mat-icon matPrefix>event_busy</mat-icon>
+            <input matInput [matDatepicker]="endPicker" formControlName="endDate"
+                   placeholder="DD/MM/AAAA" readonly />
+            <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+            <mat-datepicker #endPicker />
+            @if (coverageForm.get('endDate')?.touched && coverageForm.get('endDate')?.hasError('required')) {
+              <mat-error>La fecha de fin es obligatoria</mat-error>
+            }
+          </mat-form-field>
+        }
+
+        <!-- ── Info periodo fijo para Health ─────────────────────────── -->
+        @if (isHealthType() && coverageForm.get('startDate')?.value) {
+          <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
+            <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
+            La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
+          </p>
+        }
       </div>
 
       <div class="step-actions">
@@ -254,7 +268,7 @@
         </button>
         <button mat-raised-button color="primary" matStepperNext
                 [disabled]="coverageForm.invalid
-                  || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted()))
+                  || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted() || !coverageForm.get('startDate')?.value))
                   || (isTravelType() && (!tripType() || !durationDays() || durationExceeded() || !travelCalculation()))
                   || (isTravelType() && tripType() === 'Internacional' && !continent())">
           Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
@@ -300,6 +314,8 @@
           <span>{{ healthCalculation()!.planName }}</span>
           <span class="label">Monto asegurado</span>
           <span>{{ healthCalculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual</span>
+          <span>{{ healthCalculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
           <span class="label">Factor edad</span>
           <span>{{ healthCalculation()!.ageFactorPercentage }}%</span>
         } @else if (isTravelType() && travelCalculation()) {
@@ -318,14 +334,18 @@
           <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
         }
 
-        @if (!isTravelType()) {
+        @if (!isTravelType() && !isHealthType()) {
           <span class="label">Prima mensual</span>
           <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
         }
         <span class="label">Inicio</span>
         <span>{{ coverageForm.value.startDate | date:'dd/MM/yyyy' }}</span>
         <span class="label">Fin</span>
-        <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
+        @if (isHealthType() && healthEndDate()) {
+          <span>{{ healthEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else {
+          <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
+        }
       </div>
     </div>
 
