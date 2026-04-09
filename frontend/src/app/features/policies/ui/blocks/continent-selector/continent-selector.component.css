@@ -1,0 +1,24 @@
+.selector-wrapper {
+  padding: 8px 0;
+}
+
+.national-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.national-wrapper app-continent-card {
+  width: 200px;
+}
+
+.international-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .international-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

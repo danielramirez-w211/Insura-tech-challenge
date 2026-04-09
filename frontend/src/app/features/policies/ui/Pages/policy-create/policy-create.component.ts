@@ -26,6 +26,8 @@ import { HealthPlanPreviewComponent } from '../../blocks/health-plan-preview/hea
 import { AgeRestrictionComponent } from '../../blocks/age-restriction/age-restriction.component';
 import { TravelPlanPreviewComponent } from '../../blocks/travel-plan-preview/travel-plan-preview.component';
 import { TravelDurationRestrictionComponent } from '../../blocks/travel-duration-restriction/travel-duration-restriction.component';
+import { PolicyTypeSelectorComponent } from '../../blocks/policy-type-selector/policy-type-selector.component';
+import { ContinentSelectorComponent } from '../../blocks/continent-selector/continent-selector.component';
 
 @Component({
   selector: 'app-policy-create',
@@ -49,6 +51,8 @@ import { TravelDurationRestrictionComponent } from '../../blocks/travel-duration
     AgeRestrictionComponent,
     TravelPlanPreviewComponent,
     TravelDurationRestrictionComponent,
+    PolicyTypeSelectorComponent,
+    ContinentSelectorComponent,
   ],
   templateUrl: './policy-create.component.html',
   styleUrl: './policy-create.component.css',
@@ -65,6 +69,9 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
 
   typeOptions: PolicyType[] = ['Life', 'Health', 'Vehicle', 'Home', 'Travel'];
   submitting = false;
+
+  // ── Type selection (Step 0) ───────────────────────────────────────────────
+  selectedType = signal<PolicyType | null>(null);
 
   // ── Health state ──────────────────────────────────────────────────────────
   healthPlans       = signal<HealthPlan[]>([]);
@@ -128,6 +135,17 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onTypeCardSelected(type: PolicyType): void {
+    this.selectedType.set(type);
+    this.coverageForm.patchValue({ type });
+    this.onTypeChange(type);
+  }
+
+  onContinentSelected(continent: Continent | null): void {
+    this.continent.set(continent);
+    this.tryCalculateTravel();
   }
 
   onTypeChange(type: PolicyType): void {

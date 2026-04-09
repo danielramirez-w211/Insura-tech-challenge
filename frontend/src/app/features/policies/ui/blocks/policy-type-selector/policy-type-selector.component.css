@@ -1,0 +1,12 @@
+.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 8px 0;
+}
+
+@media (min-width: 640px) {
+  .selector-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
