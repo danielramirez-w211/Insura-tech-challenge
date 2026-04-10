@@ -39,7 +39,7 @@ export class PolicyTypeSelectorComponent {
       type: 'Life',
       label: 'Vida',
       description: 'Protección de vida y beneficiarios',
-      icon: 'favorite',
+      imageSrc: 'Policy_images/Vida.jpg',
     },
     {
       type: 'Vehicle',

@@ -25,6 +25,8 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         public decimal InsuredAmount { get; init; }
         /// <summary>Solo para pólizas de tipo Health.</summary>
         public string? HealthPlanId { get; init; }
+        /// <summary>Solo para pólizas de tipo Life.</summary>
+        public string? LifePlanId { get; init; }
         /// <summary>Solo para pólizas de tipo Travel.</summary>
         public TripType? TripType { get; init; }
         /// <summary>Solo para pólizas de tipo Travel Internacional.</summary>

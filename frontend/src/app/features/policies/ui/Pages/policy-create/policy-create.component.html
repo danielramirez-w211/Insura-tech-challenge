@@ -148,6 +148,31 @@
           </div>
         }
 
+        <!-- ── Life: bloqueo por edad > 65 ──────────────────────────── -->
+        @if (isLifeType() && ageRestrictedLife()) {
+          <div>
+            <app-life-age-restriction />
+          </div>
+        }
+
+        <!-- ── Life: selector de planes ──────────────────────────────── -->
+        @if (isLifeType() && !ageRestrictedLife()) {
+          <div>
+            <p class="field-label">Selecciona un plan de vida</p>
+            @if (loadingLifePlans()) {
+              <p class="loading-text">Cargando planes...</p>
+            } @else {
+              <app-life-plan-selector
+                [plans]="lifePlans()"
+                [selectedPlanId]="selectedLifePlanId()"
+                (planSelected)="onLifePlanSelected($event)" />
+            }
+            @if (lifeCalculation()) {
+              <app-life-plan-preview [calculation]="lifeCalculation()" />
+            }
+          </div>
+        }
+
         <!-- ── Travel: tipo de viaje ──────────────────────────────────── -->
         @if (isTravelType()) {
           <mat-form-field appearance="outline" data-testid="trip-type-select">
@@ -193,8 +218,8 @@
           }
         }
 
-        <!-- ── Monto manual — solo para tipos no-Health y no-Travel ─── -->
-        @if (!isHealthType() && !isTravelType()) {
+        <!-- ── Monto manual — solo para tipos no-Health, no-Life y no-Travel ─── -->
+        @if (!isHealthType() && !isLifeType() && !isTravelType()) {
           <mat-form-field appearance="outline">
             <mat-label>Monto asegurado (COP)</mat-label>
             <mat-icon matPrefix>attach_money</mat-icon>
@@ -208,8 +233,8 @@
           </mat-form-field>
         }
 
-        <!-- ── Prima mensual — solo para tipos no-Travel y no-Health ─── -->
-        @if (!isTravelType() && !isHealthType()) {
+        <!-- ── Prima mensual — solo para tipos no-Travel, no-Health y no-Life ─── -->
+        @if (!isTravelType() && !isHealthType() && !isLifeType()) {
           <mat-form-field appearance="outline">
             <mat-label>Prima mensual (COP)</mat-label>
             <mat-icon matPrefix>payments</mat-icon>
@@ -238,8 +263,8 @@
           }
         </mat-form-field>
 
-        <!-- ── Fin de cobertura — oculto para Health (se calcula: inicio + 365 días) -->
-        @if (!isHealthType()) {
+        <!-- ── Fin de cobertura — oculto para Health y Life (se calcula: inicio + 365 días) -->
+        @if (!isHealthType() && !isLifeType()) {
           <mat-form-field appearance="outline">
             <mat-label>Fin de cobertura</mat-label>
             <mat-icon matPrefix>event_busy</mat-icon>
@@ -253,8 +278,8 @@
           </mat-form-field>
         }
 
-        <!-- ── Info periodo fijo para Health ─────────────────────────── -->
-        @if (isHealthType() && coverageForm.get('startDate')?.value) {
+        <!-- ── Info periodo fijo para Health y Life ──────────────────── -->
+        @if ((isHealthType() || isLifeType()) && coverageForm.get('startDate')?.value) {
           <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
             <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
             La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
@@ -269,6 +294,7 @@
         <button mat-raised-button color="primary" matStepperNext
                 [disabled]="coverageForm.invalid
                   || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted() || !coverageForm.get('startDate')?.value))
+                  || (isLifeType() && (!selectedLifePlanId() || !lifeCalculation() || ageRestrictedLife() || !coverageForm.get('startDate')?.value))
                   || (isTravelType() && (!tripType() || !durationDays() || durationExceeded() || !travelCalculation()))
                   || (isTravelType() && tripType() === 'Internacional' && !continent())">
           Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
@@ -318,6 +344,21 @@
           <span>{{ healthCalculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
           <span class="label">Factor edad</span>
           <span>{{ healthCalculation()!.ageFactorPercentage }}%</span>
+        } @else if (isLifeType() && lifeCalculation()) {
+          <span class="label">Plan de vida</span>
+          <span>{{ lifeCalculation()!.planName }}</span>
+          <span class="label">Cobertura por muerte</span>
+          <span>{{ lifeCalculation()!.deathBenefit | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Gastos de entierro</span>
+          <span>{{ lifeCalculation()!.funeralExpenses | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Gastos fúnebres</span>
+          <span>{{ lifeCalculation()!.burialExpenses | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Remuneración beneficiarios</span>
+          <span>{{ lifeCalculation()!.beneficiaryCompensation | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual</span>
+          <span>{{ lifeCalculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima anual</span>
+          <span>{{ lifeCalculation()!.annualPremium | currency:'COP':'symbol':'1.0-0' }}</span>
         } @else if (isTravelType() && travelCalculation()) {
           <span class="label">Tipo de viaje</span>
           <span>{{ travelCalculation()!.tripType }}</span>
@@ -334,7 +375,7 @@
           <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
         }
 
-        @if (!isTravelType() && !isHealthType()) {
+        @if (!isTravelType() && !isHealthType() && !isLifeType()) {
           <span class="label">Prima mensual</span>
           <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
         }
@@ -343,6 +384,8 @@
         <span class="label">Fin</span>
         @if (isHealthType() && healthEndDate()) {
           <span>{{ healthEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else if (isLifeType() && lifeEndDate()) {
+          <span>{{ lifeEndDate() | date:'dd/MM/yyyy' }}</span>
         } @else {
           <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
         }

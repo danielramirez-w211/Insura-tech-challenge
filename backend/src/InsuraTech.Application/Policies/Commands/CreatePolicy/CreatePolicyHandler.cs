@@ -39,7 +39,15 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
 
             Policy policy;
 
-            if (request.Type == PolicyType.Health && !string.IsNullOrWhiteSpace(request.HealthPlanId))
+            if (request.Type == PolicyType.Life && !string.IsNullOrWhiteSpace(request.LifePlanId))
+            {
+                var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
+                policy = Policy.CreateLifePolicy(
+                    policyNumber, insured, coverage,
+                    request.LifePlanId,
+                    DateOnly.FromDateTime(DateTime.UtcNow));
+            }
+            else if (request.Type == PolicyType.Health && !string.IsNullOrWhiteSpace(request.HealthPlanId))
             {
                 var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
                 policy = Policy.CreateHealthPolicy(

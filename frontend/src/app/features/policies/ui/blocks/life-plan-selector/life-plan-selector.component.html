@@ -1,0 +1,29 @@
+<div class="plans-grid">
+  @for (plan of plans(); track plan.planId) {
+    <mat-card
+      class="plan-card"
+      [class.selected]="selectedPlanId() === plan.planId"
+      (click)="select(plan)"
+      role="button"
+      [attr.aria-pressed]="selectedPlanId() === plan.planId"
+      [attr.data-testid]="'life-plan-' + plan.planId">
+
+      <mat-card-content>
+        <div class="plan-icon">
+          <mat-icon>favorite</mat-icon>
+        </div>
+        <h3 class="plan-name">{{ plan.planName }}</h3>
+        <p class="plan-monthly">{{ plan.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}<span class="plan-freq">/mes</span></p>
+        <p class="plan-annual">({{ plan.annualPremium | currency:'COP':'symbol':'1.0-0' }}/año)</p>
+        <p class="plan-death-label">Cobertura por muerte</p>
+        <p class="plan-death">{{ plan.deathBenefit | currency:'COP':'symbol':'1.0-0' }}</p>
+
+        @if (selectedPlanId() === plan.planId) {
+          <div class="selected-badge">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

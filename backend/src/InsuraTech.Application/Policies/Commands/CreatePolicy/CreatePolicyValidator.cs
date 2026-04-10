@@ -33,12 +33,24 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
             RuleFor(x => x.InsuredAmount)
                 .GreaterThan(0).WithMessage("Insured amount must be greater than zero.");
 
-            // RN-04: Para pólizas de Salud la fecha de inicio no puede ser anterior a hoy.
+            // RN-04 (SPEC-008): Para pólizas de Salud la fecha de inicio no puede ser anterior a hoy.
             When(x => x.Type == PolicyType.Health, () =>
             {
                 RuleFor(x => x.CoverageStartDate)
                     .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
                     .WithMessage("La fecha de inicio para pólizas de Salud no puede ser anterior a hoy.");
+            });
+
+            // RN-05 (SPEC-009): Para pólizas de Vida la fecha de inicio no puede ser anterior a hoy.
+            When(x => x.Type == PolicyType.Life, () =>
+            {
+                RuleFor(x => x.CoverageStartDate)
+                    .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+                    .WithMessage("La fecha de inicio para pólizas de Vida no puede ser anterior a hoy.");
+
+                RuleFor(x => x.LifePlanId)
+                    .NotEmpty()
+                    .WithMessage("El ID del plan de vida es obligatorio para pólizas de tipo Life.");
             });
         }
     }
