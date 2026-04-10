@@ -1,0 +1,53 @@
+<div class="plans-grid">
+  @for (plan of plans(); track plan.planId) {
+    <mat-card
+      class="plan-card"
+      [class.selected]="selectedPlanId() === plan.planId"
+      (click)="select(plan)"
+      role="button"
+      [attr.aria-pressed]="selectedPlanId() === plan.planId"
+      [attr.data-testid]="'vehicle-plan-' + plan.planId">
+
+      <mat-card-content>
+        <div class="plan-icon">
+          <mat-icon>directions_car</mat-icon>
+        </div>
+        <h3 class="plan-name">{{ plan.planName }}</h3>
+        <p class="plan-monthly">
+          {{ plan.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}<span class="plan-freq">/mes</span>
+        </p>
+        <p class="plan-annual">
+          ({{ plan.annualPremiumWithDiscount | currency:'COP':'symbol':'1.0-0' }}/año con 5% desc.)
+        </p>
+
+        <div class="plan-coverages">
+          <p class="coverages-title">Coberturas</p>
+          @for (coverage of plan.coverages; track coverage) {
+            <div class="coverage-item">
+              <mat-icon class="check-icon">check_circle</mat-icon>
+              <span>{{ coverage }}</span>
+            </div>
+          }
+        </div>
+
+        @if (plan.assistances.length > 0) {
+          <div class="plan-assistances">
+            <p class="assistances-title">Asistencias</p>
+            @for (assistance of plan.assistances; track assistance) {
+              <div class="assistance-item">
+                <mat-icon class="assist-icon">support_agent</mat-icon>
+                <span>{{ assistance }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        @if (selectedPlanId() === plan.planId) {
+          <div class="selected-badge">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

@@ -1,0 +1,75 @@
+@if (quotation() && selectedPlan()) {
+  <div class="preview-card" data-testid="vehicle-plan-preview">
+    <div class="preview-header">
+      <mat-icon>directions_car</mat-icon>
+      <span>Resumen del plan seleccionado</span>
+    </div>
+
+    <mat-divider />
+
+    <div class="preview-grid">
+      <span class="label">Plan</span>
+      <span class="value">{{ selectedPlan()!.planName }}</span>
+
+      <span class="label">Marca</span>
+      <span class="value">{{ quotation()!.brand }}</span>
+
+      <span class="label">Año</span>
+      <span class="value">{{ quotation()!.vehicleYear }}</span>
+
+      <span class="label">Antigüedad</span>
+      <span class="value">{{ quotation()!.ageCategory }} ({{ quotation()!.vehicleAge }} años)</span>
+
+      <span class="label">Valor comercial</span>
+      <span class="value">{{ quotation()!.commercialValue | currency:'COP':'symbol':'1.0-0' }}</span>
+
+      <span class="label">Tasa técnica</span>
+      <span class="value">{{ (quotation()!.technicalRate * 100) | number:'1.1-1' }}%</span>
+
+      @if (quotation()!.hasBrandSurcharge) {
+        <span class="label">Recargo por marca</span>
+        <span class="value surcharge">+10% (marca de alta siniestralidad)</span>
+      }
+    </div>
+
+    <mat-divider />
+
+    <p class="section-title">Coberturas incluidas</p>
+    <div class="coverages-list">
+      @for (coverage of selectedPlan()!.coverages; track coverage) {
+        <div class="coverage-item">
+          <mat-icon class="check-icon">check_circle</mat-icon>
+          <span>{{ coverage }}</span>
+        </div>
+      }
+    </div>
+
+    @if (selectedPlan()!.assistances.length > 0) {
+      <mat-divider />
+      <p class="section-title">Servicios de asistencia</p>
+      <div class="assistances-list">
+        @for (assistance of selectedPlan()!.assistances; track assistance) {
+          <div class="assistance-item">
+            <mat-icon class="assist-icon">support_agent</mat-icon>
+            <span>{{ assistance }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <mat-divider />
+
+    <div class="final-row">
+      <span class="final-label">Prima mensual</span>
+      <span class="monthly-amount" data-testid="vehicle-monthly-premium">
+        {{ selectedPlan()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+    <div class="annual-row">
+      <span class="annual-label">Prima anual (5% descuento)</span>
+      <span class="annual-amount" data-testid="vehicle-annual-premium">
+        {{ selectedPlan()!.annualPremiumWithDiscount | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+  </div>
+}

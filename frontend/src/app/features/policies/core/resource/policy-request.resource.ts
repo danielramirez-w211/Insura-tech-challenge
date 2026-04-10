@@ -23,6 +23,11 @@ export interface CreatePolicyRequest {
   insuredAmount: number;
   monthlyPremium: number;
   healthPlanId?: string;
+  lifePlanId?: string;
+  vehiclePlanId?: string;
+  vehicleCommercialValue?: number;
+  vehicleYear?: number;
+  vehicleBrand?: string;
   tripType?: TripType;
   continent?: Continent;
   durationDays?: number;

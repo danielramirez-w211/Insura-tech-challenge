@@ -1,0 +1,25 @@
+.vehicle-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vehicle-form mat-form-field {
+  width: 100%;
+}
+
+.quote-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.quote-actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+mat-spinner {
+  display: inline-block;
+}

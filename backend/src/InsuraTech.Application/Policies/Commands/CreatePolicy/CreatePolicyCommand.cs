@@ -33,5 +33,13 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         public Continent? Continent { get; init; }
         /// <summary>Solo para pólizas de tipo Travel.</summary>
         public int? DurationDays { get; init; }
+        /// <summary>Solo para pólizas de tipo Vehicle.</summary>
+        public string? VehiclePlanId { get; init; }
+        /// <summary>Valor comercial del vehículo (COP). Solo para pólizas Vehicle.</summary>
+        public decimal? VehicleCommercialValue { get; init; }
+        /// <summary>Año de fabricación del vehículo. Solo para pólizas Vehicle.</summary>
+        public int? VehicleYear { get; init; }
+        /// <summary>Marca del vehículo. Solo para pólizas Vehicle.</summary>
+        public string? VehicleBrand { get; init; }
     }
 }

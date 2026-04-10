@@ -52,6 +52,32 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
                     .NotEmpty()
                     .WithMessage("El ID del plan de vida es obligatorio para pólizas de tipo Life.");
             });
+
+            // RN-13 (SPEC-010): Para pólizas de Vehículo la fecha de inicio no puede ser anterior a hoy.
+            When(x => x.Type == PolicyType.Vehicle, () =>
+            {
+                RuleFor(x => x.CoverageStartDate)
+                    .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+                    .WithMessage("La fecha de inicio para pólizas de Vehículo no puede ser anterior a hoy.");
+
+                RuleFor(x => x.VehiclePlanId)
+                    .NotEmpty()
+                    .WithMessage("El ID del plan vehicular es obligatorio para pólizas de tipo Vehicle.");
+
+                RuleFor(x => x.VehicleCommercialValue)
+                    .NotNull()
+                    .GreaterThan(0)
+                    .WithMessage("El valor comercial del vehículo debe ser mayor a $0.");
+
+                RuleFor(x => x.VehicleYear)
+                    .NotNull()
+                    .GreaterThan(1900)
+                    .WithMessage("El año de fabricación del vehículo es obligatorio y debe ser mayor a 1900.");
+
+                RuleFor(x => x.VehicleBrand)
+                    .NotEmpty()
+                    .WithMessage("La marca del vehículo es obligatoria para pólizas de tipo Vehicle.");
+            });
         }
     }
 }
