@@ -16,13 +16,18 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { PoliciesCoreService } from '../../../core/service/policies.service';
 import { HealthPlansService } from '../../../core/service/health-plans.service';
 import { TravelPlansService } from '../../../core/service/travel-plans.service';
+import { LifePlansService } from '../../../core/service/life-plans.service';
 import { PolicyType } from '../../../core/models/policy.model';
 import { HealthPlan, HealthPlanCalculation } from '../../../core/models/health-plan-selection.model';
+import { LifePlan, LifePlanCalculation } from '../../../core/models/life-plan-selection.model';
 import { TravelPlanSelection, TripType, Continent } from '../../../core/models/travel-plan-selection.model';
 import { PageHeaderComponent } from '../../../../../shared/components/page-header/page-header.component';
 import { StatusLabelPipe } from '../../../../../shared/pipes/status-label.pipe';
 import { HealthPlanSelectorComponent } from '../../blocks/health-plan-selector/health-plan-selector.component';
 import { HealthPlanPreviewComponent } from '../../blocks/health-plan-preview/health-plan-preview.component';
+import { LifePlanSelectorComponent } from '../../blocks/life-plan-selector/life-plan-selector.component';
+import { LifePlanPreviewComponent } from '../../blocks/life-plan-preview/life-plan-preview.component';
+import { LifeAgeRestrictionComponent } from '../../blocks/life-age-restriction/life-age-restriction.component';
 import { AgeRestrictionComponent } from '../../blocks/age-restriction/age-restriction.component';
 import { TravelPlanPreviewComponent } from '../../blocks/travel-plan-preview/travel-plan-preview.component';
 import { TravelDurationRestrictionComponent } from '../../blocks/travel-duration-restriction/travel-duration-restriction.component';
@@ -56,6 +61,9 @@ function startDateNotInPastValidator(control: AbstractControl): ValidationErrors
     StatusLabelPipe,
     HealthPlanSelectorComponent,
     HealthPlanPreviewComponent,
+    LifePlanSelectorComponent,
+    LifePlanPreviewComponent,
+    LifeAgeRestrictionComponent,
     AgeRestrictionComponent,
     TravelPlanPreviewComponent,
     TravelDurationRestrictionComponent,
@@ -69,6 +77,7 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   service      = inject(PoliciesCoreService);
   healthSvc    = inject(HealthPlansService);
   travelSvc    = inject(TravelPlansService);
+  lifeSvc      = inject(LifePlansService);
   router       = inject(Router);
   snackBar     = inject(MatSnackBar);
   fb           = inject(FormBuilder);
@@ -89,6 +98,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   ageRestricted     = signal(false);
   isHealthType      = signal(false);
 
+  // ── Life state ────────────────────────────────────────────────────────────
+  isLifeType         = signal(false);
+  lifePlans          = signal<LifePlan[]>([]);
+  loadingLifePlans   = signal(false);
+  selectedLifePlanId = signal<string | null>(null);
+  lifeCalculation    = signal<LifePlanCalculation | null>(null);
+  ageRestrictedLife  = signal(false);
+
   // ── Travel state ──────────────────────────────────────────────────────────
   isTravelType      = signal(false);
   tripType          = signal<TripType | null>(null);
@@ -105,6 +122,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   /** Fecha de fin derivada para pólizas de Salud (startDate + 364 días). */
   healthEndDate = computed<Date | null>(() => {
     if (!this.isHealthType()) return null;
+    const start = this.startDateValue();
+    if (!start) return null;
+    return new Date(start.getTime() + 364 * 86_400_000);
+  });
+
+  /** Fecha de fin derivada para pólizas de Vida (startDate + 364 días). */
+  lifeEndDate = computed<Date | null>(() => {
+    if (!this.isLifeType()) return null;
     const start = this.startDateValue();
     if (!start) return null;
     return new Date(start.getTime() + 364 * 86_400_000);
@@ -173,10 +198,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   onTypeChange(type: PolicyType): void {
     this.isHealthType.set(type === 'Health');
     this.isTravelType.set(type === 'Travel');
+    this.isLifeType.set(type === 'Life');
 
     this.selectedPlanId.set(null);
     this.healthCalculation.set(null);
     this.ageRestricted.set(false);
+    this.selectedLifePlanId.set(null);
+    this.lifeCalculation.set(null);
+    this.ageRestrictedLife.set(false);
     this.tripType.set(null);
     this.continent.set(null);
     this.durationDays.set(null);
@@ -193,6 +222,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       endDateCtrl.setValue(null);
       this.loadHealthPlans();
       this.checkAgeRestriction();
+    } else if (type === 'Life') {
+      // Prima y endDate se calculan automáticamente (SPEC-009)
+      monthlyPremiumCtrl.clearValidators();
+      monthlyPremiumCtrl.setValue(null);
+      endDateCtrl.clearValidators();
+      endDateCtrl.setValue(null);
+      this.loadLifePlans();
+      this.checkLifeAgeRestriction();
     } else if (type === 'Travel') {
       monthlyPremiumCtrl.clearValidators();
       monthlyPremiumCtrl.setValue(null);
@@ -233,6 +270,53 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     this.selectedPlanId.set(plan.planId);
     this.healthCalculation.set(null);
     this.recalculate(plan.planId);
+  }
+
+  onLifePlanSelected(plan: LifePlan): void {
+    this.selectedLifePlanId.set(plan.planId);
+    this.lifeCalculation.set(null);
+    this.recalculateLife(plan.planId);
+  }
+
+  private loadLifePlans(): void {
+    if (this.lifePlans().length > 0) return;
+    this.loadingLifePlans.set(true);
+    this.lifeSvc.getPlans()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: plans => {
+          this.lifePlans.set(plans);
+          this.loadingLifePlans.set(false);
+        },
+        error: () => this.loadingLifePlans.set(false),
+      });
+  }
+
+  private checkLifeAgeRestriction(): void {
+    const birthDate = this.insuredForm.value.birthDate;
+    if (!birthDate) return;
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+
+    this.ageRestrictedLife.set(age > 65);
+  }
+
+  private recalculateLife(planId: string): void {
+    const birthDate = this.insuredForm.value.birthDate;
+    if (!birthDate) return;
+
+    this.lifeSvc.calculate(planId, this.toDateStr(birthDate))
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => {
+          this.lifeCalculation.set(null);
+          return EMPTY;
+        })
+      )
+      .subscribe(calc => this.lifeCalculation.set(calc));
   }
 
   private loadHealthPlans(): void {
@@ -283,11 +367,12 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     const iv       = this.insuredForm.value;
     const cv       = this.coverageForm.value;
     const isHealth = this.isHealthType();
+    const isLife   = this.isLifeType();
     const isTravel = this.isTravelType();
     const calc     = this.travelCalculation();
 
     const startDate = cv.startDate ? this.toDateStr(cv.startDate) : '';
-    const endDate   = isHealth && cv.startDate
+    const endDate   = (isHealth || isLife) && cv.startDate
       ? this.toDateStr(new Date(cv.startDate.getTime() + 364 * 86_400_000))
       : cv.endDate
         ? this.toDateStr(cv.endDate)
@@ -308,12 +393,15 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       },
       coveragePeriod: { startDate, endDate },
       insuredAmount:  isHealth ? (this.healthCalculation()?.finalAmount ?? 0)
+                    : isLife   ? (this.lifeCalculation()?.deathBenefit ?? 0)
                     : isTravel ? (calc?.totalPriceCop ?? 0)
                     : cv.insuredAmount!,
       monthlyPremium: isHealth ? (this.healthCalculation()?.monthlyPremium ?? 0)
+                    : isLife   ? (this.lifeCalculation()?.monthlyPremium ?? 0)
                     : isTravel ? (calc?.totalPriceCop ?? 0)
                     : cv.monthlyPremium!,
-      ...(isHealth && this.selectedPlanId() ? { healthPlanId: this.selectedPlanId()! } : {}),
+      ...(isHealth && this.selectedPlanId()     ? { healthPlanId: this.selectedPlanId()! } : {}),
+      ...(isLife   && this.selectedLifePlanId() ? { lifePlanId: this.selectedLifePlanId()! } : {}),
       ...(isTravel && this.tripType() ? {
         tripType:     this.tripType()!,
         continent:    this.continent() ?? undefined,

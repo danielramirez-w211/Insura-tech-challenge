@@ -2,6 +2,7 @@
 using InsuraTech.Domain.Events;
 using InsuraTech.Domain.Exceptions;
 using InsuraTech.Domain.Policies.HealthPlan;
+using InsuraTech.Domain.Policies.LifePlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
 
@@ -22,6 +23,7 @@ namespace InsuraTech.Domain.Policies
         public Guid? RenewedFromPolicyId { get; private set; }
         public HealthPlanSelection? HealthPlan { get; private set; }
         public TravelPlanSelection? TravelPlan { get; private set; }
+        public LifePlanSelection? LifePlan { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -88,6 +90,34 @@ namespace InsuraTech.Domain.Policies
 
             policy.AddStatusHistory(PolicyStatus.Pending,
                 $"Health policy created with plan '{selection.PlanName}'.");
+            return policy;
+        }
+
+        // Factory — tipo Life (planes de precio fijo, sin factor de edad, SPEC-009)
+        public static Policy CreateLifePolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            string lifePlanId,
+            DateOnly today)
+        {
+            var selection = LifePlanPricingService.Calculate(lifePlanId, insured.BirthDate, today);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Life,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.MonthlyPremium,
+                InsuredAmount          = selection.DeathBenefit,
+                AvailableInsuredAmount = selection.DeathBenefit,
+                LifePlan               = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Life policy created with plan '{selection.PlanName}'.");
             return policy;
         }
 
