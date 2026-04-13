@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { NotificationsService } from '../../services/notifications.service';
-import { NotificationDto } from '../../models/notification.model';
+import { NotificationsCoreService as NotificationsService } from './notifications.service';
+import { Notification } from '../models/notification.model';
 import { PagedResult } from '../../../../core/models/api-response.model';
 
 const BASE_URL = 'http://localhost:5000/api/v1/notifications';
 
-const mockNotification = (id: string, status: NotificationDto['status']): NotificationDto => ({
+const mockNotification = (id: string, status: Notification['status']): Notification => ({
   id,
   event: 'PolicyActivated',
   recipientId: 'user-1',
@@ -24,7 +24,7 @@ const mockFailedNotification1 = mockNotification('notif-2', 'Failed');
 const mockFailedNotification2 = mockNotification('notif-3', 'Failed');
 const mockPendingNotification = mockNotification('notif-4', 'Pending');
 
-const mockPagedResult: PagedResult<NotificationDto> = {
+const mockPagedResult: PagedResult<Notification> = {
   items: [mockSentNotification],
   totalCount: 1,
   page: 1,
@@ -112,8 +112,8 @@ describe('NotificationsService', () => {
     });
 
     it('should return an empty list when no notifications exist', (done) => {
-      const emptyResult: PagedResult<NotificationDto> = { items: [], totalCount: 0, page: 1, pageSize: 10 };
-      service.getNotifications({ page: 1, pageSize: 10 }).subscribe((result) => {
+      const emptyResult: PagedResult<Notification> = { items: [], totalCount: 0, page: 1, pageSize: 10 };
+      service.getNotifications({ page: 1, pageSize: 10 }).subscribe((result: PagedResult<Notification>) => {
         expect(result.totalCount).toBe(0);
         expect(result.items).toEqual([]);
         done();
@@ -139,7 +139,7 @@ describe('NotificationsService', () => {
     });
 
     it('should return the updated notification', (done) => {
-      service.retryNotification('notif-2').subscribe((notification) => {
+      service.retryNotification('notif-2').subscribe((notification: Notification) => {
         expect(notification.status).toBe('Sent');
         done();
       });

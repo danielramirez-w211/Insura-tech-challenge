@@ -26,7 +26,7 @@ public sealed class GetPolicyByIdHandlerTests
         var policy = Policy.Create(
             PolicyNumber.Create(2024, 1),
             PolicyType.Vehicle,
-            InsuredPerson.Create("Jane Doe", "987654321", new DateOnly(1985, 6, 15)),
+            InsuredPerson.Create("Jane", "Doe", "CC", "987654321", new DateOnly(1985, 6, 15)),
             CoveragePeriod.Create(
                 DateOnly.FromDateTime(DateTime.UtcNow),
                 DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1)),

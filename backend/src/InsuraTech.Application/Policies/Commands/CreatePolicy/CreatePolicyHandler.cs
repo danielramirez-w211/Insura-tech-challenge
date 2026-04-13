@@ -39,7 +39,22 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
 
             Policy policy;
 
-            if (request.Type == PolicyType.Life && !string.IsNullOrWhiteSpace(request.LifePlanId))
+            if (request.Type == PolicyType.Vehicle
+                && !string.IsNullOrWhiteSpace(request.VehiclePlanId)
+                && request.VehicleCommercialValue.HasValue
+                && request.VehicleYear.HasValue
+                && !string.IsNullOrWhiteSpace(request.VehicleBrand))
+            {
+                var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
+                policy = Policy.CreateVehiclePolicy(
+                    policyNumber, insured, coverage,
+                    request.VehiclePlanId,
+                    request.VehicleCommercialValue.Value,
+                    request.VehicleYear.Value,
+                    request.VehicleBrand,
+                    DateOnly.FromDateTime(DateTime.UtcNow));
+            }
+            else if (request.Type == PolicyType.Life && !string.IsNullOrWhiteSpace(request.LifePlanId))
             {
                 var coverage = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
                 policy = Policy.CreateLifePolicy(

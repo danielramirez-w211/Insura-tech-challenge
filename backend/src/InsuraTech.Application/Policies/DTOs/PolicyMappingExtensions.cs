@@ -58,6 +58,21 @@ namespace InsuraTech.Application.Policies.DTOs
                         TrmUsed           = policy.TravelPlan.TrmUsed,
                         TrmDate           = policy.TravelPlan.TrmDate,
                         CalculatedAt      = policy.TravelPlan.CalculatedAt
+                    },
+                    VehiclePlan = policy.VehiclePlan is null ? null : new VehiclePlanSelectionDto
+                    {
+                        PlanId                   = policy.VehiclePlan.PlanId,
+                        PlanName                 = policy.VehiclePlan.PlanName,
+                        VehicleBrand             = policy.VehiclePlan.VehicleBrand,
+                        VehicleYear              = policy.VehiclePlan.VehicleYear,
+                        CommercialValue          = policy.VehiclePlan.CommercialValue,
+                        TechnicalRate            = policy.VehiclePlan.TechnicalRate,
+                        HasBrandSurcharge        = policy.VehiclePlan.HasBrandSurcharge,
+                        BaseMonthlyPremium       = policy.VehiclePlan.BaseMonthlyPremium,
+                        FinalMonthlyPremium      = policy.VehiclePlan.FinalMonthlyPremium,
+                        AnnualPremiumWithDiscount = policy.VehiclePlan.AnnualPremiumWithDiscount,
+                        Coverages                = policy.VehiclePlan.Coverages,
+                        Assistances              = policy.VehiclePlan.Assistances
                     }
                 };
     }

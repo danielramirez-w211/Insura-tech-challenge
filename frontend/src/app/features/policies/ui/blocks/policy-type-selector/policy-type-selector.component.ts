@@ -45,13 +45,13 @@ export class PolicyTypeSelectorComponent {
       type: 'Vehicle',
       label: 'Vehículo',
       description: 'Protección de tu automóvil',
-      icon: 'directions_car',
+      imageSrc: 'Policy_images/Vehiculo.jpg',
     },
     {
       type: 'Home',
       label: 'Hogar',
       description: 'Seguro para tu vivienda',
-      icon: 'home',
+      imageSrc: 'Policy_images/House.jpg',
     },
   ];
 

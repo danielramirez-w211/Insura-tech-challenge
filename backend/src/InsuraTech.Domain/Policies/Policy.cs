@@ -5,6 +5,7 @@ using InsuraTech.Domain.Policies.HealthPlan;
 using InsuraTech.Domain.Policies.LifePlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
+using InsuraTech.Domain.Policies.VehiclePlan;
 
 namespace InsuraTech.Domain.Policies
 {
@@ -24,6 +25,7 @@ namespace InsuraTech.Domain.Policies
         public HealthPlanSelection? HealthPlan { get; private set; }
         public TravelPlanSelection? TravelPlan { get; private set; }
         public LifePlanSelection? LifePlan { get; private set; }
+        public VehiclePlanSelection? VehiclePlan { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -118,6 +120,40 @@ namespace InsuraTech.Domain.Policies
 
             policy.AddStatusHistory(PolicyStatus.Pending,
                 $"Life policy created with plan '{selection.PlanName}'.");
+            return policy;
+        }
+
+        // Factory — tipo Vehicle (motor de cotización por tasa técnica, SPEC-010)
+        public static Policy CreateVehiclePolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            string vehiclePlanId,
+            decimal commercialValue,
+            int vehicleYear,
+            string vehicleBrand,
+            DateOnly today)
+        {
+            var quotation = VehiclePricingService.Calculate(
+                commercialValue, vehicleYear, vehicleBrand, today.Year);
+
+            var selection = VehiclePricingService.Select(vehiclePlanId, quotation);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Vehicle,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.FinalMonthlyPremium,
+                InsuredAmount          = selection.CommercialValue,
+                AvailableInsuredAmount = selection.CommercialValue,
+                VehiclePlan            = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Vehicle policy created with plan '{selection.PlanName}' for {selection.VehicleBrand} {selection.VehicleYear}.");
             return policy;
         }
 
