@@ -31,12 +31,21 @@ public sealed class CalculateVehiclePlansHandler
                 _          => quotation.BaseMonthlyPremium
             };
 
+            // Prima anual con 5% de descuento por pago único (RN-08, RN-18)
+            decimal annual = plan.Id.ToLowerInvariant() switch
+            {
+                "standard" => quotation.AnnualBase,
+                "complete" => quotation.AnnualComplete,
+                "premium"  => quotation.AnnualPremium,
+                _          => quotation.AnnualBase
+            };
+
             return new VehiclePlanOptionDto
             {
                 PlanId                    = plan.Id,
                 PlanName                  = plan.Name,
                 MonthlyPremium            = monthly,
-                AnnualPremiumWithDiscount = monthly * AnnualDiscount,
+                AnnualPremiumWithDiscount = annual * AnnualDiscount,
                 Coverages                 = plan.Coverages,
                 Assistances               = plan.Assistances,
             };

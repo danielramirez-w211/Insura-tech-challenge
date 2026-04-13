@@ -53,15 +53,21 @@ public static class VehiclePricingService
         if (hasSurcharge)
             gross *= BrandSurcharge;
 
-        // PASO 4 — Prima mínima (RN-04)
+        // PASO 4 — Prima mínima anual (RN-04)
         gross = Math.Max(gross, MinPremium);
 
-        // PASO 5 — Redondeo al mil superior (RN-05)
-        decimal baseMonthly = Math.Ceiling(gross / 1000m) * 1000m;
+        // PASO 5 — Redondeo al mil superior → prima ANUAL base (RN-05, RN-18)
+        // La tasa técnica es anual; el resultado es la prima anual, no mensual.
+        decimal annualBase     = Math.Ceiling(gross / 1000m) * 1000m;
 
-        // PASO 6 — Primas por plan (RN-06, RN-07)
-        decimal completePremium = Math.Ceiling((baseMonthly * 1.20m) / 1000m) * 1000m;
-        decimal premiumPremium  = Math.Ceiling((baseMonthly * 1.45m) / 1000m) * 1000m;
+        // PASO 6 — Primas anuales por plan (RN-06, RN-07)
+        decimal annualComplete = Math.Ceiling((annualBase * 1.20m) / 1000m) * 1000m;
+        decimal annualPremium_ = Math.Ceiling((annualBase * 1.45m) / 1000m) * 1000m;
+
+        // PASO 6b — Prima mensual = prima anual / 12 (RN-18)
+        decimal baseMonthly     = Math.Round(annualBase     / 12m, 0, MidpointRounding.AwayFromZero);
+        decimal completeMonthly = Math.Round(annualComplete / 12m, 0, MidpointRounding.AwayFromZero);
+        decimal premiumMonthly  = Math.Round(annualPremium_ / 12m, 0, MidpointRounding.AwayFromZero);
 
         return new VehicleQuotation(
             commercialValue,
@@ -72,8 +78,11 @@ public static class VehiclePricingService
             rate,
             hasSurcharge,
             baseMonthly,
-            completePremium,
-            premiumPremium);
+            completeMonthly,
+            premiumMonthly,
+            annualBase,
+            annualComplete,
+            annualPremium_);
     }
 
     /// <summary>
@@ -92,8 +101,17 @@ public static class VehiclePricingService
             _          => throw new InvalidVehiclePlanException(planId)
         };
 
+        decimal finalAnnual = planId.ToLowerInvariant() switch
+        {
+            "standard" => quotation.AnnualBase,
+            "complete" => quotation.AnnualComplete,
+            "premium"  => quotation.AnnualPremium,
+            _          => throw new InvalidVehiclePlanException(planId)
+        };
+
         // PASO 7 — Descuento 5% por pago anual (RN-08)
-        decimal annualWithDiscount = finalMonthly * AnnualDiscount;
+        // El descuento aplica sobre la prima anual: el cliente paga menos si cubre el año en un solo pago.
+        decimal annualWithDiscount = finalAnnual * AnnualDiscount;
 
         return new VehiclePlanSelection(
             planId,

@@ -45,7 +45,7 @@ export class PolicyTypeSelectorComponent {
       type: 'Vehicle',
       label: 'Vehículo',
       description: 'Protección de tu automóvil',
-      icon: 'directions_car',
+      imageSrc: 'Policy_images/Vehiculo.jpg',
     },
     {
       type: 'Home',

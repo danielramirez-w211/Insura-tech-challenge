@@ -102,3 +102,27 @@
   color: var(--mat-sys-on-surface-variant, #666);
   font-size: 13px;
 }
+
+.quotation-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e8f5e9;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #2e7d32;
+}
+
+.quotation-icon {
+  color: #43a047;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.surcharge-badge {
+  color: #f57c00;
+  font-weight: 600;
+}

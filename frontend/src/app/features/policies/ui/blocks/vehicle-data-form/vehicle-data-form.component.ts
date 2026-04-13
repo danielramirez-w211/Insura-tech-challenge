@@ -3,7 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, Validati
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 export interface VehicleDataFormValue {
@@ -29,6 +29,7 @@ function vehicleYearValidator(control: AbstractControl): ValidationErrors | null
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatIcon
   ],
   templateUrl: './vehicle-data-form.component.html',
   styleUrl: './vehicle-data-form.component.css',
