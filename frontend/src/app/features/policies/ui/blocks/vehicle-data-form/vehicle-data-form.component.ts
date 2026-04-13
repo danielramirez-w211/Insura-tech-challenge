@@ -5,6 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface VehicleDataFormValue {
   commercialValue: number;
@@ -29,7 +30,8 @@ function vehicleYearValidator(control: AbstractControl): ValidationErrors | null
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatIcon
+    MatIcon,
+    MatSelectModule,
   ],
   templateUrl: './vehicle-data-form.component.html',
   styleUrl: './vehicle-data-form.component.css',
@@ -39,6 +41,11 @@ export class VehicleDataFormComponent {
   quoteRequested = output<VehicleDataFormValue>();
 
   private fb = inject(FormBuilder);
+
+  readonly VEHICLE_BRANDS = [
+    'BMW', 'BYD', 'Chevrolet', 'Ford', 'Honda',
+    'Hyundai', 'Jeep', 'Nissan', 'Renault', 'Subaru', 'Toyota',
+  ] as const;
 
   readonly currentYear = new Date().getFullYear();
 

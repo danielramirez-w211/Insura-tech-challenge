@@ -18,6 +18,11 @@ namespace InsuraTech.Application.Policies.DTOs
 
         public string InsuredDocumentId { get; init; } = null!;
         public int InsuredAge { get; init; }
+        public string InsuredGender { get; init; } = null!;
+        public string InsuredAddress { get; init; } = null!;
+        public string InsuredCityName { get; init; } = null!;
+        public string InsuredPostalCode { get; init; } = null!;
+        public string InsuredDepartment { get; init; } = null!;
         public DateOnly CoverageStartDate { get; init; }
         public DateOnly CoverageEndDate { get; init; }
         public decimal MonthlyPremium { get; init; }

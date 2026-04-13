@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Policy, PolicyFilters, PolicyStatus, PolicyType } from '../models/policy.model';
+import { DocumentType } from '../models/insured-person.model';
 import { TripType, Continent } from '../models/travel-plan-selection.model';
 import { PoliciesCoreService } from '../service/policies.service';
 import { CreatePolicyRequest } from '../resource/policy-request.resource';
@@ -36,13 +37,18 @@ function mapResponseToPolicy(r: PolicyResponse): Policy {
     status: r.status as Policy['status'],
     type: r.type as Policy['type'],
     insured: {
-      firstName: r.insuredFirstName,
-      lastName: r.insuredLastName,
-      documentType: r.insuredDocumentType,
-      documentId: r.insuredDocumentId,
-      birthDate: '',
-      email: '',
-      phone: '',
+      firstName:    r.insuredFirstName,
+      lastName:     r.insuredLastName,
+      documentType: r.insuredDocumentType as DocumentType,
+      documentId:   r.insuredDocumentId,
+      birthDate:    '',
+      email:        '',
+      phone:        '',
+      gender:       (r.insuredGender ?? '') as 'Masculino' | 'Femenino',
+      address:      r.insuredAddress ?? '',
+      cityName:     r.insuredCityName ?? '',
+      postalCode:   r.insuredPostalCode ?? '',
+      department:   r.insuredDepartment ?? '',
     },
     coveragePeriod: {
       startDate: r.coverageStartDate,

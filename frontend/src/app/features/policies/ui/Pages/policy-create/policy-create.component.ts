@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Subject, takeUntil, catchError, EMPTY, combineLatest } from 'rxjs';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -38,6 +38,25 @@ import { ContinentSelectorComponent } from '../../blocks/continent-selector/cont
 import { VehicleDataFormComponent, VehicleDataFormValue } from '../../blocks/vehicle-data-form/vehicle-data-form.component';
 import { VehiclePlanSelectorComponent } from '../../blocks/vehicle-plan-selector/vehicle-plan-selector.component';
 import { VehiclePlanPreviewComponent } from '../../blocks/vehicle-plan-preview/vehicle-plan-preview.component';
+import { CitiesService } from '../../../core/service/cities.service';
+import { CityOption } from '../../../core/models/city.model';
+import { DocumentType, DOCUMENT_TYPE_OPTIONS } from '../../../core/models/insured-person.model';
+import { ThousandsSeparatorDirective } from '../../../../../shared/directives/thousands-separator.directive';
+
+function documentIdValidatorFn(type: DocumentType): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value as string;
+    if (!value) return { required: true };
+    if (['CC', 'TI', 'RC'].includes(type)) {
+      const raw = value.replace(/\./g, '');
+      return /^\d{1,10}$/.test(raw) ? null : { invalidFormat: true };
+    }
+    if (['CE', 'PP'].includes(type)) {
+      return /^[A-Za-z0-9]{1,11}$/.test(value) ? null : { invalidFormat: true };
+    }
+    return null;
+  };
+}
 
 function startDateNotInPastValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value as Date | null;
@@ -77,6 +96,7 @@ function startDateNotInPastValidator(control: AbstractControl): ValidationErrors
     VehicleDataFormComponent,
     VehiclePlanSelectorComponent,
     VehiclePlanPreviewComponent,
+    ThousandsSeparatorDirective,
   ],
   templateUrl: './policy-create.component.html',
   styleUrl: './policy-create.component.css',
@@ -87,9 +107,12 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   travelSvc    = inject(TravelPlansService);
   lifeSvc      = inject(LifePlansService);
   vehicleSvc   = inject(VehiclePlansService);
+  citiesSvc    = inject(CitiesService);
   router       = inject(Router);
   snackBar     = inject(MatSnackBar);
   fb           = inject(FormBuilder);
+
+  readonly DOCUMENT_TYPE_OPTIONS = DOCUMENT_TYPE_OPTIONS;
 
   private destroy$ = new Subject<void>();
 
@@ -126,6 +149,11 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     return d !== null && d > 180;
   });
 
+  // ── Cities state ──────────────────────────────────────────────────────────
+  cities                  = signal<CityOption[]>([]);
+  selectedCityPostalCode  = signal('');
+  selectedCityDepartment  = signal('');
+
   // ── Vehicle state ─────────────────────────────────────────────────────────
   isVehicleType       = signal(false);
   vehicleQuotation    = signal<VehicleQuotationResult | null>(null);
@@ -161,11 +189,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   insuredForm = this.fb.group({
     firstName:    ['', Validators.required],
     lastName:     ['', Validators.required],
-    docuemntType: ['', Validators.required],
+    documentType: ['', Validators.required],
     documentId:   ['', Validators.required],
     birthDate:    [null as Date | null, Validators.required],
     email:        ['', [Validators.required, Validators.email]],
     phone:        [''],
+    gender:       ['', Validators.required],
+    city:         ['', Validators.required],
+    address:      ['', Validators.required],
   });
 
   coverageForm = this.fb.group({
@@ -176,7 +207,27 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     endDate:        [null as Date | null, Validators.required],
   });
 
+  onInsuredCitySelected(cityName: string): void {
+    const city = this.cities().find(c => c.name === cityName);
+    if (city) {
+      this.selectedCityPostalCode.set(city.postalCode);
+      this.selectedCityDepartment.set(city.department);
+    }
+  }
+
+  onInsuredDocumentTypeChange(type: string): void {
+    this.insuredForm.get('documentId')!.setValue('');
+    this.insuredForm.get('documentId')!.setValidators([documentIdValidatorFn(type as DocumentType)]);
+    this.insuredForm.get('documentId')!.updateValueAndValidity();
+  }
+
   ngOnInit(): void {
+    this.citiesSvc.loadCities().subscribe(cities => this.cities.set(cities));
+
+    this.insuredForm.get('documentType')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(type => this.onInsuredDocumentTypeChange(type ?? ''));
+
     this.coverageForm.get('startDate')!.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(v => this.startDateValue.set(v as Date | null));
@@ -452,11 +503,16 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       insured: {
         firstName:    iv.firstName!,
         lastName:     iv.lastName!,
-        documentType: iv.docuemntType!,
+        documentType: iv.documentType!,
         documentId:   iv.documentId!,
         birthDate:    this.toDateStr(iv.birthDate!),
         email:        iv.email!,
         phone:        iv.phone ?? '',
+        gender:       iv.gender! as 'Masculino' | 'Femenino',
+        address:      iv.address!,
+        cityName:     iv.city!,
+        postalCode:   this.selectedCityPostalCode(),
+        department:   this.selectedCityDepartment(),
       },
       coveragePeriod: { startDate, endDate },
       insuredAmount:  isHealth  ? (this.healthCalculation()?.finalAmount ?? 0)

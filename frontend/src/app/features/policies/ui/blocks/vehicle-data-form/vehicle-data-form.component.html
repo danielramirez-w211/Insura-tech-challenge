@@ -30,7 +30,11 @@
   <mat-form-field appearance="outline">
     <mat-label>Marca del vehículo</mat-label>
     <mat-icon matPrefix>sell</mat-icon>
-    <input matInput formControlName="brand" placeholder="Ej. Toyota" data-testid="vehicle-brand" />
+    <mat-select formControlName="brand" data-testid="vehicle-brand">
+      @for (brand of VEHICLE_BRANDS; track brand) {
+        <mat-option [value]="brand">{{ brand }}</mat-option>
+      }
+    </mat-select>
     @if (form.get('brand')?.touched && form.get('brand')?.hasError('required')) {
       <mat-error>La marca es obligatoria</mat-error>
     }
