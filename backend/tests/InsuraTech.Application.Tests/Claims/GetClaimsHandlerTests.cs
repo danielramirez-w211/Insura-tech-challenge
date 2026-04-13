@@ -19,7 +19,7 @@ public sealed class GetClaimsHandlerTests
         var policy = Policy.Create(
             PolicyNumber.Create(2024, 1),
             PolicyType.Life,
-            InsuredPerson.Create("Ana Lopez", "12345678", new DateOnly(1990, 1, 1)),
+            InsuredPerson.Create("Ana", "Lopez", "CC", "12345678", new DateOnly(1990, 1, 1)),
             CoveragePeriod.Create(
                 DateOnly.FromDateTime(DateTime.UtcNow),
                 DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1)),

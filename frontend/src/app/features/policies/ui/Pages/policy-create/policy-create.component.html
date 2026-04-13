@@ -18,8 +18,8 @@
       <p class="selection-hint">Selecciona un tipo de póliza para continuar</p>
     }
 
-    <div class="step-actions">
-      <button mat-raised-button color="primary" matStepperNext [disabled]="!selectedType()">
+    <div class="step-actions step-actions--single">
+      <button mat-raised-button color="primary" matStepperNext [disabled]="!selectedType()" class="btn-continue">
         Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
       </button>
     </div>

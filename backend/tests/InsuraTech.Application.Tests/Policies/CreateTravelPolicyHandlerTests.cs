@@ -35,7 +35,7 @@ public sealed class CreateTravelPolicyHandlerTests
     {
         IdempotencyKey    = Guid.NewGuid().ToString(),
         Type              = PolicyType.Travel,
-        InsuredFullName   = "Carlos Viajero",
+        InsuredFirstName = "Carlos", InsuredLastName = "Viajero", InsuredDocumentType = "CC",
         InsuredDocumentId = "555666777",
         InsuredBirthDate  = new DateOnly(1990, 6, 15),
         CoverageStartDate = new DateOnly(2026, 5, 1),
@@ -49,7 +49,7 @@ public sealed class CreateTravelPolicyHandlerTests
     {
         IdempotencyKey    = Guid.NewGuid().ToString(),
         Type              = PolicyType.Travel,
-        InsuredFullName   = "Laura Internacional",
+        InsuredFirstName = "Laura", InsuredLastName = "Internacional", InsuredDocumentType = "CC",
         InsuredDocumentId = "888999000",
         InsuredBirthDate  = new DateOnly(1985, 3, 20),
         CoverageStartDate = new DateOnly(2026, 6, 1),
@@ -147,7 +147,7 @@ public sealed class CreateTravelPolicyHandlerTests
         {
             IdempotencyKey    = Guid.NewGuid().ToString(),
             Type              = PolicyType.Life,
-            InsuredFullName   = "Juan Vida",
+            InsuredFirstName = "Juan", InsuredLastName = "Vida", InsuredDocumentType = "CC",
             InsuredDocumentId = "111222333",
             InsuredBirthDate  = new DateOnly(1985, 1, 1),
             CoverageStartDate = new DateOnly(2026, 1, 1),

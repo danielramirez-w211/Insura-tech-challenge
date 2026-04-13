@@ -25,7 +25,7 @@ public sealed class ActivatePolicyHandlerTests
     private static Policy BuildPendingPolicy() => Policy.Create(
         PolicyNumber.Create(2024, 1),
         PolicyType.Life,
-        InsuredPerson.Create("John Doe", "123456789", new DateOnly(1990, 1, 1)),
+        InsuredPerson.Create("John", "Doe", "CC", "123456789", new DateOnly(1990, 1, 1)),
         CoveragePeriod.Create(
             DateOnly.FromDateTime(DateTime.UtcNow),
             DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1)),

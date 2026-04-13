@@ -51,7 +51,7 @@ export class PolicyTypeSelectorComponent {
       type: 'Home',
       label: 'Hogar',
       description: 'Seguro para tu vivienda',
-      icon: 'home',
+      imageSrc: 'Policy_images/House.jpg',
     },
   ];
 
