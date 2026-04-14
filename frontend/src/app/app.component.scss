@@ -1,20 +1,42 @@
+// ── Toolbar ───────────────────────────────────────────────────────────────
 .toolbar {
   position: fixed;
   top: 0;
   z-index: 1000;
   width: 100%;
+  height: 64px;
+  background-color: #111111 !important;  // negro marca (sobreescribe mat color="primary")
+  color: #FFFFFF !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08);
 
   .brand {
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     margin-left: 8px;
+    color: #FFFFFF;
+  }
+
+  .brand-accent {
+    color: #FF6B2C;
   }
 
   .spacer {
     flex: 1;
   }
+
+  // Ícono de usuario en toolbar
+  mat-icon {
+    color: rgba(255,255,255,0.85);
+  }
+
+  // Botón hamburguesa
+  button.mat-mdc-icon-button {
+    color: #FFFFFF !important;
+  }
 }
 
+// ── Layout raíz ──────────────────────────────────────────────────────────
 .sidenav-container {
   height: calc(100vh - 64px);
   margin-top: 64px;
@@ -22,9 +44,16 @@
 
 .sidenav {
   width: 240px;
-  border-right: 1px solid #e0e0e0;
+  background-color: #FFFFFF;
+  border-right: 1px solid #E0E0E0;
 }
 
+// El único contenedor que hace scroll en toda la app.
+// overflow:hidden en el body (styles.scss) garantiza que no compita.
 .main-content {
   padding: 24px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  background-color: #FAFAFA;
 }

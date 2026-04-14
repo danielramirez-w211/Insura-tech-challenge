@@ -1,11 +1,16 @@
- .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E0E0E0;
+}
+
 .page-title {
-      font-size: 24px;
-      font-weight: 500;
-      margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  color: #111111;
+  letter-spacing: -0.2px;
 }
