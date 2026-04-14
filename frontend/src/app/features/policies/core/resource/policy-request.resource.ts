@@ -9,6 +9,11 @@ export interface InsuredPersonRequest {
   birthDate: string;
   email: string;
   phone: string;
+  gender: 'Masculino' | 'Femenino';
+  address: string;
+  cityName: string;
+  postalCode: string;
+  department: string;
 }
 
 export interface CoveragePeriodRequest {

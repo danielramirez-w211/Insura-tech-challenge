@@ -45,6 +45,11 @@ public sealed class CreateVehiclePolicyHandlerTests
         InsuredDocumentType    = "CC",
         InsuredDocumentId      = "123456789",
         InsuredBirthDate       = new DateOnly(1990, 1, 1),
+        InsuredGender          = "Masculino",
+        InsuredAddress         = "Calle 123 # 45-67",
+        InsuredCityName        = "Bogotá",
+        InsuredPostalCode      = "110111",
+        InsuredDepartment      = "Cundinamarca",
         CoverageStartDate      = new DateOnly(2026, 5, 1),
         CoverageEndDate        = new DateOnly(2027, 5, 1),
         VehiclePlanId          = planId,
@@ -162,6 +167,11 @@ public sealed class CreateVehiclePolicyHandlerTests
             InsuredDocumentType = "CC",
             InsuredDocumentId = "111222333",
             InsuredBirthDate  = new DateOnly(1985, 1, 1),
+            InsuredGender     = "Masculino",
+            InsuredAddress    = "Calle 123 # 45-67",
+            InsuredCityName   = "Bogotá",
+            InsuredPostalCode = "110111",
+            InsuredDepartment = "Cundinamarca",
             CoverageStartDate = new DateOnly(2026, 1, 1),
             CoverageEndDate   = new DateOnly(2027, 1, 1),
             MonthlyPremium    = 200m,
@@ -186,7 +196,7 @@ public sealed class CreateVehiclePolicyHandlerTests
         var command = VehicleCommand();
 
         var existingPolicyNumber = PolicyNumber.Create(2026, 42);
-        var existingInsured = InsuredPerson.Create("Carlos", "Pérez", "CC", "123456789", new DateOnly(1990, 1, 1));
+        var existingInsured = InsuredPerson.Create("Carlos", "Pérez", "CC", "123456789", new DateOnly(1990, 1, 1), "Masculino", "Calle 123 # 45-67", "Bogotá", "110111", "Cundinamarca");
         var existingCoverage = CoveragePeriod.Create(new DateOnly(2026, 5, 1), new DateOnly(2027, 5, 1));
         var existingPolicy = Policy.CreateVehiclePolicy(
             existingPolicyNumber, existingInsured, existingCoverage,

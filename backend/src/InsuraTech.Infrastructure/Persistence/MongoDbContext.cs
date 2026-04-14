@@ -127,7 +127,18 @@ public sealed class MongoDbContext
                 cm.MapProperty(p => p.DocumentType);
                 cm.MapProperty(p => p.DocumentId);
                 cm.MapProperty(p => p.BirthDate);
-                cm.MapCreator(p => InsuredPerson.Create(p.FirstName, p.LastName, p.DocumentType, p.DocumentId, p.BirthDate));
+                // Campos nuevos (SPEC-011): documentos anteriores no los tienen,
+                // SetDefaultValue garantiza que MongoDB use "" cuando el campo está ausente.
+                cm.MapProperty(p => p.Gender).SetDefaultValue(string.Empty);
+                cm.MapProperty(p => p.Address).SetDefaultValue(string.Empty);
+                cm.MapProperty(p => p.CityName).SetDefaultValue(string.Empty);
+                cm.MapProperty(p => p.PostalCode).SetDefaultValue(string.Empty);
+                cm.MapProperty(p => p.Department).SetDefaultValue(string.Empty);
+                // Reconstitute (sin validación) para cargar desde persistencia.
+                // Create (con validación) se usa solo al crear pólizas nuevas.
+                cm.MapCreator(p => InsuredPerson.Reconstitute(
+                    p.FirstName, p.LastName, p.DocumentType, p.DocumentId, p.BirthDate,
+                    p.Gender, p.Address, p.CityName, p.PostalCode, p.Department));
             });
 
             // ---- CoveragePeriod ----

@@ -19,6 +19,11 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
 
         public string InsuredDocumentId { get; init; } = null!;
         public DateOnly InsuredBirthDate { get; init; }
+        public string InsuredGender { get; init; } = null!;
+        public string InsuredAddress { get; init; } = null!;
+        public string InsuredCityName { get; init; } = null!;
+        public string InsuredPostalCode { get; init; } = null!;
+        public string InsuredDepartment { get; init; } = null!;
         public DateOnly CoverageStartDate { get; init; }
         public DateOnly CoverageEndDate { get; init; }
         public decimal MonthlyPremium { get; init; }

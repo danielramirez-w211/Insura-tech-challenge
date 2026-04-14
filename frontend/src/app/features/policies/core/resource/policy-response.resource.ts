@@ -14,6 +14,11 @@ export interface PolicyResponse {
   insuredDocumentType: string;
   insuredDocumentId: string;
   insuredAge: number;
+  insuredGender?: string;
+  insuredAddress?: string;
+  insuredCityName?: string;
+  insuredPostalCode?: string;
+  insuredDepartment?: string;
 
   // Vigencia — campos planos
   coverageStartDate: string;

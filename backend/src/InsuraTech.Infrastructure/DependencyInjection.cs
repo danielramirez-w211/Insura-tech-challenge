@@ -35,6 +35,10 @@ public static class DependencyInjection
         services.AddScoped<IPolicyRepository, PolicyRepository>();
         services.AddScoped<IClaimRepository, ClaimRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<ICityRepository>(_ =>
+            new CityRepository(
+                _.GetRequiredService<IMongoClient>(),
+                databaseName));
 
         // TRM — integración con API Socrata
         services.AddMemoryCache();

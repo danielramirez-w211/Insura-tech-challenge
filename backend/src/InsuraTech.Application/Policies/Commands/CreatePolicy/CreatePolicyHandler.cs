@@ -35,7 +35,12 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
             var policyNumber = PolicyNumber.Create(DateTime.UtcNow.Year, sequence);
 
             var insured  = InsuredPerson.Create(
-                request.InsuredFirstName, request.InsuredLastName, request.InsuredDocumentType, request.InsuredDocumentId, request.InsuredBirthDate);
+                request.InsuredFirstName, request.InsuredLastName,
+                request.InsuredDocumentType, request.InsuredDocumentId,
+                request.InsuredBirthDate,
+                request.InsuredGender, request.InsuredAddress,
+                request.InsuredCityName, request.InsuredPostalCode,
+                request.InsuredDepartment);
 
             Policy policy;
 
