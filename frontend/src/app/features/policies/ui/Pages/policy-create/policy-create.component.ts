@@ -42,6 +42,10 @@ import { CitiesService } from '../../../core/service/cities.service';
 import { CityOption } from '../../../core/models/city.model';
 import { DocumentType, DOCUMENT_TYPE_OPTIONS } from '../../../core/models/insured-person.model';
 import { ThousandsSeparatorDirective } from '../../../../../shared/directives/thousands-separator.directive';
+import { HomePlansService } from '../../../core/service/home-plans.service';
+import { HomePlanPackage, HomeQuotationResult, HomeDataFormValue } from '../../../core/models/home-plan-selection.model';
+import { HomeDataFormComponent } from '../../blocks/home-data-form/home-data-form.component';
+import { HomePlanPreviewComponent } from '../../blocks/home-plan-preview/home-plan-preview.component';
 
 function documentIdValidatorFn(type: DocumentType): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -97,6 +101,8 @@ function startDateNotInPastValidator(control: AbstractControl): ValidationErrors
     VehiclePlanSelectorComponent,
     VehiclePlanPreviewComponent,
     ThousandsSeparatorDirective,
+    HomeDataFormComponent,
+    HomePlanPreviewComponent,
   ],
   templateUrl: './policy-create.component.html',
   styleUrl: './policy-create.component.css',
@@ -153,6 +159,22 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
   cities                  = signal<CityOption[]>([]);
   selectedCityPostalCode  = signal('');
   selectedCityDepartment  = signal('');
+
+  // ── Home state ────────────────────────────────────────────────────────────
+  isHomeType          = signal(false);
+  homePackages        = signal<HomePlanPackage[]>([]);
+  homeQuotation       = signal<HomeQuotationResult | null>(null);
+  homePackageId       = signal<string | null>(null);
+  homeQuoteLoading    = signal(false);
+
+  homeSvc             = inject(HomePlansService);
+
+  homeEndDate = computed<Date | null>(() => {
+    if (!this.isHomeType()) return null;
+    const start = this.startDateValue();
+    if (!start) return null;
+    return new Date(start.getTime() + 364 * 86_400_000);
+  });
 
   // ── Vehicle state ─────────────────────────────────────────────────────────
   isVehicleType       = signal(false);
@@ -274,6 +296,7 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     this.isTravelType.set(type === 'Travel');
     this.isLifeType.set(type === 'Life');
     this.isVehicleType.set(type === 'Vehicle');
+    this.isHomeType.set(type === 'Home');
 
     this.selectedPlanId.set(null);
     this.healthCalculation.set(null);
@@ -287,6 +310,8 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     this.travelCalculation.set(null);
     this.vehicleQuotation.set(null);
     this.selectedVehiclePlan.set(null);
+    this.homeQuotation.set(null);
+    this.homePackageId.set(null);
 
     const monthlyPremiumCtrl = this.coverageForm.get('monthlyPremium')!;
     const endDateCtrl        = this.coverageForm.get('endDate')!;
@@ -326,6 +351,18 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       insuredAmountCtrl.clearValidators();
       insuredAmountCtrl.setValue(null);
       endDateCtrl.setValidators(Validators.required);
+    } else if (type === 'Home') {
+      monthlyPremiumCtrl.clearValidators();
+      monthlyPremiumCtrl.setValue(null);
+      endDateCtrl.clearValidators();
+      endDateCtrl.setValue(null);
+      insuredAmountCtrl.clearValidators();
+      insuredAmountCtrl.setValue(null);
+      if (this.homePackages().length === 0) {
+        this.homeSvc.getPackages()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(packages => this.homePackages.set(packages));
+      }
     } else {
       monthlyPremiumCtrl.setValidators([Validators.required, Validators.min(1)]);
       endDateCtrl.setValidators(Validators.required);
@@ -453,6 +490,26 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       .subscribe(calc => this.healthCalculation.set(calc));
   }
 
+  onHomeQuoteRequested(data: HomeDataFormValue): void {
+    this.homeQuotation.set(null);
+    this.homePackageId.set(data.packageId);
+    this.homeQuoteLoading.set(true);
+    this.homeSvc.calculate({
+      propertyValue:     data.propertyValue,
+      constructionYear:  data.constructionYear,
+      stratum:           data.stratum,
+      occupants:         data.occupants,
+      propertyType:      data.propertyType,
+      selectedCoverages: data.selectedCoverages,
+    }).pipe(
+      takeUntil(this.destroy$),
+      catchError(() => { this.homeQuoteLoading.set(false); return EMPTY; })
+    ).subscribe(result => {
+      this.homeQuotation.set(result);
+      this.homeQuoteLoading.set(false);
+    });
+  }
+
   onVehicleQuoteRequested(data: VehicleDataFormValue): void {
     this.vehicleQuotation.set(null);
     this.selectedVehiclePlan.set(null);
@@ -485,12 +542,14 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
     const isLife    = this.isLifeType();
     const isTravel  = this.isTravelType();
     const isVehicle = this.isVehicleType();
+    const isHome    = this.isHomeType();
     const calc      = this.travelCalculation();
     const vehiclePlan  = this.selectedVehiclePlan();
     const vehicleQuote = this.vehicleQuotation();
+    const homeQuote    = this.homeQuotation();
 
     const startDate = cv.startDate ? this.toDateStr(cv.startDate) : '';
-    const endDate   = (isHealth || isLife || isVehicle) && cv.startDate
+    const endDate   = (isHealth || isLife || isVehicle || isHome) && cv.startDate
       ? this.toDateStr(new Date(cv.startDate.getTime() + 364 * 86_400_000))
       : cv.endDate
         ? this.toDateStr(cv.endDate)
@@ -518,11 +577,13 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
       insuredAmount:  isHealth  ? (this.healthCalculation()?.finalAmount ?? 0)
                     : isLife    ? (this.lifeCalculation()?.deathBenefit ?? 0)
                     : isVehicle ? (vehicleQuote?.commercialValue ?? 0)
+                    : isHome    ? (homeQuote?.propertyValue ?? 0)
                     : isTravel  ? (calc?.totalPriceCop ?? 0)
                     : cv.insuredAmount!,
       monthlyPremium: isHealth  ? (this.healthCalculation()?.monthlyPremium ?? 0)
                     : isLife    ? (this.lifeCalculation()?.monthlyPremium ?? 0)
                     : isVehicle ? (vehiclePlan?.monthlyPremium ?? 0)
+                    : isHome    ? (homeQuote?.finalMonthlyPremium ?? 0)
                     : isTravel  ? (calc?.totalPriceCop ?? 0)
                     : cv.monthlyPremium!,
       ...(isHealth  && this.selectedPlanId()     ? { healthPlanId: this.selectedPlanId()! } : {}),
@@ -532,6 +593,15 @@ export class PolicyCreateComponent implements OnInit, OnDestroy {
         vehicleCommercialValue: vehicleQuote.commercialValue,
         vehicleYear:            vehicleQuote.vehicleYear,
         vehicleBrand:           vehicleQuote.brand,
+      } : {}),
+      ...(isHome && homeQuote ? {
+        homePlanPackageId:     this.homePackageId() ?? undefined,
+        homePropertyValue:     homeQuote.propertyValue,
+        homeConstructionYear:  homeQuote.constructionYear,
+        homeStratum:           homeQuote.stratum,
+        homeOccupants:         homeQuote.occupants,
+        homePropertyType:      homeQuote.propertyType,
+        homeSelectedCoverages: homeQuote.selectedCoverages,
       } : {}),
       ...(isTravel && this.tripType() ? {
         tripType:     this.tripType()!,

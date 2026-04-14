@@ -5,6 +5,7 @@ using InsuraTech.Domain.Policies.HealthPlan;
 using InsuraTech.Domain.Policies.LifePlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
+using InsuraTech.Domain.Policies.HomePlan;
 using InsuraTech.Domain.Policies.VehiclePlan;
 
 namespace InsuraTech.Domain.Policies
@@ -26,6 +27,7 @@ namespace InsuraTech.Domain.Policies
         public TravelPlanSelection? TravelPlan { get; private set; }
         public LifePlanSelection? LifePlan { get; private set; }
         public VehiclePlanSelection? VehiclePlan { get; private set; }
+        public HomePlanSelection?    HomePlan    { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -154,6 +156,46 @@ namespace InsuraTech.Domain.Policies
 
             policy.AddStatusHistory(PolicyStatus.Pending,
                 $"Vehicle policy created with plan '{selection.PlanName}' for {selection.VehicleBrand} {selection.VehicleYear}.");
+            return policy;
+        }
+
+        // Factory — tipo Home (motor de cotización por coberturas seleccionadas, SPEC-012)
+        public static Policy CreateHomePolicy(
+            PolicyNumber                number,
+            InsuredPerson               insured,
+            CoveragePeriod              coverage,
+            string?                     packageId,
+            decimal                     propertyValue,
+            int                         constructionYear,
+            int                         stratum,
+            int                         occupants,
+            HomePropertyType            propertyType,
+            IReadOnlyList<HomeCoverage> selectedCoverages,
+            DateOnly                    today)
+        {
+            var quotation = HomePricingService.Calculate(
+                propertyValue, constructionYear, stratum, occupants,
+                propertyType, selectedCoverages, today.Year);
+
+            var selection = HomePricingService.Select(packageId, quotation);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Home,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.FinalMonthlyPremium,
+                InsuredAmount          = selection.PropertyValue,
+                AvailableInsuredAmount = selection.PropertyValue,
+                HomePlan               = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Home policy created. Package: {selection.PackageName}, " +
+                $"Coverages: {selection.SelectedCoverages.Count}, " +
+                $"Monthly premium: ${selection.FinalMonthlyPremium:N0} COP.");
             return policy;
         }
 

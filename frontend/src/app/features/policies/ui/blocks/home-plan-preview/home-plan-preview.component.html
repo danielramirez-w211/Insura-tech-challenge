@@ -1,0 +1,62 @@
+@if (quotation()) {
+  <div class="preview-card">
+
+    <div class="preview-header">
+      <mat-icon class="header-icon">home</mat-icon>
+      <div>
+        <div class="header-title">Cotización de Hogar</div>
+        <div class="header-subtitle">{{ quotation()!.propertyType }}</div>
+      </div>
+    </div>
+
+    <mat-divider />
+
+    <div class="premium-row">
+      <div class="premium-label">Prima base (1% del predio)</div>
+      <div class="premium-base">{{ quotation()!.baseMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</div>
+    </div>
+
+    @if (quotation()!.appliedMultipliers.length > 0) {
+      <div class="multipliers-section">
+        <div class="section-title">Ajustes aplicados</div>
+        @for (m of quotation()!.appliedMultipliers; track m) {
+          <div class="multiplier-item">
+            <mat-icon class="multiplier-icon">tune</mat-icon>
+            {{ m }}
+          </div>
+        }
+      </div>
+    }
+
+    <div class="premium-final-row">
+      <div class="premium-final-label">Prima mensual final</div>
+      <div class="premium-final">{{ quotation()!.finalMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</div>
+    </div>
+
+    <mat-divider />
+
+    <div class="detail-section">
+      <div class="section-title">Datos del inmueble</div>
+      <div class="detail-grid">
+        <span class="detail-label">Año construcción</span>
+        <span>{{ quotation()!.constructionYear }} ({{ quotation()!.propertyAge }} años)</span>
+        <span class="detail-label">Estrato</span>
+        <span>{{ quotation()!.stratum }}</span>
+        <span class="detail-label">Habitantes</span>
+        <span>{{ quotation()!.occupants }}</span>
+        <span class="detail-label">Valor del predio</span>
+        <span>{{ quotation()!.propertyValue | currency:'COP':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+
+    <div class="coverages-section">
+      <div class="section-title">Coberturas incluidas</div>
+      <div class="coverage-chips">
+        @for (cov of quotation()!.selectedCoverages; track cov) {
+          <span class="coverage-chip">{{ getCoverageLabel(cov) }}</span>
+        }
+      </div>
+    </div>
+
+  </div>
+}
