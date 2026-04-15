@@ -10,7 +10,10 @@ InsuraTech/
 │   └── output/
 │       ├── frontend-architecture.md   # Arquitectura detallada del frontend
 │       ├── api/
+│       │   ├── insurance-plans-technical-guide.md             # Referencia técnica: 5 planes (Salud/Vida/Vehículo/Viaje/Hogar)
 │       │   └── spec-011-insured-form-ux-improvements-api.md  # API: ciudades + campos asegurado
+│       ├── business/
+│       │   └── insurance-plans-business-guide.md             # Guía comercial: coberturas, precios, comparativa
 │       └── adr/                       # Architecture Decision Records
 ├── podman-compose.yml
 └── README.md
