@@ -1,2 +1,41 @@
 :host { display: block; }
-.active-link { background-color: rgba(63,81,181,0.1); }
+
+/* ── Links de navegación ────────────────────────────────────────────────── */
+
+/* Estado activo — naranja marca */
+.active-link {
+  background-color: #FFF3ED !important;
+  border-right: 3px solid #FF6B2C;
+}
+
+.active-link .mat-icon,
+.active-link [matListItemIcon] {
+  color: #FF6B2C !important;
+}
+
+.active-link [matListItemTitle] {
+  color: #FF6B2C !important;
+  font-weight: 600;
+}
+
+/* Estado hover */
+a[mat-list-item]:hover:not(.active-link) {
+  background-color: #F5F5F5 !important;
+}
+
+/* Iconos por defecto */
+a[mat-list-item] .mat-icon {
+  color: #616161;
+  transition: color 0.15s ease;
+}
+
+a[mat-list-item]:hover .mat-icon {
+  color: #111111;
+}
+
+/* Texto de los links */
+a[mat-list-item] [matListItemTitle] {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111111;
+}

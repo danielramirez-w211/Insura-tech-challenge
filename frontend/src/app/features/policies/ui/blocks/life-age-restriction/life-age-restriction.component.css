@@ -1,0 +1,31 @@
+.restriction-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fce4ec;
+  border: 1px solid #e53935;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px 0;
+}
+
+.restriction-icon {
+  color: #c62828;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.restriction-title {
+  font-weight: 600;
+  color: #b71c1c;
+  margin: 0 0 6px;
+}
+
+.restriction-message {
+  font-size: 13px;
+  color: #4a1010;
+  margin: 0;
+  line-height: 1.5;
+}

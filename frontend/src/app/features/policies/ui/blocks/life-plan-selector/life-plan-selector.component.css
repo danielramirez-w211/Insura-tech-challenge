@@ -1,0 +1,83 @@
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.plan-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  position: relative;
+  text-align: center;
+}
+
+.plan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.selected {
+  border-color: #e53935;
+  background: #fff8f8;
+}
+
+.plan-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  color: #e53935;
+}
+
+.plan-icon mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.plan-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.plan-monthly {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e53935;
+  margin: 0 0 2px;
+}
+
+.plan-freq {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
+}
+
+.plan-annual {
+  font-size: 11px;
+  color: #888;
+  margin: 0 0 8px;
+}
+
+.plan-death-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #999;
+  margin: 0 0 2px;
+  letter-spacing: 0.5px;
+}
+
+.plan-death {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #e53935;
+}

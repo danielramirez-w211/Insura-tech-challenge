@@ -6,7 +6,7 @@ import { TravelPlanSelection } from '../../../core/models/travel-plan-selection.
 @Component({
   selector: 'app-travel-details-block',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, MatIconModule],
+  imports: [CurrencyPipe, MatIconModule],
   templateUrl: './travel-details-block.component.html',
   styleUrl: './travel-details-block.component.css',
 })

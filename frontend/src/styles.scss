@@ -1,4 +1,212 @@
-/* You can add global styles to this file, and also import other style files */
+// ============================================================
+// InsuraTech — Global Design System
+// Paleta: Naranja #FF6B2C · Negro #111111 · Blanco #FFFFFF
+// ============================================================
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+// ── Reset y base ─────────────────────────────────────────────
+html, body {
+  height: 100%;
+  margin: 0;
+  // overflow:hidden previene el doble scrollbar:
+  // solo mat-sidenav-content actúa como scroll container.
+  overflow: hidden;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ── Tokens de Color — Material 3 (sobreescriben indigo-pink) ─
+:root {
+  // Primary — naranja marca
+  --mat-sys-primary:                  #FF6B2C;
+  --mat-sys-on-primary:               #FFFFFF;
+  --mat-sys-primary-container:        #FFF3ED;
+  --mat-sys-on-primary-container:     #C94F1A;
+  --mat-sys-primary-fixed:            #FFF3ED;
+  --mat-sys-primary-fixed-dim:        #FF6B2C;
+  --mat-sys-on-primary-fixed:         #C94F1A;
+  --mat-sys-on-primary-fixed-variant: #FF6B2C;
+
+  // Secondary — negro/gris oscuro
+  --mat-sys-secondary:                #111111;
+  --mat-sys-on-secondary:             #FFFFFF;
+  --mat-sys-secondary-container:      #F5F5F5;
+  --mat-sys-on-secondary-container:   #111111;
+
+  // Tertiary — gris medio
+  --mat-sys-tertiary:                 #757575;
+  --mat-sys-on-tertiary:              #FFFFFF;
+  --mat-sys-tertiary-container:       #EEEEEE;
+  --mat-sys-on-tertiary-container:    #424242;
+
+  // Surface & Background
+  --mat-sys-background:               #FAFAFA;
+  --mat-sys-on-background:            #111111;
+  --mat-sys-surface:                  #FFFFFF;
+  --mat-sys-on-surface:               #111111;
+  --mat-sys-surface-variant:          #F5F5F5;
+  --mat-sys-on-surface-variant:       #616161;
+  --mat-sys-surface-container-lowest: #FFFFFF;
+  --mat-sys-surface-container-low:    #F9F9F9;
+  --mat-sys-surface-container:        #F5F5F5;
+  --mat-sys-surface-container-high:   #EEEEEE;
+  --mat-sys-surface-container-highest:#E8E8E8;
+  --mat-sys-inverse-surface:          #111111;
+  --mat-sys-inverse-on-surface:       #FFFFFF;
+  --mat-sys-inverse-primary:          #FFB899;
+
+  // Outline
+  --mat-sys-outline:                  #E0E0E0;
+  --mat-sys-outline-variant:          #EEEEEE;
+
+  // Error
+  --mat-sys-error:                    #D32F2F;
+  --mat-sys-on-error:                 #FFFFFF;
+  --mat-sys-error-container:          #FFEBEE;
+  --mat-sys-on-error-container:       #C62828;
+
+  // Shadow & scrim
+  --mat-sys-shadow:                   rgba(0,0,0,0.15);
+  --mat-sys-scrim:                    rgba(0,0,0,0.32);
+}
+
+// ── Botones — Unified ────────────────────────────────────────
+// Todos los botones comparten border-radius 8px, sin sombra elevada.
+
+// Filled / Raised — Primary (naranja)
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mdc-button.mat-primary {
+  --mdc-protected-button-container-color:  #FF6B2C;
+  --mdc-protected-button-label-text-color: #FFFFFF;
+  --mdc-filled-button-container-color:     #FF6B2C;
+  --mdc-filled-button-label-text-color:    #FFFFFF;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
+  &:hover:not([disabled]) {
+    --mdc-protected-button-container-color: #E55A1E;
+    --mdc-filled-button-container-color:    #E55A1E;
+  }
+}
+
+// Stroked / Outlined — neutral
+.mat-mdc-outlined-button,
+.mat-mdc-stroked-button {
+  --mdc-outlined-button-outline-color: #E0E0E0;
+  --mdc-outlined-button-label-text-color: #111111;
+  border-radius: 8px !important;
+  font-weight: 500;
+
+  &:hover:not([disabled]) {
+    background-color: #F5F5F5 !important;
+  }
+}
+
+// Icon buttons — color neutro
+.mat-mdc-icon-button {
+  color: #111111;
+
+  &.mat-primary { color: #FF6B2C; }
+  &.mat-warn    { color: #D32F2F; }
+}
+
+// FAB
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary {
+  --mdc-fab-container-color: #FF6B2C;
+  --mdc-fab-icon-color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(255,107,44,0.35) !important;
+  border-radius: 16px !important;
+}
+
+// ── Form Fields ──────────────────────────────────────────────
+// Outline color focused → naranja
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: #FF6B2C !important;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: #FF6B2C !important;
+}
+
+// Caret del input → naranja
+.mat-mdc-input-element {
+  caret-color: #FF6B2C !important;
+}
+
+// ── Checkbox & Radio ─────────────────────────────────────────
+.mat-mdc-checkbox.mat-primary .mdc-checkbox__background,
+.mat-mdc-checkbox.mat-primary.mat-mdc-checkbox-checked .mdc-checkbox__background {
+  border-color: #FF6B2C !important;
+  background-color: #FF6B2C !important;
+}
+
+.mat-mdc-radio-button.mat-primary .mdc-radio__outer-circle {
+  border-color: #FF6B2C !important;
+}
+.mat-mdc-radio-button.mat-primary .mdc-radio__inner-circle {
+  background-color: #FF6B2C !important;
+}
+
+// ── Stepper ──────────────────────────────────────────────────
+.mat-step-header.cdk-keyboard-focused,
+.mat-step-header.cdk-program-focused,
+.mat-step-header:hover:not([aria-disabled]),
+.mat-step-header:hover[aria-disabled=false] {
+  background-color: #FFF3ED !important;
+}
+
+// Ícono del step activo → naranja
+.mat-step-header .mat-step-icon-selected,
+.mat-step-header .mat-step-icon-state-edit,
+.mat-step-header .mat-step-icon-state-done {
+  background-color: #FF6B2C !important;
+  color: #FFFFFF !important;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+.mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+  color: #FF6B2C !important;
+}
+.mat-mdc-tab-header .mdc-tab-indicator__content--underline {
+  border-color: #FF6B2C !important;
+}
+
+// ── Select / Option ──────────────────────────────────────────
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background-color: #FFF3ED !important;
+  .mdc-list-item__primary-text { color: #FF6B2C !important; }
+}
+
+// ── Progress bar / Spinner ───────────────────────────────────
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: #FF6B2C;
+}
+.mat-mdc-progress-spinner circle,
+.mat-mdc-spinner circle {
+  stroke: #FF6B2C !important;
+}
+
+// ── Snackbar ─────────────────────────────────────────────────
+.mat-mdc-snack-bar-container .mat-mdc-button {
+  color: #FF6B2C !important;
+}
+
+// ── Slide Toggle ─────────────────────────────────────────────
+.mat-mdc-slide-toggle.mat-primary {
+  --mdc-switch-selected-handle-color:          #FF6B2C;
+  --mdc-switch-selected-track-color:           #FFB899;
+  --mdc-switch-selected-hover-handle-color:    #E55A1E;
+  --mdc-switch-selected-pressed-handle-color:  #C94F1A;
+}
+
+// ── Scrollbar personalizado ──────────────────────────────────
+// Fino (6px), naranja sobre gris claro — solo visible en hover.
+::-webkit-scrollbar               { width: 6px; height: 6px; }
+::-webkit-scrollbar-track         { background: transparent; }
+::-webkit-scrollbar-thumb         { background: #E0E0E0; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover   { background: #FF6B2C; }

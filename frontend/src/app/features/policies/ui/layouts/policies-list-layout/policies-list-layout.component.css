@@ -1,11 +1,85 @@
-mat-table { width: 100%; }
+/* ── Tabla ─────────────────────────────────────────────────────────────── */
+
+:host ::ng-deep mat-table {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #E0E0E0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Cabecera */
+:host ::ng-deep .mat-mdc-header-row {
+  background-color: #111111;
+  min-height: 48px;
+}
+
+:host ::ng-deep .mat-mdc-header-cell {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  border-bottom: none;
+}
+
+/* Filas de datos */
+:host ::ng-deep .mat-mdc-row {
+  min-height: 52px;
+  transition: background-color 0.15s ease;
+}
+
+:host ::ng-deep .mat-mdc-row:nth-child(even) {
+  background-color: #FAFAFA;
+}
+
+:host ::ng-deep .mat-mdc-row:hover {
+  background-color: #FFF3ED;
+}
+
+:host ::ng-deep .mat-mdc-cell {
+  border-bottom-color: #E0E0E0;
+  font-size: 14px;
+  color: #111111;
+}
+
+/* Última fila sin borde inferior */
+:host ::ng-deep .mat-mdc-row:last-child .mat-mdc-cell {
+  border-bottom: none;
+}
+
+/* ── Paginador ─────────────────────────────────────────────────────────── */
+
+:host ::ng-deep mat-paginator {
+  border-top: 1px solid #E0E0E0;
+  background-color: #FFFFFF;
+}
+
+:host ::ng-deep .mat-mdc-paginator-range-label,
+:host ::ng-deep .mat-mdc-paginator-page-size-label {
+  color: #111111;
+  font-size: 13px;
+}
+
+:host ::ng-deep .mat-mdc-icon-button.mat-mdc-paginator-navigation-next,
+:host ::ng-deep .mat-mdc-icon-button.mat-mdc-paginator-navigation-previous,
+:host ::ng-deep .mat-mdc-icon-button.mat-mdc-paginator-navigation-first,
+:host ::ng-deep .mat-mdc-icon-button.mat-mdc-paginator-navigation-last {
+  color: #FF6B2C;
+}
+
+:host ::ng-deep .mat-mdc-icon-button[disabled] {
+  color: #BDBDBD;
+}
+
+/* ── Banner de error ───────────────────────────────────────────────────── */
 
 .error-banner {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #fce4ec;
-  color: #880e4f;
+  background: #FFF3ED;
+  color: #FF6B2C;
+  border: 1px solid #FF6B2C;
   padding: 10px 16px;
   border-radius: 6px;
   margin-bottom: 16px;

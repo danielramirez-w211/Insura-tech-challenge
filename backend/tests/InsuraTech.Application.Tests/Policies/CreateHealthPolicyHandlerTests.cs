@@ -33,7 +33,7 @@ public sealed class CreateHealthPolicyHandlerTests
         {
             IdempotencyKey    = Guid.NewGuid().ToString(),
             Type              = PolicyType.Health,
-            InsuredFullName   = "Maria García",
+            InsuredFirstName = "Maria", InsuredLastName = "García", InsuredDocumentType = "CC",
             InsuredDocumentId = "987654321",
             InsuredBirthDate  = birthDate ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-40),
             CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),
@@ -112,7 +112,7 @@ public sealed class CreateHealthPolicyHandlerTests
         {
             IdempotencyKey    = Guid.NewGuid().ToString(),
             Type              = PolicyType.Life,
-            InsuredFullName   = "Juan Pérez",
+            InsuredFirstName = "Juan", InsuredLastName = "Pérez", InsuredDocumentType = "CC",
             InsuredDocumentId = "111222333",
             InsuredBirthDate  = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-35),
             CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),

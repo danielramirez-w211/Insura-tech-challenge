@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { DashboardService } from '../../services/dashboard.service';
+import { DashboardCoreService } from './dashboard.service';
 import { PagedResult } from '../../../../core/models/api-response.model';
 
 const API_URL = 'http://localhost:5000';
@@ -34,19 +34,19 @@ function flushDashboardRequests(
   return { policiesReq, claimsReq, notificationsReq };
 }
 
-describe('DashboardService', () => {
-  let service: DashboardService;
+describe('DashboardCoreService', () => {
+  let service: DashboardCoreService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        DashboardService,
+        DashboardCoreService,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
     });
-    service = TestBed.inject(DashboardService);
+    service = TestBed.inject(DashboardCoreService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -125,7 +125,7 @@ describe('DashboardService', () => {
     });
 
     it('should emit the combined result from forkJoin with correct totalCounts', (done) => {
-      service.loadMetrics().subscribe((result) => {
+      service.loadMetrics().subscribe((result: any) => {
         expect(result.policies.totalCount).toBe(42);
         expect(result.claims.totalCount).toBe(7);
         expect(result.notifications.totalCount).toBe(3);

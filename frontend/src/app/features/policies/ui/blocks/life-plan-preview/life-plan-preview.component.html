@@ -1,0 +1,70 @@
+@if (calculation()) {
+  <div class="preview-card" data-testid="life-plan-preview">
+    <div class="preview-header">
+      <mat-icon>favorite</mat-icon>
+      <span>Resumen del plan seleccionado</span>
+    </div>
+
+    <mat-divider />
+
+    <div class="preview-grid">
+      <span class="label">Plan</span>
+      <span class="value">{{ calculation()!.planName }}</span>
+
+      <span class="label">Edad del asegurado</span>
+      <span class="value">{{ calculation()!.insuredAge }} años</span>
+
+      <span class="label">Duración</span>
+      <span class="value">{{ calculation()!.durationDays }} días (12 meses)</span>
+    </div>
+
+    <mat-divider />
+
+    <!-- Beneficios -->
+    <p class="benefits-title">Beneficios cubiertos</p>
+    <div class="benefits-grid">
+      <span class="benefit-label">
+        <mat-icon class="benefit-icon">heart_broken</mat-icon> Cobertura por muerte
+      </span>
+      <span class="benefit-amount death">
+        {{ calculation()!.deathBenefit | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+
+      <span class="benefit-label">
+        <mat-icon class="benefit-icon">local_florist</mat-icon> Gastos de entierro
+      </span>
+      <span class="benefit-amount">
+        {{ calculation()!.funeralExpenses | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+
+      <span class="benefit-label">
+        <mat-icon class="benefit-icon">church</mat-icon> Gastos fúnebres
+      </span>
+      <span class="benefit-amount">
+        {{ calculation()!.burialExpenses | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+
+      <span class="benefit-label">
+        <mat-icon class="benefit-icon">group</mat-icon> Remuneración a beneficiarios
+      </span>
+      <span class="benefit-amount">
+        {{ calculation()!.beneficiaryCompensation | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+
+    <mat-divider />
+
+    <div class="final-row">
+      <span class="final-label">Prima mensual (12 meses)</span>
+      <span class="monthly-amount" data-testid="life-monthly-premium">
+        {{ calculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+    <div class="annual-row">
+      <span class="annual-label">Prima anual</span>
+      <span class="annual-amount">
+        {{ calculation()!.annualPremium | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
+  </div>
+}

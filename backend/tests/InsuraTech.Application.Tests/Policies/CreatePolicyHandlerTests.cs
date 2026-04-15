@@ -28,9 +28,16 @@ public sealed class CreatePolicyHandlerTests
         {
             IdempotencyKey = idempotencyKey,
             Type = PolicyType.Life,
-            InsuredFullName = "John Doe",
+            InsuredFirstName = "John",
+            InsuredLastName = "Doe",
+            InsuredDocumentType = "CC",
             InsuredDocumentId = "123456789",
             InsuredBirthDate = new DateOnly(1990, 1, 1),
+            InsuredGender = "Masculino",
+            InsuredAddress = "Calle 123 # 45-67",
+            InsuredCityName = "Bogotá",
+            InsuredPostalCode = "110111",
+            InsuredDepartment = "Cundinamarca",
             CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),
             CoverageEndDate = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1),
             MonthlyPremium = 100m,
@@ -52,7 +59,8 @@ public sealed class CreatePolicyHandlerTests
         // Assert
         result.Should().NotBeNull();
         result.Status.Should().Be("Pending");
-        result.InsuredFullName.Should().Be("John Doe");
+        result.InsuredFirstName.Should().Be("John");
+        result.InsuredLastName.Should().Be("Doe");
         result.PolicyNumber.Should().StartWith("POL-");
     }
 
@@ -82,7 +90,7 @@ public sealed class CreatePolicyHandlerTests
         var existingPolicy = Policy.Create(
             PolicyNumber.Create(2024, 1),
             PolicyType.Life,
-            InsuredPerson.Create("John Doe", "123456789", new DateOnly(1990, 1, 1)),
+            InsuredPerson.Create("John", "Doe", "CC", "123456789", new DateOnly(1990, 1, 1), "Masculino", "Calle 123 # 45-67", "Bogotá", "110111", "Cundinamarca"),
             CoveragePeriod.Create(
                 DateOnly.FromDateTime(DateTime.UtcNow),
                 DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1)),

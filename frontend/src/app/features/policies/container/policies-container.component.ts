@@ -1,9 +1,11 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { PoliciesFacade } from './policies.facade';
 import { PolicyType, PolicyStatus } from '../core/models/policy.model';
 import { PoliciesListLayoutComponent } from '../ui/layouts/policies-list-layout/policies-list-layout.component';
+import { PolicyDeleteConfirmDialogComponent } from '../ui/blocks/policy-delete-confirm-dialog/policy-delete-confirm-dialog.component';
 
 /**
  * Container — único punto de coordinación entre la Facade y los componentes UI.
@@ -19,6 +21,7 @@ import { PoliciesListLayoutComponent } from '../ui/layouts/policies-list-layout/
 export class PoliciesContainerComponent implements OnInit {
   private readonly facade = inject(PoliciesFacade);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
   // ── Señales expuestas al template ──────────────────────────────────────────
@@ -63,6 +66,30 @@ export class PoliciesContainerComponent implements OnInit {
 
   onViewClaims(id: string): void {
     this.router.navigate(['/claims'], { queryParams: { policyId: id } });
+  }
+
+  onDelete(policyId: string): void {
+    const policy = this.facade.policies().find(p => p.id === policyId);
+    const ref = this.dialog.open(PolicyDeleteConfirmDialogComponent, {
+      data: { policyNumber: policy?.policyNumber ?? policyId },
+      width: '420px',
+    });
+    ref.afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) return;
+      this.facade.cancelPolicy(policyId)
+        .then(() => {
+          this.snackBar.open('Póliza cancelada correctamente', 'Cerrar', { duration: 3000 });
+          this.facade.loadPolicies();
+        })
+        .catch(() => {
+          const msg = this.facade.error() ?? 'Error al cancelar la póliza';
+          this.snackBar.open(msg, 'Cerrar', { duration: 4000 });
+        });
+    });
+  }
+
+  onMarkWithClaim(policyId: string): void {
+    this.router.navigate(['/claims'], { queryParams: { policyId } });
   }
 
   onNewPolicy(): void {

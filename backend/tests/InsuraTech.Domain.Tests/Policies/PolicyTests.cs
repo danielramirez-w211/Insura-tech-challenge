@@ -15,9 +15,10 @@ public sealed class PolicyTests
     {
         var number = PolicyNumber.Create(2024, 1);
         var insured = InsuredPerson.Create(
-            "John Doe",
-            "123456789",
-            new DateOnly(1990, 1, 1));
+            "John", "Doe",
+            "CC", "123456789",
+            new DateOnly(1990, 1, 1),
+            "Masculino", "Calle 123 # 45-67", "Bogotá", "110111", "Cundinamarca");
         var coverage = CoveragePeriod.Create(
             DateOnly.FromDateTime(DateTime.UtcNow),
             DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1));

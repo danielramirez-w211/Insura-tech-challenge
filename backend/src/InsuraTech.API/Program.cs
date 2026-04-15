@@ -2,6 +2,7 @@ using InsuraTech.API.Middleware;
 using InsuraTech.Application;
 using InsuraTech.Infrastructure;
 using InsuraTech.Infrastructure.Persistence;
+using InsuraTech.Infrastructure.Persistence.Seeds;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,8 +72,13 @@ app.MapControllers();
 // ─── Ensure MongoDB indexes on startup ────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var ctx = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+    var ctx    = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
     await ctx.EnsureIndexesAsync();
+
+    var client       = scope.ServiceProvider.GetRequiredService<MongoDB.Driver.IMongoClient>();
+    var databaseName = builder.Configuration["MongoDb:DatabaseName"] ?? "InsuraTechDb";
+    var database     = client.GetDatabase(databaseName);
+    await CitiesSeed.SeedAsync(database);
 }
 
 await app.RunAsync();

@@ -25,7 +25,9 @@ public sealed class CalculateHealthPlanHandler
             AgeFactorPercentage = selection.AgeFactorPercentage,
             AgeFactorAmount     = selection.AgeFactorAmount,
             FinalAmount         = selection.FinalAmount,
-            InsuredAge          = age
+            InsuredAge          = age,
+            MonthlyPremium      = QuotationService.CalculateMonthlyPremium(selection.FinalAmount),
+            DurationDays        = QuotationService.FixedDurationDays,
         };
 
         return Task.FromResult(dto);

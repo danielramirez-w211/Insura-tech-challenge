@@ -1,0 +1,12 @@
+<div class="selector-grid">
+  @for (opt of options; track opt.type) {
+    <app-policy-type-card
+      [type]="opt.type"
+      [selected]="selectedType() === opt.type"
+      [imageSrc]="opt.imageSrc"
+      [icon]="opt.icon"
+      [label]="opt.label"
+      [description]="opt.description"
+      (cardClick)="onCardClick($event)" />
+  }
+</div>

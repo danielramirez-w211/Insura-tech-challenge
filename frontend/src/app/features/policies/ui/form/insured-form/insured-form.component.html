@@ -23,26 +23,47 @@
     <mat-form-field appearance="outline">
       <mat-label>Tipo de documento</mat-label>
       <mat-icon matPrefix>badge</mat-icon>
-      <input matInput formControlName="documentType" placeholder="Ej. CC / PP / CE" />
+      <mat-select formControlName="documentType">
+        @for (opt of DOCUMENT_TYPE_OPTIONS; track opt.code) {
+          <mat-option [value]="opt.code">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
       @if (form.get('documentType')?.touched && form.get('documentType')?.hasError('required')) {
         <mat-error>El tipo de documento es obligatorio</mat-error>
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Número de documento</mat-label>
-      <mat-icon matPrefix>badge</mat-icon>
-      <input matInput formControlName="documentId" placeholder="Ej. 123456789" />
-      @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('required')) {
-        <mat-error>El documento es obligatorio</mat-error>
-      }
-    </mat-form-field>
+    @if (['CC', 'TI', 'RC'].includes(form.get('documentType')?.value ?? '')) {
+      <mat-form-field appearance="outline">
+        <mat-label>Número de documento</mat-label>
+        <mat-icon matPrefix>badge</mat-icon>
+        <input matInput formControlName="documentId" appThousandsSeparator placeholder="Ej. 1.127.350.242" />
+        @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('required')) {
+          <mat-error>El documento es obligatorio</mat-error>
+        }
+        @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('invalidFormat')) {
+          <mat-error>Solo se permiten números (máx. 10 dígitos)</mat-error>
+        }
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline">
+        <mat-label>Número de documento</mat-label>
+        <mat-icon matPrefix>badge</mat-icon>
+        <input matInput formControlName="documentId" maxlength="11" placeholder="Ej. AB1234567" />
+        @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('required')) {
+          <mat-error>El documento es obligatorio</mat-error>
+        }
+        @if (form.get('documentId')?.touched && form.get('documentId')?.hasError('invalidFormat')) {
+          <mat-error>Formato inválido (máx. 11 caracteres alfanuméricos)</mat-error>
+        }
+      </mat-form-field>
+    }
 
     <mat-form-field appearance="outline">
       <mat-label>Fecha de nacimiento</mat-label>
       <mat-icon matPrefix>cake</mat-icon>
       <input matInput [matDatepicker]="birthPicker" formControlName="birthDate"
-             placeholder="DD/MM/AAAA" readonly />
+             placeholder="DD/MM/AAAA" />
       <mat-datepicker-toggle matIconSuffix [for]="birthPicker" />
       <mat-datepicker #birthPicker startView="multi-year" />
       @if (form.get('birthDate')?.touched && form.get('birthDate')?.hasError('required')) {
@@ -66,6 +87,40 @@
       <mat-label>Teléfono</mat-label>
       <mat-icon matPrefix>phone</mat-icon>
       <input matInput formControlName="phone" placeholder="Ej. +57 300 000 0000" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Género</mat-label>
+      <mat-icon matPrefix>wc</mat-icon>
+      <mat-select formControlName="gender">
+        <mat-option value="Masculino">Masculino</mat-option>
+        <mat-option value="Femenino">Femenino</mat-option>
+      </mat-select>
+      @if (form.get('gender')?.touched && form.get('gender')?.hasError('required')) {
+        <mat-error>El género es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Ciudad</mat-label>
+      <mat-icon matPrefix>location_city</mat-icon>
+      <mat-select formControlName="city" (selectionChange)="onCitySelected($event.value)">
+        @for (city of cities(); track city.name) {
+          <mat-option [value]="city.name">{{ city.name }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('city')?.touched && form.get('city')?.hasError('required')) {
+        <mat-error>La ciudad es obligatoria</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Dirección</mat-label>
+      <mat-icon matPrefix>home</mat-icon>
+      <input matInput formControlName="address" placeholder="Ej. Calle 123 # 45-67" maxlength="200" />
+      @if (form.get('address')?.touched && form.get('address')?.hasError('required')) {
+        <mat-error>La dirección es obligatoria</mat-error>
+      }
     </mat-form-field>
   </div>
 

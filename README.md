@@ -9,6 +9,11 @@ InsuraTech/
 ├── docs/
 │   └── output/
 │       ├── frontend-architecture.md   # Arquitectura detallada del frontend
+│       ├── api/
+│       │   ├── insurance-plans-technical-guide.md             # Referencia técnica: 5 planes (Salud/Vida/Vehículo/Viaje/Hogar)
+│       │   └── spec-011-insured-form-ux-improvements-api.md  # API: ciudades + campos asegurado
+│       ├── business/
+│       │   └── insurance-plans-business-guide.md             # Guía comercial: coberturas, precios, comparativa
 │       └── adr/                       # Architecture Decision Records
 ├── podman-compose.yml
 └── README.md
@@ -141,6 +146,11 @@ reportgenerator -reports:"**/coverage.cobertura.xml" -targetdir:"coveragereport"
 | PUT | `/api/v1/policies/{id}/cancel` | Cancelar |
 | POST | `/api/v1/policies/{id}/renew` | Renovar |
 
+### Ciudades (SPEC-011)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/v1/cities` | Listar ciudades de Colombia (nombre, código postal, departamento) |
+
 ### Siniestros
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -205,6 +215,19 @@ features/<feature>/
 | Policies | `/policies` | Lista, creación (stepper 3 pasos), detalle y acciones |
 | Claims | `/claims` | Lista con filtros, detalle con timeline y acciones de gestión |
 | Notifications | `/notifications` | Centro de notificaciones con reintento de fallidas |
+
+### Formulario de Póliza — Mejoras (SPEC-011)
+
+| Mejora | Descripción |
+|--------|-------------|
+| Tipo de documento | `mat-select` con 5 opciones: CC, CE, TI, PP, RC |
+| Validación por tipo | CC/TI/RC → solo dígitos, máx 10; CE/PP → alfanumérico, máx 11 |
+| Separador de miles | Directiva `ThousandsSeparatorDirective` — muestra `1.127.350.242`, envía `1127350242` |
+| Datepickers manuales | Ingreso manual habilitado (sin `readonly`) en todos los campos de fecha |
+| Marca de vehículo | `mat-select` con 11 marcas fijas: BMW, BYD, Chevrolet, Ford, Honda, Hyundai, Jeep, Nissan, Renault, Subaru, Toyota |
+| Género | `mat-select` — Masculino / Femenino |
+| Ciudad | `mat-select` cargado desde `GET /api/v1/cities`; resuelve código postal y departamento automáticamente |
+| Dirección | Campo de texto libre, obligatorio, máx 200 caracteres |
 
 ### Levantar el frontend
 

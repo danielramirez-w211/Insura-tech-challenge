@@ -2,8 +2,11 @@
 using InsuraTech.Domain.Events;
 using InsuraTech.Domain.Exceptions;
 using InsuraTech.Domain.Policies.HealthPlan;
+using InsuraTech.Domain.Policies.LifePlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
+using InsuraTech.Domain.Policies.HomePlan;
+using InsuraTech.Domain.Policies.VehiclePlan;
 
 namespace InsuraTech.Domain.Policies
 {
@@ -22,6 +25,9 @@ namespace InsuraTech.Domain.Policies
         public Guid? RenewedFromPolicyId { get; private set; }
         public HealthPlanSelection? HealthPlan { get; private set; }
         public TravelPlanSelection? TravelPlan { get; private set; }
+        public LifePlanSelection? LifePlan { get; private set; }
+        public VehiclePlanSelection? VehiclePlan { get; private set; }
+        public HomePlanSelection?    HomePlan    { get; private set; }
 
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
@@ -29,7 +35,7 @@ namespace InsuraTech.Domain.Policies
 
         private Policy() { }
 
-        // Factory — tipos no-Health (monto manual)
+        // Factory — tipos con monto manual (Life transitorio; Vehicle y Home en futuras specs)
         public static Policy Create(
             PolicyNumber number,
             PolicyType type,
@@ -38,7 +44,10 @@ namespace InsuraTech.Domain.Policies
             decimal monthlyPremium,
             decimal insuredAmount)
         {
-            ValidateFinancials(monthlyPremium, insuredAmount);
+            if (insuredAmount <= 0)
+                throw new ArgumentException("Insured amount must be greater than zero.", nameof(insuredAmount));
+            if (monthlyPremium <= 0)
+                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
 
             var policy = new Policy
             {
@@ -66,7 +75,9 @@ namespace InsuraTech.Domain.Policies
             DateOnly today)
         {
             var selection = HealthPlanPricingService.Calculate(healthPlanId, insured.BirthDate, today);
-            ValidateFinancials(monthlyPremium, selection.FinalAmount);
+
+            if (monthlyPremium <= 0)
+                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
 
             var policy = new Policy
             {
@@ -83,6 +94,108 @@ namespace InsuraTech.Domain.Policies
 
             policy.AddStatusHistory(PolicyStatus.Pending,
                 $"Health policy created with plan '{selection.PlanName}'.");
+            return policy;
+        }
+
+        // Factory — tipo Life (planes de precio fijo, sin factor de edad, SPEC-009)
+        public static Policy CreateLifePolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            string lifePlanId,
+            DateOnly today)
+        {
+            var selection = LifePlanPricingService.Calculate(lifePlanId, insured.BirthDate, today);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Life,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.MonthlyPremium,
+                InsuredAmount          = selection.DeathBenefit,
+                AvailableInsuredAmount = selection.DeathBenefit,
+                LifePlan               = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Life policy created with plan '{selection.PlanName}'.");
+            return policy;
+        }
+
+        // Factory — tipo Vehicle (motor de cotización por tasa técnica, SPEC-010)
+        public static Policy CreateVehiclePolicy(
+            PolicyNumber number,
+            InsuredPerson insured,
+            CoveragePeriod coverage,
+            string vehiclePlanId,
+            decimal commercialValue,
+            int vehicleYear,
+            string vehicleBrand,
+            DateOnly today)
+        {
+            var quotation = VehiclePricingService.Calculate(
+                commercialValue, vehicleYear, vehicleBrand, today.Year);
+
+            var selection = VehiclePricingService.Select(vehiclePlanId, quotation);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Vehicle,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.FinalMonthlyPremium,
+                InsuredAmount          = selection.CommercialValue,
+                AvailableInsuredAmount = selection.CommercialValue,
+                VehiclePlan            = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Vehicle policy created with plan '{selection.PlanName}' for {selection.VehicleBrand} {selection.VehicleYear}.");
+            return policy;
+        }
+
+        // Factory — tipo Home (motor de cotización por coberturas seleccionadas, SPEC-012)
+        public static Policy CreateHomePolicy(
+            PolicyNumber                number,
+            InsuredPerson               insured,
+            CoveragePeriod              coverage,
+            string?                     packageId,
+            decimal                     propertyValue,
+            int                         constructionYear,
+            int                         stratum,
+            int                         occupants,
+            HomePropertyType            propertyType,
+            IReadOnlyList<HomeCoverage> selectedCoverages,
+            DateOnly                    today)
+        {
+            var quotation = HomePricingService.Calculate(
+                propertyValue, constructionYear, stratum, occupants,
+                propertyType, selectedCoverages, today.Year);
+
+            var selection = HomePricingService.Select(packageId, quotation);
+
+            var policy = new Policy
+            {
+                Number                 = number,
+                Type                   = PolicyType.Home,
+                Insured                = insured,
+                Coverage               = coverage,
+                MonthlyPremium         = selection.FinalMonthlyPremium,
+                InsuredAmount          = selection.PropertyValue,
+                AvailableInsuredAmount = selection.PropertyValue,
+                HomePlan               = selection,
+                Status                 = PolicyStatus.Pending
+            };
+
+            policy.AddStatusHistory(PolicyStatus.Pending,
+                $"Home policy created. Package: {selection.PackageName}, " +
+                $"Coverages: {selection.SelectedCoverages.Count}, " +
+                $"Monthly premium: ${selection.FinalMonthlyPremium:N0} COP.");
             return policy;
         }
 
@@ -218,20 +331,7 @@ namespace InsuraTech.Domain.Policies
             Status == PolicyStatus.Active && Coverage.IsActive(date);
 
 
-        private static void ValidateFinancials(decimal monthlyPremium, decimal insuredAmount)
-        {
-            if (insuredAmount <= 0)
-                throw new ArgumentException("Insured amount must be greater than zero.", nameof(insuredAmount));
 
-            if (monthlyPremium <= 0)
-                throw new ArgumentException("Monthly premium must be greater than zero.", nameof(monthlyPremium));
-
-            var maxPremium = insuredAmount * 0.05m;
-            if (monthlyPremium > maxPremium)
-                throw new ArgumentException(
-                    $"Monthly premium cannot exceed 5% of insured amount (max: ${maxPremium:F2}).",
-                    nameof(monthlyPremium));
-        }
 
         private void AddStatusHistory(PolicyStatus status, string notes) =>
                 _statusHistory.Add(PolicyStatusHistory.Create(Id, status, notes));

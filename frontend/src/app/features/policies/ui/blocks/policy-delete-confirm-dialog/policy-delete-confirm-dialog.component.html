@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Cancelar póliza</h2>
+
+<mat-dialog-content>
+  <p>¿Confirmas la cancelación de la póliza <strong>{{ data.policyNumber }}</strong>?</p>
+  <p class="warning-text">Esta acción cambiará el estado de la póliza a <strong>Cancelada</strong> y no podrá revertirse.</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]="false">Cancelar</button>
+  <button mat-flat-button class="btn-confirm" [mat-dialog-close]="true">Confirmar</button>
+</mat-dialog-actions>

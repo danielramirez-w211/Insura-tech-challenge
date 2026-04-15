@@ -34,5 +34,12 @@
         {{ calculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}
       </span>
     </div>
+
+    <div class="final-row monthly-row">
+      <span class="final-label">Prima mensual (12 meses)</span>
+      <span class="monthly-amount" data-testid="monthly-premium">
+        {{ calculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}
+      </span>
+    </div>
   </div>
 }

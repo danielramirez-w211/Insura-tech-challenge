@@ -6,12 +6,31 @@
 
 <mat-stepper [linear]="true" #stepper class="stepper">
 
+  <!-- ── Paso 0: Tipo de Póliza ─────────────────────────────────────── -->
+  <mat-step label="Tipo de Póliza" [completed]="selectedType() !== null">
+    <p class="step-hint">Selecciona el tipo de seguro que deseas contratar.</p>
+
+    <app-policy-type-selector
+      [selectedType]="selectedType()"
+      (typeSelected)="onTypeCardSelected($event)" />
+
+    @if (!selectedType()) {
+      <p class="selection-hint">Selecciona un tipo de póliza para continuar</p>
+    }
+
+    <div class="step-actions step-actions--single">
+      <button mat-raised-button color="primary" matStepperNext [disabled]="!selectedType()" class="btn-continue">
+        Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </mat-step>
+
   <!-- ── Paso 1: Asegurado ──────────────────────────────────────────── -->
   <mat-step [stepControl]="insuredForm" label="Asegurado">
     <form [formGroup]="insuredForm">
       <p class="step-hint">Ingresa los datos personales del titular de la póliza.</p>
 
-      <div class="form-grid">
+      <div class="form-vertical">
         <mat-form-field appearance="outline">
           <mat-label>Primer Nombre</mat-label>
           <mat-icon matPrefix>person</mat-icon>
@@ -33,30 +52,85 @@
         <mat-form-field appearance="outline">
           <mat-label>Tipo de documento</mat-label>
           <mat-icon matPrefix>badge</mat-icon>
-          <input matInput formControlName="docuemntType" placeholder="Ej. CC / PP / CE" />
-          @if (insuredForm.get('docuemntType')?.touched && insuredForm.get('docuemntType')?.hasError('required')) {
+          <mat-select formControlName="documentType">
+            @for (opt of DOCUMENT_TYPE_OPTIONS; track opt.code) {
+              <mat-option [value]="opt.code">{{ opt.label }}</mat-option>
+            }
+          </mat-select>
+          @if (insuredForm.get('documentType')?.touched && insuredForm.get('documentType')?.hasError('required')) {
             <mat-error>El tipo de documento es obligatorio</mat-error>
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Número de documento</mat-label>
-          <mat-icon matPrefix>badge</mat-icon>
-          <input matInput formControlName="documentId" placeholder="Ej. 123456789" />
-          @if (insuredForm.get('documentId')?.touched && insuredForm.get('documentId')?.hasError('required')) {
-            <mat-error>El documento es obligatorio</mat-error>
-          }
-        </mat-form-field>
+        @if (['CC', 'TI', 'RC'].includes(insuredForm.get('documentType')?.value ?? '')) {
+          <mat-form-field appearance="outline">
+            <mat-label>Número de documento</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="documentId" appThousandsSeparator placeholder="Ej. 1.127.350.242" />
+            @if (insuredForm.get('documentId')?.touched && insuredForm.get('documentId')?.hasError('required')) {
+              <mat-error>El documento es obligatorio</mat-error>
+            }
+            @if (insuredForm.get('documentId')?.touched && insuredForm.get('documentId')?.hasError('invalidFormat')) {
+              <mat-error>Solo se permiten números (máx. 10 dígitos)</mat-error>
+            }
+          </mat-form-field>
+        } @else {
+          <mat-form-field appearance="outline">
+            <mat-label>Número de documento</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input matInput formControlName="documentId" maxlength="11" placeholder="Ej. AB1234567" />
+            @if (insuredForm.get('documentId')?.touched && insuredForm.get('documentId')?.hasError('required')) {
+              <mat-error>El documento es obligatorio</mat-error>
+            }
+            @if (insuredForm.get('documentId')?.touched && insuredForm.get('documentId')?.hasError('invalidFormat')) {
+              <mat-error>Formato inválido (máx. 11 caracteres alfanuméricos)</mat-error>
+            }
+          </mat-form-field>
+        }
 
         <mat-form-field appearance="outline">
           <mat-label>Fecha de nacimiento</mat-label>
           <mat-icon matPrefix>cake</mat-icon>
           <input matInput [matDatepicker]="birthPicker" formControlName="birthDate"
-                 placeholder="DD/MM/AAAA" readonly />
+                 placeholder="DD/MM/AAAA" />
           <mat-datepicker-toggle matIconSuffix [for]="birthPicker" />
           <mat-datepicker #birthPicker startView="multi-year" />
           @if (insuredForm.get('birthDate')?.touched && insuredForm.get('birthDate')?.hasError('required')) {
             <mat-error>La fecha de nacimiento es obligatoria</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Género</mat-label>
+          <mat-icon matPrefix>wc</mat-icon>
+          <mat-select formControlName="gender">
+            <mat-option value="Masculino">Masculino</mat-option>
+            <mat-option value="Femenino">Femenino</mat-option>
+          </mat-select>
+          @if (insuredForm.get('gender')?.touched && insuredForm.get('gender')?.hasError('required')) {
+            <mat-error>El género es obligatorio</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Ciudad</mat-label>
+          <mat-icon matPrefix>location_city</mat-icon>
+          <mat-select formControlName="city" (selectionChange)="onInsuredCitySelected($event.value)">
+            @for (city of cities(); track city.name) {
+              <mat-option [value]="city.name">{{ city.name }}</mat-option>
+            }
+          </mat-select>
+          @if (insuredForm.get('city')?.touched && insuredForm.get('city')?.hasError('required')) {
+            <mat-error>La ciudad es obligatoria</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Dirección</mat-label>
+          <mat-icon matPrefix>home</mat-icon>
+          <input matInput formControlName="address" placeholder="Ej. Calle 123 # 45-67" maxlength="200" />
+          @if (insuredForm.get('address')?.touched && insuredForm.get('address')?.hasError('required')) {
+            <mat-error>La dirección es obligatoria</mat-error>
           }
         </mat-form-field>
 
@@ -80,6 +154,9 @@
       </div>
 
       <div class="step-actions">
+        <button mat-stroked-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon> Anterior
+        </button>
         <button mat-raised-button color="primary" matStepperNext [disabled]="insuredForm.invalid">
           Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
         </button>
@@ -87,149 +164,61 @@
     </form>
   </mat-step>
 
-  <!-- ── Paso 2: Cobertura ─────────────────────────────────────────── -->
-  <mat-step [stepControl]="coverageForm" label="Cobertura">
-    <form [formGroup]="coverageForm">
-      <p class="step-hint">Define el tipo, periodo y montos de cobertura.</p>
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- ── Pasos 2 y 3: Vehículo (solo si type === 'Vehicle') ─────────── -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
 
-      <div class="form-grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Tipo de póliza</mat-label>
-          <mat-icon matPrefix>category</mat-icon>
-          <mat-select formControlName="type" (valueChange)="onTypeChange($event)">
-            @for (t of typeOptions; track t) {
-              <mat-option [value]="t">{{ t | statusLabel }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+  @if (isVehicleType()) {
 
-        <!-- ── Health: bloqueo por edad ≥ 74 ────────────────────────── -->
-        @if (isHealthType() && ageRestricted()) {
-          <div class="full-width">
-            <app-age-restriction />
+    <!-- ── Paso 2-V: Datos del Vehículo ────────────────────────────── -->
+    <mat-step label="Datos del Vehículo"
+              [completed]="vehicleQuotation() !== null && !!coverageForm.get('startDate')?.value && coverageForm.get('startDate')?.valid === true">
+      <p class="step-hint">Ingresa los datos del vehículo para calcular la cotización.</p>
+
+      <div class="form-vertical">
+        <!-- Formulario de datos del vehículo -->
+        <app-vehicle-data-form
+          [loading]="vehicleQuoteLoading()"
+          (quoteRequested)="onVehicleQuoteRequested($event)" />
+
+        <!-- Resultado de la cotización base -->
+        @if (vehicleQuotation()) {
+          <div class="quotation-info">
+            <mat-icon class="quotation-icon">info</mat-icon>
+            <span>
+              Vehículo clasificado como <strong>{{ vehicleQuotation()!.ageCategory }}</strong>
+              · Tasa técnica: <strong>{{ (vehicleQuotation()!.technicalRate * 100) | number:'1.1-1' }}%</strong>
+              @if (vehicleQuotation()!.hasBrandSurcharge) {
+                · <span class="surcharge-badge">+10% recargo por marca</span>
+              }
+            </span>
           </div>
         }
 
-        <!-- ── Health: selector de planes ────────────────────────────── -->
-        @if (isHealthType() && !ageRestricted()) {
-          <div class="full-width">
-            <p class="field-label">Selecciona un plan de salud</p>
-            @if (loadingPlans()) {
-              <p class="loading-text">Cargando planes...</p>
-            } @else {
-              <app-health-plan-selector
-                [plans]="healthPlans()"
-                [selectedPlanId]="selectedPlanId()"
-                (planSelected)="onPlanSelected($event)" />
-            }
-            @if (healthCalculation()) {
-              <app-health-plan-preview [calculation]="healthCalculation()" />
-            }
-          </div>
-        }
-
-        <!-- ── Travel: tipo de viaje ──────────────────────────────────── -->
-        @if (isTravelType()) {
-          <mat-form-field appearance="outline" data-testid="trip-type-select">
-            <mat-label>Tipo de viaje</mat-label>
-            <mat-icon matPrefix>flight</mat-icon>
-            <mat-select [value]="tripType()" (valueChange)="onTripTypeChange($event)">
-              <mat-option value="Nacional">Nacional</mat-option>
-              <mat-option value="Internacional">Internacional</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <!-- Continente — solo Internacional -->
-          @if (tripType() === 'Internacional') {
-            <mat-form-field appearance="outline" data-testid="continent-select">
-              <mat-label>Continente de destino</mat-label>
-              <mat-icon matPrefix>public</mat-icon>
-              <mat-select [value]="continent()" (valueChange)="onContinentChange($event)">
-                <mat-option value="America">América</mat-option>
-                <mat-option value="Europe">Europa</mat-option>
-                <mat-option value="Africa">África</mat-option>
-                <mat-option value="Asia">Asia</mat-option>
-                <mat-option value="Oceania">Oceanía</mat-option>
-              </mat-select>
-            </mat-form-field>
-          }
-
+        <!-- Fecha de inicio de cobertura -->
+        <form [formGroup]="coverageForm">
           <mat-form-field appearance="outline">
-            <mat-label>Días de cobertura</mat-label>
-            <mat-icon matPrefix>date_range</mat-icon>
-            <input matInput readonly data-testid="duration-days-input"
-                   [value]="durationDays() !== null ? durationDays() : '—'" />
-            <mat-hint>Calculado automáticamente según las fechas seleccionadas</mat-hint>
-          </mat-form-field>
-
-          <!-- Banner: duración excedida -->
-          @if (durationExceeded()) {
-            <div class="full-width">
-              <app-travel-duration-restriction />
-            </div>
-          }
-
-          <!-- Preview del cálculo -->
-          @if (travelCalculation() && !durationExceeded()) {
-            <div class="full-width">
-              <app-travel-plan-preview [calculation]="travelCalculation()" />
-            </div>
-          }
-        }
-
-        <!-- ── Monto manual — solo para tipos no-Health y no-Travel ─── -->
-        @if (!isHealthType() && !isTravelType()) {
-          <mat-form-field appearance="outline">
-            <mat-label>Monto asegurado (COP)</mat-label>
-            <mat-icon matPrefix>attach_money</mat-icon>
-            <input matInput formControlName="insuredAmount" type="number" min="1" placeholder="Ej. 50000" />
-            @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('required')) {
-              <mat-error>El monto es obligatorio</mat-error>
+            <mat-label>Inicio de cobertura</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <input matInput [matDatepicker]="vehicleStartPicker" formControlName="startDate"
+                   placeholder="DD/MM/AAAA" />
+            <mat-datepicker-toggle matIconSuffix [for]="vehicleStartPicker" />
+            <mat-datepicker #vehicleStartPicker />
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
+              <mat-error>La fecha de inicio es obligatoria</mat-error>
             }
-            @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('min')) {
-              <mat-error>El monto debe ser mayor a 0</mat-error>
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('pastDate')) {
+              <mat-error>La fecha de inicio no puede ser anterior a hoy</mat-error>
             }
           </mat-form-field>
+        </form>
+
+        @if (coverageForm.get('startDate')?.value) {
+          <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
+            <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
+            La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
+          </p>
         }
-
-        <!-- ── Prima mensual — solo para tipos no-Travel ─────────────── -->
-        @if (!isTravelType()) {
-          <mat-form-field appearance="outline">
-            <mat-label>Prima mensual (COP)</mat-label>
-            <mat-icon matPrefix>payments</mat-icon>
-            <input matInput formControlName="monthlyPremium" type="number" min="1" placeholder="Ej. 150" />
-            @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('required')) {
-              <mat-error>La prima mensual es obligatoria</mat-error>
-            }
-            @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('min')) {
-              <mat-error>La prima debe ser mayor a 0</mat-error>
-            }
-          </mat-form-field>
-        }
-
-        <mat-form-field appearance="outline">
-          <mat-label>Inicio de cobertura</mat-label>
-          <mat-icon matPrefix>event</mat-icon>
-          <input matInput [matDatepicker]="startPicker" formControlName="startDate"
-                 placeholder="DD/MM/AAAA" readonly />
-          <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
-          <mat-datepicker #startPicker />
-          @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
-            <mat-error>La fecha de inicio es obligatoria</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Fin de cobertura</mat-label>
-          <mat-icon matPrefix>event_busy</mat-icon>
-          <input matInput [matDatepicker]="endPicker" formControlName="endDate"
-                 placeholder="DD/MM/AAAA" readonly />
-          <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
-          <mat-datepicker #endPicker />
-          @if (coverageForm.get('endDate')?.touched && coverageForm.get('endDate')?.hasError('required')) {
-            <mat-error>La fecha de fin es obligatoria</mat-error>
-          }
-        </mat-form-field>
       </div>
 
       <div class="step-actions">
@@ -237,17 +226,307 @@
           <mat-icon>arrow_back</mat-icon> Anterior
         </button>
         <button mat-raised-button color="primary" matStepperNext
-                [disabled]="coverageForm.invalid
-                  || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted()))
-                  || (isTravelType() && (!tripType() || !durationDays() || durationExceeded() || !travelCalculation()))
-                  || (isTravelType() && tripType() === 'Internacional' && !continent())">
+                [disabled]="vehicleQuotation() === null
+                          || !coverageForm.get('startDate')?.value
+                          || coverageForm.get('startDate')?.invalid">
           Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
         </button>
       </div>
-    </form>
-  </mat-step>
+    </mat-step>
 
-  <!-- ── Paso 3: Confirmación ──────────────────────────────────────── -->
+    <!-- ── Paso 3-V: Selección de Plan ──────────────────────────────── -->
+    <mat-step label="Plan de Cobertura" [completed]="selectedVehiclePlan() !== null">
+      <p class="step-hint">Selecciona el plan de cobertura para el vehículo.</p>
+
+      @if (vehicleQuotation()) {
+        <app-vehicle-plan-selector
+          [plans]="vehicleQuotation()!.plans"
+          [selectedPlanId]="selectedVehiclePlan()?.planId ?? null"
+          (planSelected)="onVehiclePlanSelected($event)" />
+      }
+
+      @if (!selectedVehiclePlan()) {
+        <p class="selection-hint">Debe seleccionar un plan de cobertura para continuar.</p>
+      }
+
+      @if (selectedVehiclePlan()) {
+        <app-vehicle-plan-preview
+          [quotation]="vehicleQuotation()"
+          [selectedPlan]="selectedVehiclePlan()" />
+      }
+
+      <div class="step-actions">
+        <button mat-stroked-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon> Anterior
+        </button>
+        <button mat-raised-button color="primary" matStepperNext
+                [disabled]="selectedVehiclePlan() === null">
+          Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- ── Paso 2-H: Hogar (solo si type === 'Home') ──────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+
+  @if (isHomeType()) {
+
+    <mat-step label="Datos del Inmueble"
+              [completed]="homeQuotation() !== null && !!coverageForm.get('startDate')?.value && coverageForm.get('startDate')?.valid === true">
+      <p class="step-hint">Ingresa los datos del inmueble para calcular la cotización.</p>
+
+      <div class="form-vertical">
+        <app-home-data-form
+          [loading]="homeQuoteLoading()"
+          [packages]="homePackages()"
+          (quoteRequested)="onHomeQuoteRequested($event)" />
+
+        @if (homeQuotation()) {
+          <app-home-plan-preview [quotation]="homeQuotation()" />
+        }
+
+        <form [formGroup]="coverageForm">
+          <mat-form-field appearance="outline">
+            <mat-label>Inicio de cobertura</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <input matInput [matDatepicker]="homeStartPicker" formControlName="startDate"
+                   placeholder="DD/MM/AAAA" />
+            <mat-datepicker-toggle matIconSuffix [for]="homeStartPicker" />
+            <mat-datepicker #homeStartPicker />
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
+              <mat-error>La fecha de inicio es obligatoria</mat-error>
+            }
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('pastDate')) {
+              <mat-error>La fecha de inicio no puede ser anterior a hoy</mat-error>
+            }
+          </mat-form-field>
+          @if (coverageForm.get('startDate')?.value) {
+            <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
+              <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
+              La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
+            </p>
+          }
+        </form>
+      </div>
+
+      <div class="step-actions">
+        <button mat-stroked-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon> Anterior
+        </button>
+        <button mat-raised-button color="primary" matStepperNext
+                [disabled]="homeQuotation() === null
+                          || !coverageForm.get('startDate')?.value
+                          || coverageForm.get('startDate')?.invalid">
+          Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- ── Paso 2: Cobertura (tipos no-Vehicle, no-Home) ─────────────── -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+
+  @if (!isVehicleType() && !isHomeType()) {
+    <mat-step [stepControl]="coverageForm" label="Cobertura">
+      <form [formGroup]="coverageForm">
+        <p class="step-hint">Define el periodo y montos de cobertura.</p>
+
+        <div class="form-vertical">
+          <!-- Badge de tipo seleccionado — solo lectura -->
+          <div class="selected-type-badge-wrapper">
+            <span class="selected-type-badge">
+              <mat-icon class="badge-icon">category</mat-icon>
+              {{ selectedType() ?? '' | statusLabel }}
+            </span>
+          </div>
+
+          <!-- ── Health: bloqueo por edad ≥ 74 ────────────────────────── -->
+          @if (isHealthType() && ageRestricted()) {
+            <div>
+              <app-age-restriction />
+            </div>
+          }
+
+          <!-- ── Health: selector de planes ────────────────────────────── -->
+          @if (isHealthType() && !ageRestricted()) {
+            <div>
+              <p class="field-label">Selecciona un plan de salud</p>
+              @if (loadingPlans()) {
+                <p class="loading-text">Cargando planes...</p>
+              } @else {
+                <app-health-plan-selector
+                  [plans]="healthPlans()"
+                  [selectedPlanId]="selectedPlanId()"
+                  (planSelected)="onPlanSelected($event)" />
+              }
+              @if (healthCalculation()) {
+                <app-health-plan-preview [calculation]="healthCalculation()" />
+              }
+            </div>
+          }
+
+          <!-- ── Life: bloqueo por edad > 65 ──────────────────────────── -->
+          @if (isLifeType() && ageRestrictedLife()) {
+            <div>
+              <app-life-age-restriction />
+            </div>
+          }
+
+          <!-- ── Life: selector de planes ──────────────────────────────── -->
+          @if (isLifeType() && !ageRestrictedLife()) {
+            <div>
+              <p class="field-label">Selecciona un plan de vida</p>
+              @if (loadingLifePlans()) {
+                <p class="loading-text">Cargando planes...</p>
+              } @else {
+                <app-life-plan-selector
+                  [plans]="lifePlans()"
+                  [selectedPlanId]="selectedLifePlanId()"
+                  (planSelected)="onLifePlanSelected($event)" />
+              }
+              @if (lifeCalculation()) {
+                <app-life-plan-preview [calculation]="lifeCalculation()" />
+              }
+            </div>
+          }
+
+          <!-- ── Travel: tipo de viaje ──────────────────────────────────── -->
+          @if (isTravelType()) {
+            <mat-form-field appearance="outline" data-testid="trip-type-select">
+              <mat-label>Tipo de viaje</mat-label>
+              <mat-icon matPrefix>flight</mat-icon>
+              <mat-select [value]="tripType()" (valueChange)="onTripTypeChange($event)">
+                <mat-option value="Nacional">Nacional</mat-option>
+                <mat-option value="Internacional">Internacional</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <!-- Selector visual de destino -->
+            @if (tripType()) {
+              <div>
+                <p class="field-label">Destino</p>
+                <app-continent-selector
+                  [tripType]="tripType()!"
+                  [selectedContinent]="continent()"
+                  (continentSelected)="onContinentSelected($event)" />
+              </div>
+            }
+
+            <mat-form-field appearance="outline">
+              <mat-label>Días de cobertura</mat-label>
+              <mat-icon matPrefix>date_range</mat-icon>
+              <input matInput readonly data-testid="duration-days-input"
+                     [value]="durationDays() !== null ? durationDays() : '—'" />
+              <mat-hint>Calculado automáticamente según las fechas seleccionadas</mat-hint>
+            </mat-form-field>
+
+            <!-- Banner: duración excedida -->
+            @if (durationExceeded()) {
+              <div>
+                <app-travel-duration-restriction />
+              </div>
+            }
+
+            <!-- Preview del cálculo -->
+            @if (travelCalculation() && !durationExceeded()) {
+              <div>
+                <app-travel-plan-preview [calculation]="travelCalculation()" />
+              </div>
+            }
+          }
+
+          <!-- ── Monto manual — solo para tipos no-Health, no-Life y no-Travel ─── -->
+          @if (!isHealthType() && !isLifeType() && !isTravelType()) {
+            <mat-form-field appearance="outline">
+              <mat-label>Monto asegurado (COP)</mat-label>
+              <mat-icon matPrefix>attach_money</mat-icon>
+              <input matInput formControlName="insuredAmount" type="number" min="1" placeholder="Ej. 50000" />
+              @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('required')) {
+                <mat-error>El monto es obligatorio</mat-error>
+              }
+              @if (coverageForm.get('insuredAmount')?.touched && coverageForm.get('insuredAmount')?.hasError('min')) {
+                <mat-error>El monto debe ser mayor a 0</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          <!-- ── Prima mensual — solo para tipos no-Travel, no-Health y no-Life ─── -->
+          @if (!isTravelType() && !isHealthType() && !isLifeType()) {
+            <mat-form-field appearance="outline">
+              <mat-label>Prima mensual (COP)</mat-label>
+              <mat-icon matPrefix>payments</mat-icon>
+              <input matInput formControlName="monthlyPremium" type="number" min="1" placeholder="Ej. 150" />
+              @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('required')) {
+                <mat-error>La prima mensual es obligatoria</mat-error>
+              }
+              @if (coverageForm.get('monthlyPremium')?.touched && coverageForm.get('monthlyPremium')?.hasError('min')) {
+                <mat-error>La prima debe ser mayor a 0</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          <mat-form-field appearance="outline">
+            <mat-label>Inicio de cobertura</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <input matInput [matDatepicker]="startPicker" formControlName="startDate"
+                   placeholder="DD/MM/AAAA" />
+            <mat-datepicker-toggle matIconSuffix [for]="startPicker" />
+            <mat-datepicker #startPicker />
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
+              <mat-error>La fecha de inicio es obligatoria</mat-error>
+            }
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('pastDate')) {
+              <mat-error>La fecha de inicio no puede ser anterior a hoy</mat-error>
+            }
+          </mat-form-field>
+
+          <!-- ── Fin de cobertura — oculto para Health y Life (se calcula: inicio + 365 días) -->
+          @if (!isHealthType() && !isLifeType()) {
+            <mat-form-field appearance="outline">
+              <mat-label>Fin de cobertura</mat-label>
+              <mat-icon matPrefix>event_busy</mat-icon>
+              <input matInput [matDatepicker]="endPicker" formControlName="endDate"
+                     placeholder="DD/MM/AAAA" />
+              <mat-datepicker-toggle matIconSuffix [for]="endPicker" />
+              <mat-datepicker #endPicker />
+              @if (coverageForm.get('endDate')?.touched && coverageForm.get('endDate')?.hasError('required')) {
+                <mat-error>La fecha de fin es obligatoria</mat-error>
+              }
+            </mat-form-field>
+          }
+
+          <!-- ── Info periodo fijo para Health y Life ──────────────────── -->
+          @if ((isHealthType() || isLifeType()) && coverageForm.get('startDate')?.value) {
+            <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
+              <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
+              La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
+            </p>
+          }
+        </div>
+
+        <div class="step-actions">
+          <button mat-stroked-button matStepperPrevious>
+            <mat-icon>arrow_back</mat-icon> Anterior
+          </button>
+          <button mat-raised-button color="primary" matStepperNext
+                  [disabled]="coverageForm.invalid
+                    || (isHealthType() && (!selectedPlanId() || !healthCalculation() || ageRestricted() || !coverageForm.get('startDate')?.value))
+                    || (isLifeType() && (!selectedLifePlanId() || !lifeCalculation() || ageRestrictedLife() || !coverageForm.get('startDate')?.value))
+                    || (isTravelType() && (!tripType() || !durationDays() || durationExceeded() || !travelCalculation()))
+                    || (isTravelType() && tripType() === 'Internacional' && !continent())">
+            Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </form>
+    </mat-step>
+  }
+
+  <!-- ── Paso final: Confirmación ──────────────────────────────────── -->
   <mat-step label="Confirmación">
     <p class="step-hint">Revisa el resumen antes de crear la póliza.</p>
 
@@ -260,11 +539,17 @@
         <span class="label">Apellido</span>
         <span>{{ insuredForm.value.lastName }}</span>
         <span class="label">Tipo de documento</span>
-        <span>{{ insuredForm.value.docuemntType }}</span>
+        <span>{{ insuredForm.value.documentType }}</span>
         <span class="label">Documento</span>
         <span>{{ insuredForm.value.documentId }}</span>
         <span class="label">Nacimiento</span>
         <span>{{ insuredForm.value.birthDate | date:'dd/MM/yyyy' }}</span>
+        <span class="label">Género</span>
+        <span>{{ insuredForm.value.gender }}</span>
+        <span class="label">Ciudad</span>
+        <span>{{ insuredForm.value.city }}</span>
+        <span class="label">Dirección</span>
+        <span>{{ insuredForm.value.address }}</span>
         <span class="label">Email</span>
         <span>{{ insuredForm.value.email }}</span>
         @if (insuredForm.value.phone) {
@@ -284,8 +569,63 @@
           <span>{{ healthCalculation()!.planName }}</span>
           <span class="label">Monto asegurado</span>
           <span>{{ healthCalculation()!.finalAmount | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual</span>
+          <span>{{ healthCalculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
           <span class="label">Factor edad</span>
           <span>{{ healthCalculation()!.ageFactorPercentage }}%</span>
+        } @else if (isLifeType() && lifeCalculation()) {
+          <span class="label">Plan de vida</span>
+          <span>{{ lifeCalculation()!.planName }}</span>
+          <span class="label">Cobertura por muerte</span>
+          <span>{{ lifeCalculation()!.deathBenefit | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Gastos de entierro</span>
+          <span>{{ lifeCalculation()!.funeralExpenses | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Gastos fúnebres</span>
+          <span>{{ lifeCalculation()!.burialExpenses | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Remuneración beneficiarios</span>
+          <span>{{ lifeCalculation()!.beneficiaryCompensation | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual</span>
+          <span>{{ lifeCalculation()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima anual</span>
+          <span>{{ lifeCalculation()!.annualPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+        } @else if (isVehicleType() && vehicleQuotation() && selectedVehiclePlan()) {
+          <span class="label">Plan vehicular</span>
+          <span>{{ selectedVehiclePlan()!.planName }}</span>
+          <span class="label">Marca / Año</span>
+          <span>{{ vehicleQuotation()!.brand }} · {{ vehicleQuotation()!.vehicleYear }}</span>
+          <span class="label">Categoría</span>
+          <span>{{ vehicleQuotation()!.ageCategory }}</span>
+          <span class="label">Valor comercial</span>
+          <span>{{ vehicleQuotation()!.commercialValue | currency:'COP':'symbol':'1.0-0' }}</span>
+          @if (vehicleQuotation()!.hasBrandSurcharge) {
+            <span class="label">Recargo marca</span>
+            <span style="color:#f57c00">+10%</span>
+          }
+          <span class="label">Prima mensual</span>
+          <span>{{ selectedVehiclePlan()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima anual (−5%)</span>
+          <span>{{ selectedVehiclePlan()!.annualPremiumWithDiscount | currency:'COP':'symbol':'1.0-0' }}</span>
+        } @else if (isHomeType() && homeQuotation()) {
+          <span class="label">Tipo de inmueble</span>
+          <span>{{ homeQuotation()!.propertyType }}</span>
+          <span class="label">Valor del predio</span>
+          <span>{{ homeQuotation()!.propertyValue | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Año de construcción</span>
+          <span>{{ homeQuotation()!.constructionYear }}</span>
+          <span class="label">Estrato</span>
+          <span>{{ homeQuotation()!.stratum }}</span>
+          <span class="label">Habitantes</span>
+          <span>{{ homeQuotation()!.occupants }}</span>
+          <span class="label">Coberturas</span>
+          <span>{{ homeQuotation()!.selectedCoverages.length }} coberturas</span>
+          <span class="label">Prima base</span>
+          <span>{{ homeQuotation()!.baseMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual final</span>
+          <span>{{ homeQuotation()!.finalMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          @if (homeQuotation()!.appliedMultipliers.length > 0) {
+            <span class="label">Ajustes</span>
+            <span>{{ homeQuotation()!.appliedMultipliers.join(', ') }}</span>
+          }
         } @else if (isTravelType() && travelCalculation()) {
           <span class="label">Tipo de viaje</span>
           <span>{{ travelCalculation()!.tripType }}</span>
@@ -302,14 +642,24 @@
           <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
         }
 
-        @if (!isTravelType()) {
+        @if (!isTravelType() && !isHealthType() && !isLifeType() && !isVehicleType() && !isHomeType()) {
           <span class="label">Prima mensual</span>
           <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
         }
         <span class="label">Inicio</span>
         <span>{{ coverageForm.value.startDate | date:'dd/MM/yyyy' }}</span>
         <span class="label">Fin</span>
-        <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
+        @if (isHealthType() && healthEndDate()) {
+          <span>{{ healthEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else if (isLifeType() && lifeEndDate()) {
+          <span>{{ lifeEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else if (isVehicleType() && vehicleEndDate()) {
+          <span>{{ vehicleEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else if (isHomeType() && homeEndDate()) {
+          <span>{{ homeEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else {
+          <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
+        }
       </div>
     </div>
 

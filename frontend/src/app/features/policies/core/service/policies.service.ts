@@ -36,4 +36,8 @@ export class PoliciesCoreService {
   activate(id: string) {
     return this.http.put<PolicyResponse>(`${this.baseUrl}/${id}/activate`, {});
   }
+
+  cancel(id: string) {
+    return this.http.put<PolicyResponse>(`${this.baseUrl}/${id}/cancel`, {});
+  }
 }

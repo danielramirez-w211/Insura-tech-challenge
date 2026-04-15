@@ -22,13 +22,18 @@ public sealed record CreatePolicyRequest
 
 public sealed record InsuredRequest
 {
-    public string FirstName { get; init; } = null!;
-    public string LastName { get; init; } = null!;
-    public string DocumentType {get; init;} = null!;
-    public string DocumentId { get; init; } = null!;
-    public DateOnly BirthDate { get; init; }
-    public string? Email { get; init; }
-    public string? Phone { get; init; }
+    public string FirstName    { get; init; } = null!;
+    public string LastName     { get; init; } = null!;
+    public string DocumentType { get; init; } = null!;
+    public string DocumentId   { get; init; } = null!;
+    public DateOnly BirthDate  { get; init; }
+    public string Gender       { get; init; } = null!;
+    public string Address      { get; init; } = null!;
+    public string CityName     { get; init; } = null!;
+    public string PostalCode   { get; init; } = null!;
+    public string Department   { get; init; } = null!;
+    public string? Email       { get; init; }
+    public string? Phone       { get; init; }
 }
 
 public sealed record CoveragePeriodRequest

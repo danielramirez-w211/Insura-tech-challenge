@@ -18,6 +18,11 @@ namespace InsuraTech.Application.Policies.DTOs
 
         public string InsuredDocumentId { get; init; } = null!;
         public int InsuredAge { get; init; }
+        public string InsuredGender { get; init; } = null!;
+        public string InsuredAddress { get; init; } = null!;
+        public string InsuredCityName { get; init; } = null!;
+        public string InsuredPostalCode { get; init; } = null!;
+        public string InsuredDepartment { get; init; } = null!;
         public DateOnly CoverageStartDate { get; init; }
         public DateOnly CoverageEndDate { get; init; }
         public decimal MonthlyPremium { get; init; }
@@ -31,6 +36,7 @@ namespace InsuraTech.Application.Policies.DTOs
         public IEnumerable<PolicyStatusHistoryResponse> StatusHistory { get; init; } = [];
         public HealthPlanSelectionDto? HealthPlan { get; init; }
     public TravelPlanSelectionDto? TravelPlan { get; init; }
+    public VehiclePlanSelectionDto? VehiclePlan { get; init; }
     }
 
     public sealed class PolicyStatusHistoryResponse
@@ -52,6 +58,22 @@ namespace InsuraTech.Application.Policies.DTOs
         public decimal? TrmUsed          { get; init; }
         public DateOnly? TrmDate         { get; init; }
         public DateTime CalculatedAt     { get; init; }
+    }
+
+    public sealed class VehiclePlanSelectionDto
+    {
+        public string  PlanId                    { get; init; } = null!;
+        public string  PlanName                  { get; init; } = null!;
+        public string  VehicleBrand              { get; init; } = null!;
+        public int     VehicleYear               { get; init; }
+        public decimal CommercialValue           { get; init; }
+        public decimal TechnicalRate             { get; init; }
+        public bool    HasBrandSurcharge         { get; init; }
+        public decimal BaseMonthlyPremium        { get; init; }
+        public decimal FinalMonthlyPremium       { get; init; }
+        public decimal AnnualPremiumWithDiscount  { get; init; }
+        public IEnumerable<string> Coverages     { get; init; } = [];
+        public IEnumerable<string> Assistances   { get; init; } = [];
     }
 
     public sealed class HealthPlanSelectionDto

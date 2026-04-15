@@ -1,0 +1,68 @@
+<form [formGroup]="form" class="vehicle-form">
+
+  <mat-form-field appearance="outline">
+    <mat-label>Valor comercial del vehículo (COP)</mat-label>
+    <mat-icon matPrefix>directions_car</mat-icon>
+    <span matTextPrefix>$&nbsp;</span>
+    <input matInput
+           type="text"
+           inputmode="numeric"
+           [value]="commercialDisplayValue"
+           (input)="onCommercialValueInput($event)"
+           (blur)="onCommercialValueBlur()"
+           placeholder="Ej. 50.000.000"
+           data-testid="vehicle-commercial-value" />
+    @if (form.get('commercialValue')?.touched && form.get('commercialValue')?.hasError('required')) {
+      <mat-error>El valor comercial es obligatorio</mat-error>
+    }
+    @if (form.get('commercialValue')?.touched && form.get('commercialValue')?.hasError('min')) {
+      <mat-error>El valor comercial del vehículo debe ser mayor a $0.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Año de fabricación</mat-label>
+    <mat-icon matPrefix>calendar_today</mat-icon>
+    <input matInput formControlName="vehicleYear" type="number"
+           [min]="1920" [max]="currentYear"
+           placeholder="Ej. 2020" data-testid="vehicle-year" />
+    @if (form.get('vehicleYear')?.touched && form.get('vehicleYear')?.hasError('required')) {
+      <mat-error>El año de fabricación es obligatorio</mat-error>
+    }
+    @if (form.get('vehicleYear')?.touched && form.get('vehicleYear')?.hasError('vehicleYear')) {
+      <mat-error>El año debe estar entre 1920 y {{ currentYear }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Marca del vehículo</mat-label>
+    <mat-icon matPrefix>sell</mat-icon>
+    <mat-select formControlName="brand" data-testid="vehicle-brand">
+      @for (brand of VEHICLE_BRANDS; track brand) {
+        <mat-option [value]="brand">{{ brand }}</mat-option>
+      }
+    </mat-select>
+    @if (form.get('brand')?.touched && form.get('brand')?.hasError('required')) {
+      <mat-error>La marca es obligatoria</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="quote-actions">
+    <button mat-raised-button color="primary"
+            type="button"
+            [disabled]="form.invalid || loading()"
+            (click)="onQuote()"
+            data-testid="quote-button">
+      @if (loading()) {
+        <mat-spinner diameter="20" />
+        Cotizando...
+      } @else {
+        <ng-container>
+          <mat-icon>calculate</mat-icon>
+          Cotizar
+        </ng-container>
+      }
+    </button>
+  </div>
+
+</form>

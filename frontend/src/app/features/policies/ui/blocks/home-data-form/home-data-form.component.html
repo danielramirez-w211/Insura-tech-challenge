@@ -1,0 +1,116 @@
+<div class="home-form">
+
+  <!-- ── Datos del predio ───────────────────────────────────────────────── -->
+  <form [formGroup]="form" class="form-vertical">
+
+    <mat-form-field appearance="outline">
+      <mat-label>Valor comercial del predio (COP)</mat-label>
+      <mat-icon matPrefix>home_work</mat-icon>
+      <input matInput formControlName="propertyValue" type="number" min="1" placeholder="Ej. 300000000" />
+      @if (form.get('propertyValue')?.touched && form.get('propertyValue')?.hasError('required')) {
+        <mat-error>El valor del predio es obligatorio</mat-error>
+      }
+      @if (form.get('propertyValue')?.touched && form.get('propertyValue')?.hasError('min')) {
+        <mat-error>El valor debe ser mayor a $0</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Año de construcción</mat-label>
+      <mat-icon matPrefix>construction</mat-icon>
+      <input matInput formControlName="constructionYear" type="number" [max]="currentYear" min="1900" placeholder="Ej. 2015" />
+      @if (form.get('constructionYear')?.touched && form.get('constructionYear')?.hasError('required')) {
+        <mat-error>El año de construcción es obligatorio</mat-error>
+      }
+      @if (form.get('constructionYear')?.touched && form.get('constructionYear')?.hasError('constructionYear')) {
+        <mat-error>El año debe estar entre 1900 y {{ currentYear }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estrato socioeconómico</mat-label>
+      <mat-icon matPrefix>layers</mat-icon>
+      <mat-select formControlName="stratum">
+        @for (s of [1, 2, 3, 4, 5, 6]; track s) {
+          <mat-option [value]="s">Estrato {{ s }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('stratum')?.touched && form.get('stratum')?.hasError('required')) {
+        <mat-error>El estrato es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Número de habitantes</mat-label>
+      <mat-icon matPrefix>group</mat-icon>
+      <input matInput formControlName="occupants" type="number" min="1" placeholder="Ej. 4" />
+      @if (form.get('occupants')?.touched && form.get('occupants')?.hasError('required')) {
+        <mat-error>El número de habitantes es obligatorio</mat-error>
+      }
+      @if (form.get('occupants')?.touched && form.get('occupants')?.hasError('min')) {
+        <mat-error>Debe haber al menos 1 habitante</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Tipo de inmueble</mat-label>
+      <mat-icon matPrefix>apartment</mat-icon>
+      <mat-select formControlName="propertyType">
+        @for (opt of PROPERTY_TYPE_OPTIONS; track opt.value) {
+          <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+      @if (form.get('propertyType')?.touched && form.get('propertyType')?.hasError('required')) {
+        <mat-error>El tipo de inmueble es obligatorio</mat-error>
+      }
+    </mat-form-field>
+
+  </form>
+
+  <!-- ── Paquetes predefinidos ──────────────────────────────────────────── -->
+  @if (packages().length > 0) {
+    <p class="section-label">Selecciona un paquete predefinido (opcional)</p>
+    <div class="package-cards">
+      @for (pkg of packages(); track pkg.packageId) {
+        <div class="package-card"
+             [class.selected]="selectedPackageId() === pkg.packageId"
+             (click)="onPackageSelect(pkg)">
+          <div class="package-name">{{ pkg.packageName }}</div>
+          <div class="package-count">{{ pkg.coverages.length }} coberturas</div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Coberturas individuales ────────────────────────────────────────── -->
+  <p class="section-label">Coberturas incluidas</p>
+  <div class="coverage-list">
+    @for (opt of COVERAGE_OPTIONS; track opt.value) {
+      <div class="coverage-item">
+        <mat-checkbox
+          [checked]="isCoverageSelected(opt.value)"
+          [disabled]="opt.value === 'FireExplosion'"
+          (change)="toggleCoverage(opt.value)">
+          {{ opt.label }}
+        </mat-checkbox>
+        <div class="coverage-description">{{ opt.description }}</div>
+      </div>
+    }
+  </div>
+
+  <!-- ── Botón cotizar ─────────────────────────────────────────────────── -->
+  <button mat-raised-button color="primary" class="btn-quote"
+          [disabled]="form.invalid || loading()"
+          (click)="onQuote()">
+    @if (loading()) {
+      <mat-spinner diameter="20" />
+      Calculando...
+    } @else {
+      <ng-container>
+      <mat-icon>calculate</mat-icon>
+      Cotizar
+      </ng-container>
+    }
+  </button>
+
+</div>
