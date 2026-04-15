@@ -2,11 +2,13 @@ using InsuraTech.Application.VehiclePlans.DTOs;
 using InsuraTech.Application.VehiclePlans.Queries.CalculateVehiclePlans;
 using InsuraTech.Application.VehiclePlans.Queries.GetVehiclePlans;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/vehicle-plans")]
 [Produces("application/json")]
 public sealed class VehiclePlansController : ControllerBase

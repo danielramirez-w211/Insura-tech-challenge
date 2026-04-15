@@ -14,9 +14,11 @@ using InsuraTech.Application.Policies.Queries.GetPolicyById;
 using InsuraTech.Application.Common.Models;
 using InsuraTech.Domain.Policies;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class PoliciesController : ControllerBase

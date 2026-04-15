@@ -1,11 +1,13 @@
 using InsuraTech.Application.Cities.DTOs;
 using InsuraTech.Application.Cities.Queries.GetCities;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class CitiesController : ControllerBase

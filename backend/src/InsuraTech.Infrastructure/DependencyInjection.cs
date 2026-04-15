@@ -1,5 +1,8 @@
+using InsuraTech.Application.Auth.Services;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Interfaces;
+using InsuraTech.Domain.Users;
+using InsuraTech.Infrastructure.Auth;
 using InsuraTech.Infrastructure.ExternalServices;
 using InsuraTech.Infrastructure.Persistence;
 using InsuraTech.Infrastructure.Persistence.Repositories;
@@ -39,6 +42,11 @@ public static class DependencyInjection
             new CityRepository(
                 _.GetRequiredService<IMongoClient>(),
                 databaseName));
+        services.AddScoped<IUserRepository, UserRepository>();
+
+        // Auth
+        services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
 
         // TRM — integración con API Socrata
         services.AddMemoryCache();

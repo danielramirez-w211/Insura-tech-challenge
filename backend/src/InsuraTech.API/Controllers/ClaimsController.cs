@@ -12,9 +12,11 @@ using InsuraTech.Application.Claims.Queries.GetClaims;
 using InsuraTech.Application.Common.Models;
 using InsuraTech.Domain.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class ClaimsController : ControllerBase
