@@ -55,6 +55,21 @@ export class VehicleDataFormComponent {
     brand:           ['', Validators.required],
   });
 
+  commercialDisplayValue = '';
+
+  onCommercialValueInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const raw = input.value.replace(/\D/g, '');
+    const numeric = raw ? parseInt(raw, 10) : null;
+    this.commercialDisplayValue = raw ? raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+    input.value = this.commercialDisplayValue;
+    this.form.get('commercialValue')!.setValue(numeric, { emitEvent: true });
+  }
+
+  onCommercialValueBlur(): void {
+    this.form.get('commercialValue')!.markAsTouched();
+  }
+
   onQuote(): void {
     if (this.form.invalid) return;
     const v = this.form.value;

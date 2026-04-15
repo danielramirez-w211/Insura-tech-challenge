@@ -3,8 +3,15 @@
   <mat-form-field appearance="outline">
     <mat-label>Valor comercial del vehículo (COP)</mat-label>
     <mat-icon matPrefix>directions_car</mat-icon>
-    <input matInput formControlName="commercialValue" type="number" min="1"
-           placeholder="Ej. 50000000" data-testid="vehicle-commercial-value" />
+    <span matTextPrefix>$&nbsp;</span>
+    <input matInput
+           type="text"
+           inputmode="numeric"
+           [value]="commercialDisplayValue"
+           (input)="onCommercialValueInput($event)"
+           (blur)="onCommercialValueBlur()"
+           placeholder="Ej. 50.000.000"
+           data-testid="vehicle-commercial-value" />
     @if (form.get('commercialValue')?.touched && form.get('commercialValue')?.hasError('required')) {
       <mat-error>El valor comercial es obligatorio</mat-error>
     }
@@ -17,13 +24,13 @@
     <mat-label>Año de fabricación</mat-label>
     <mat-icon matPrefix>calendar_today</mat-icon>
     <input matInput formControlName="vehicleYear" type="number"
-           [min]="1900" [max]="currentYear"
+           [min]="1920" [max]="currentYear"
            placeholder="Ej. 2020" data-testid="vehicle-year" />
     @if (form.get('vehicleYear')?.touched && form.get('vehicleYear')?.hasError('required')) {
       <mat-error>El año de fabricación es obligatorio</mat-error>
     }
     @if (form.get('vehicleYear')?.touched && form.get('vehicleYear')?.hasError('vehicleYear')) {
-      <mat-error>El año debe estar entre 1900 y {{ currentYear }}</mat-error>
+      <mat-error>El año debe estar entre 1920 y {{ currentYear }}</mat-error>
     }
   </mat-form-field>
 

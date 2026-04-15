@@ -269,10 +269,69 @@
   }
 
   <!-- ══════════════════════════════════════════════════════════════════ -->
-  <!-- ── Paso 2: Cobertura (tipos no-Vehicle) ───────────────────────── -->
+  <!-- ── Paso 2-H: Hogar (solo si type === 'Home') ──────────────────── -->
   <!-- ══════════════════════════════════════════════════════════════════ -->
 
-  @if (!isVehicleType()) {
+  @if (isHomeType()) {
+
+    <mat-step label="Datos del Inmueble"
+              [completed]="homeQuotation() !== null && !!coverageForm.get('startDate')?.value && coverageForm.get('startDate')?.valid === true">
+      <p class="step-hint">Ingresa los datos del inmueble para calcular la cotización.</p>
+
+      <div class="form-vertical">
+        <app-home-data-form
+          [loading]="homeQuoteLoading()"
+          [packages]="homePackages()"
+          (quoteRequested)="onHomeQuoteRequested($event)" />
+
+        @if (homeQuotation()) {
+          <app-home-plan-preview [quotation]="homeQuotation()" />
+        }
+
+        <form [formGroup]="coverageForm">
+          <mat-form-field appearance="outline">
+            <mat-label>Inicio de cobertura</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <input matInput [matDatepicker]="homeStartPicker" formControlName="startDate"
+                   placeholder="DD/MM/AAAA" />
+            <mat-datepicker-toggle matIconSuffix [for]="homeStartPicker" />
+            <mat-datepicker #homeStartPicker />
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('required')) {
+              <mat-error>La fecha de inicio es obligatoria</mat-error>
+            }
+            @if (coverageForm.get('startDate')?.touched && coverageForm.get('startDate')?.hasError('pastDate')) {
+              <mat-error>La fecha de inicio no puede ser anterior a hoy</mat-error>
+            }
+          </mat-form-field>
+          @if (coverageForm.get('startDate')?.value) {
+            <p class="field-label" style="color: var(--mat-sys-on-surface-variant, #666)">
+              <mat-icon style="font-size:14px;vertical-align:middle">info</mat-icon>
+              La cobertura tendrá una duración de 12 meses (365 días) a partir de la fecha de inicio.
+            </p>
+          }
+        </form>
+      </div>
+
+      <div class="step-actions">
+        <button mat-stroked-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon> Anterior
+        </button>
+        <button mat-raised-button color="primary" matStepperNext
+                [disabled]="homeQuotation() === null
+                          || !coverageForm.get('startDate')?.value
+                          || coverageForm.get('startDate')?.invalid">
+          Continuar <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+  <!-- ── Paso 2: Cobertura (tipos no-Vehicle, no-Home) ─────────────── -->
+  <!-- ══════════════════════════════════════════════════════════════════ -->
+
+  @if (!isVehicleType() && !isHomeType()) {
     <mat-step [stepControl]="coverageForm" label="Cobertura">
       <form [formGroup]="coverageForm">
         <p class="step-hint">Define el periodo y montos de cobertura.</p>
@@ -546,6 +605,27 @@
           <span>{{ selectedVehiclePlan()!.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
           <span class="label">Prima anual (−5%)</span>
           <span>{{ selectedVehiclePlan()!.annualPremiumWithDiscount | currency:'COP':'symbol':'1.0-0' }}</span>
+        } @else if (isHomeType() && homeQuotation()) {
+          <span class="label">Tipo de inmueble</span>
+          <span>{{ homeQuotation()!.propertyType }}</span>
+          <span class="label">Valor del predio</span>
+          <span>{{ homeQuotation()!.propertyValue | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Año de construcción</span>
+          <span>{{ homeQuotation()!.constructionYear }}</span>
+          <span class="label">Estrato</span>
+          <span>{{ homeQuotation()!.stratum }}</span>
+          <span class="label">Habitantes</span>
+          <span>{{ homeQuotation()!.occupants }}</span>
+          <span class="label">Coberturas</span>
+          <span>{{ homeQuotation()!.selectedCoverages.length }} coberturas</span>
+          <span class="label">Prima base</span>
+          <span>{{ homeQuotation()!.baseMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          <span class="label">Prima mensual final</span>
+          <span>{{ homeQuotation()!.finalMonthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
+          @if (homeQuotation()!.appliedMultipliers.length > 0) {
+            <span class="label">Ajustes</span>
+            <span>{{ homeQuotation()!.appliedMultipliers.join(', ') }}</span>
+          }
         } @else if (isTravelType() && travelCalculation()) {
           <span class="label">Tipo de viaje</span>
           <span>{{ travelCalculation()!.tripType }}</span>
@@ -562,7 +642,7 @@
           <span>{{ coverageForm.value.insuredAmount | currency:'COP':'symbol':'1.0-0' }}</span>
         }
 
-        @if (!isTravelType() && !isHealthType() && !isLifeType() && !isVehicleType()) {
+        @if (!isTravelType() && !isHealthType() && !isLifeType() && !isVehicleType() && !isHomeType()) {
           <span class="label">Prima mensual</span>
           <span>{{ coverageForm.value.monthlyPremium | currency:'COP':'symbol':'1.0-0' }}</span>
         }
@@ -575,6 +655,8 @@
           <span>{{ lifeEndDate() | date:'dd/MM/yyyy' }}</span>
         } @else if (isVehicleType() && vehicleEndDate()) {
           <span>{{ vehicleEndDate() | date:'dd/MM/yyyy' }}</span>
+        } @else if (isHomeType() && homeEndDate()) {
+          <span>{{ homeEndDate() | date:'dd/MM/yyyy' }}</span>
         } @else {
           <span>{{ coverageForm.value.endDate | date:'dd/MM/yyyy' }}</span>
         }

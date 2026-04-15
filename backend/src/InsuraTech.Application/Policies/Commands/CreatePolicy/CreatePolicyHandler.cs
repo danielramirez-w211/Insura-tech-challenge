@@ -1,4 +1,5 @@
 ﻿using InsuraTech.Application.Common.Interfaces;
+using InsuraTech.Domain.Policies.HomePlan;
 using InsuraTech.Application.Policies.DTOs;
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
@@ -73,6 +74,31 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
                 policy = Policy.CreateHealthPolicy(
                     policyNumber, insured, coverage,
                     request.MonthlyPremium, request.HealthPlanId,
+                    DateOnly.FromDateTime(DateTime.UtcNow));
+            }
+            else if (request.Type == PolicyType.Home
+                && request.HomePropertyValue.HasValue
+                && request.HomeConstructionYear.HasValue
+                && request.HomeStratum.HasValue
+                && request.HomeOccupants.HasValue
+                && !string.IsNullOrWhiteSpace(request.HomePropertyType)
+                && request.HomeSelectedCoverages?.Count > 0)
+            {
+                var coverage     = CoveragePeriod.Create(request.CoverageStartDate, request.CoverageEndDate);
+                var propertyType = Enum.Parse<HomePropertyType>(request.HomePropertyType, ignoreCase: true);
+                var coverages    = request.HomeSelectedCoverages
+                    .Select(c => Enum.Parse<HomeCoverage>(c, ignoreCase: true))
+                    .ToList()
+                    .AsReadOnly();
+
+                policy = Policy.CreateHomePolicy(
+                    policyNumber, insured, coverage,
+                    request.HomePlanPackageId,
+                    request.HomePropertyValue.Value,
+                    request.HomeConstructionYear.Value,
+                    request.HomeStratum.Value,
+                    request.HomeOccupants.Value,
+                    propertyType, coverages,
                     DateOnly.FromDateTime(DateTime.UtcNow));
             }
             else if (request.Type == PolicyType.Travel && request.TripType.HasValue && request.DurationDays.HasValue)

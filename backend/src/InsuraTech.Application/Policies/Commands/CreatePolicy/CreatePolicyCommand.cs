@@ -46,5 +46,21 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         public int? VehicleYear { get; init; }
         /// <summary>Marca del vehículo. Solo para pólizas Vehicle.</summary>
         public string? VehicleBrand { get; init; }
+
+        // ── Home (SPEC-012) ───────────────────────────────────────────────────
+        /// <summary>ID del paquete base seleccionado (null si es cobertura personalizada). Solo para pólizas Home.</summary>
+        public string? HomePlanPackageId { get; init; }
+        /// <summary>Valor comercial del predio (COP). Solo para pólizas Home.</summary>
+        public decimal? HomePropertyValue { get; init; }
+        /// <summary>Año de construcción del inmueble. Solo para pólizas Home.</summary>
+        public int? HomeConstructionYear { get; init; }
+        /// <summary>Estrato socioeconómico (1-6). Solo para pólizas Home.</summary>
+        public int? HomeStratum { get; init; }
+        /// <summary>Número de habitantes. Solo para pólizas Home.</summary>
+        public int? HomeOccupants { get; init; }
+        /// <summary>Tipo de inmueble (House, Apartment, CommercialPremises). Solo para pólizas Home.</summary>
+        public string? HomePropertyType { get; init; }
+        /// <summary>Coberturas seleccionadas como strings del enum HomeCoverage. Solo para pólizas Home.</summary>
+        public IReadOnlyList<string>? HomeSelectedCoverages { get; init; }
     }
 }
