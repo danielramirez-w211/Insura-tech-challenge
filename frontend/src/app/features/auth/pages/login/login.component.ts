@@ -112,9 +112,13 @@ export class LoginComponent {
     const { email, password } = this.form.value;
 
     this.auth.login(email!, password!).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading.set(false);
-        this.router.navigate(['/dashboard']);
+        const destination =
+          res.role === 'Admin'   ? '/users/admin' :
+          res.role === 'Leader'  ? '/users/team'  :
+                                   '/dashboard';
+        this.router.navigate([destination]);
       },
       error: () => {
         this.loading.set(false);

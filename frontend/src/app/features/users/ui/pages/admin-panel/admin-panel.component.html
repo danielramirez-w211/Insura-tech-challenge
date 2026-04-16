@@ -1,0 +1,77 @@
+<app-page-header title="Panel de Administración — Líderes" />
+
+<div class="panel-layout">
+
+  <!-- Botón crear + formulario inline -->
+  <div class="actions-bar">
+    @if (!showForm()) {
+      <button mat-raised-button color="primary" (click)="showForm.set(true)">
+        <mat-icon>person_add</mat-icon> Nuevo Líder
+      </button>
+    }
+  </div>
+
+  @if (showForm()) {
+    <mat-card class="form-card">
+      <mat-card-header>
+        <mat-card-title>Crear Líder</mat-card-title>
+        <mat-card-subtitle>La contraseña temporal se mostrará en la consola del backend.</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <app-user-form
+          mode="leader"
+          [saving]="saving()"
+          (submitted)="onCreateLeader($any($event))"
+          (cancelled)="showForm.set(false)" />
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <!-- Tabla de líderes -->
+  @if (loading()) {
+    <app-loading-spinner [loading]="true" />
+  } @else {
+    <mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef>Nombre</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          {{ row.profile?.firstName }} {{ row.profile?.lastName }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="email">
+        <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.email }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span [class]="row.isActive ? 'chip-active' : 'chip-inactive'">
+            {{ row.isActive ? 'Activo' : 'Inactivo' }}
+          </span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <button mat-icon-button
+                  [matTooltip]="row.isActive ? 'Desactivar' : 'Activar'"
+                  [color]="row.isActive ? 'warn' : 'primary'"
+                  (click)="toggle(row)">
+            <mat-icon>{{ row.isActive ? 'person_off' : 'person' }}</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns" />
+      <mat-row *matRowDef="let row; columns: displayedColumns;" />
+    </mat-table>
+
+    @if (dataSource.data.length === 0) {
+      <div class="empty">No hay líderes registrados aún.</div>
+    }
+  }
+</div>

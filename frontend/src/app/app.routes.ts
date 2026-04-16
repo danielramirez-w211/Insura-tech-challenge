@@ -76,5 +76,32 @@ export const routes: Routes = [
       ),
   },
 
+  {
+    path: 'users/profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/users/ui/pages/advisor-profile/advisor-profile.component').then(
+        (m) => m.AdvisorProfileComponent
+      ),
+  },
+
+  {
+    path: 'users/team',
+    canActivate: [authGuard, roleGuard('Leader')],
+    loadComponent: () =>
+      import('./features/users/ui/pages/leader-dashboard/leader-dashboard.component').then(
+        (m) => m.LeaderDashboardComponent
+      ),
+  },
+
+  {
+    path: 'users/admin',
+    canActivate: [authGuard, roleGuard('Admin')],
+    loadComponent: () =>
+      import('./features/users/ui/pages/admin-panel/admin-panel.component').then(
+        (m) => m.AdminPanelComponent
+      ),
+  },
+
   { path: '**', redirectTo: 'dashboard' },
 ];

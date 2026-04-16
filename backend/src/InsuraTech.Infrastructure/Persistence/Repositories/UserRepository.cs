@@ -55,7 +55,7 @@ public sealed class UserRepository : IUserRepository
     public async Task<string> GetNextAdvisorCodeAsync(CancellationToken cancellationToken = default)
     {
         var filter = Builders<BsonDocument>.Filter.Eq("_id", "advisor_code");
-        var update = Builders<BsonDocument>.Update.Inc("seq", 1);
+        var update = Builders<BsonDocument>.Update.Inc("seq", 1L);
         var options = new FindOneAndUpdateOptions<BsonDocument>
         {
             IsUpsert       = true,

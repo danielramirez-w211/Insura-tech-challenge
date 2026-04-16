@@ -1,25 +1,855 @@
 {
   "info": {
-    "name": "InsuraTech API",
+    "name": "InsuraTech API — SPEC-014",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Colección completa de endpoints InsuraTech — Pólizas, Planes de Salud y Motor de Tarifas de Viaje."
+    "description": "Colección completa de InsuraTech. Incluye Auth, Users, Policies, Claims y Plans.\nFlujo QA SPEC-014: ejecutar en orden las carpetas QA-01 → QA-14."
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5000/api/v1", "type": "string" },
-    { "key": "policyId", "value": "", "type": "string" }
+    { "key": "baseUrl",     "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "adminToken",  "value": "", "type": "string" },
+    { "key": "leaderToken", "value": "", "type": "string" },
+    { "key": "advisorToken","value": "", "type": "string" },
+    { "key": "leaderId",    "value": "", "type": "string" },
+    { "key": "advisor1Id",  "value": "", "type": "string" },
+    { "key": "advisor2Id",  "value": "", "type": "string" },
+    { "key": "policyId",    "value": "", "type": "string" },
+    { "key": "claimId",     "value": "", "type": "string" }
   ],
   "item": [
+
     {
-      "name": "Travel Plans",
+      "name": "🔐 Auth",
       "item": [
         {
-          "name": "Calculate — Nacional (10 días)",
+          "name": "Login Admin → guarda adminToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) {",
+                  "  pm.collectionVariables.set('adminToken', r.token);",
+                  "  console.log('✅ adminToken guardado');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@insuratech.com\",\n  \"password\": \"Admin123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Leader → guarda leaderToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) {",
+                  "  pm.collectionVariables.set('leaderToken', r.token);",
+                  "  pm.collectionVariables.set('leaderId', r.userId);",
+                  "  console.log('✅ leaderToken guardado. leaderId:', r.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"leader@insuratech.com\",\n  \"password\": \"REEMPLAZA_CON_PASSWORD_CONSOLA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Advisor → guarda advisorToken",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) {",
+                  "  pm.collectionVariables.set('advisorToken', r.token);",
+                  "  pm.collectionVariables.set('advisor1Id', r.userId);",
+                  "  console.log('✅ advisorToken guardado. advisorId:', r.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"advisor01@insuratech.com\",\n  \"password\": \"REEMPLAZA_CON_PASSWORD_CONSOLA\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-01 — Admin crea Líder",
+      "item": [
+        {
+          "name": "POST /users/leaders → HTTP 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "if (r.id) {",
+                  "  pm.collectionVariables.set('leaderId', r.id);",
+                  "  console.log('✅ leaderId guardado:', r.id);",
+                  "  console.log('👉 Busca el password temporal en la CONSOLA del backend');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/leaders", "host": ["{{baseUrl}}"], "path": ["users","leaders"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"leader@insuratech.com\",\n  \"firstName\": \"María\",\n  \"lastName\": \"López\",\n  \"officeLocation\": \"Bogotá - Sede Norte\",\n  \"workSchedule\": \"Lun-Vie 8am-5pm\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /users/leaders → lista líderes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Al menos 1 líder', () => pm.expect(pm.response.json().length).to.be.above(0));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/leaders", "host": ["{{baseUrl}}"], "path": ["users","leaders"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-02 — Líder crea Asesor 0001",
+      "item": [
+        {
+          "name": "POST /users/advisors → advisorCode = 0001",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('advisorCode = 0001', () => pm.expect(r.advisorCode).to.eql('0001'));",
+                  "if (r.id) {",
+                  "  pm.collectionVariables.set('advisor1Id', r.id);",
+                  "  console.log('✅ advisor1Id guardado:', r.id);",
+                  "  console.log('👉 Busca el password temporal en la CONSOLA del backend');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/advisors", "host": ["{{baseUrl}}"], "path": ["users","advisors"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"advisor01@insuratech.com\",\n  \"firstName\": \"Carlos\",\n  \"lastName\": \"Ramos\",\n  \"nationality\": \"Colombiano\",\n  \"birthDate\": \"1992-06-15\",\n  \"yearsInCompany\": 2,\n  \"officeLocation\": \"Medellín - Centro\",\n  \"workSchedule\": \"Lun-Sáb 9am-6pm\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-03 — Asesor 0002 (código secuencial)",
+      "item": [
+        {
+          "name": "POST /users/advisors → advisorCode = 0002",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('advisorCode = 0002', () => pm.expect(r.advisorCode).to.eql('0002'));",
+                  "if (r.id) pm.collectionVariables.set('advisor2Id', r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/advisors", "host": ["{{baseUrl}}"], "path": ["users","advisors"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"advisor02@insuratech.com\",\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Gómez\",\n  \"nationality\": \"Colombiana\",\n  \"birthDate\": \"1995-03-20\",\n  \"yearsInCompany\": 1,\n  \"officeLocation\": \"Cali - Norte\",\n  \"workSchedule\": \"Lun-Vie 8am-5pm\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-04 — Líder no puede gestionar asesor ajeno → 422",
+      "item": [
+        {
+          "name": "PATCH /users/{advisor2Id}/status con leaderToken → 422",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// ⚠️ Para probar este QA:",
+                  "// 1. Crea un segundo líder con Admin",
+                  "// 2. Crea un asesor con ese líder (advisor2Id)",
+                  "// 3. Intenta desactivarlo con el primer leaderToken",
+                  "// Resultado esperado: 422 FORBIDDEN"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/{{advisor2Id}}/status", "host": ["{{baseUrl}}"], "path": ["users","{{advisor2Id}}","status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-05 — Desactivar Asesor → login falla",
+      "item": [
+        {
+          "name": "PATCH /users/{advisor1Id}/status → desactivar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('isActive = false', () => pm.expect(pm.response.json().isActive).to.be.false);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/{{advisor1Id}}/status", "host": ["{{baseUrl}}"], "path": ["users","{{advisor1Id}}","status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Asesor desactivado → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401 — cuenta desactivada', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"advisor01@insuratech.com\",\n  \"password\": \"REEMPLAZA_CON_PASSWORD_CONSOLA\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /users/{advisor1Id}/status → reactivar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('isActive = true', () => pm.expect(pm.response.json().isActive).to.be.true);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/{{advisor1Id}}/status", "host": ["{{baseUrl}}"], "path": ["users","{{advisor1Id}}","status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-06 — Asesor crea Póliza → createdByAdvisorId",
+      "item": [
+        {
+          "name": "POST /policies (Health) → guarda policyId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "if (r.id) {",
+                  "  pm.collectionVariables.set('policyId', r.id);",
+                  "  console.log('✅ policyId guardado:', r.id);",
+                  "}",
+                  "pm.test('createdByAdvisorId presente', () => pm.expect(r.createdByAdvisorId).to.not.be.null);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/policies", "host": ["{{baseUrl}}"], "path": ["policies"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Health\",\n  \"insured\": {\n    \"firstName\": \"Luis\",\n    \"lastName\": \"Pérez\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"1234567890\",\n    \"birthDate\": \"1985-04-10\",\n    \"gender\": \"Male\",\n    \"address\": \"Calle 80 #15-20\",\n    \"cityName\": \"Bogotá\",\n    \"postalCode\": \"110111\",\n    \"department\": \"Cundinamarca\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-05-01\",\n    \"endDate\": \"2027-05-01\"\n  },\n  \"monthlyPremium\": 120000,\n  \"healthPlanId\": \"PLAN-BASICO\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET /policies/{policyId} → verificar createdByAdvisorId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('createdByAdvisorId = advisor1Id', () => {",
+                  "  pm.expect(r.createdByAdvisorId).to.eql(pm.collectionVariables.get('advisor1Id'));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/policies/{{policyId}}", "host": ["{{baseUrl}}"], "path": ["policies","{{policyId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-07 — Dashboard Líder: salesCount",
+      "item": [
+        {
+          "name": "GET /users/my-advisors → salesCount",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const advisors = pm.response.json();",
+                  "const advisor1Id = pm.collectionVariables.get('advisor1Id');",
+                  "const found = advisors.find(a => a.id === advisor1Id);",
+                  "pm.test('Asesor 0001 encontrado', () => pm.expect(found).to.not.be.undefined);",
+                  "pm.test('salesCount >= 1', () => pm.expect(found.salesCount).to.be.above(0));",
+                  "console.log('📊 salesCount de Asesor 0001:', found?.salesCount);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{leaderToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/my-advisors", "host": ["{{baseUrl}}"], "path": ["users","my-advisors"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-08 — Asesor crea Claim → PendingApproval",
+      "item": [
+        {
+          "name": "POST /claims → status = PendingApproval",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const r = pm.response.json();",
+                  "pm.test('status = PendingApproval', () => pm.expect(r.status).to.eql('PendingApproval'));",
+                  "pm.test('createdByAdvisorId presente', () => pm.expect(r.createdByAdvisorId).to.not.be.null);",
+                  "if (r.id) {",
+                  "  pm.collectionVariables.set('claimId', r.id);",
+                  "  console.log('✅ claimId guardado:', r.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims", "host": ["{{baseUrl}}"], "path": ["claims"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyId\": \"{{policyId}}\",\n  \"type\": \"Accident\",\n  \"claimedAmount\": 500000,\n  \"incidentDate\": \"2026-04-20\",\n  \"description\": \"Accidente de tráfico en Bogotá\",\n  \"responsibleUser\": \"advisor01@insuratech.com\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-09 — Líder aprueba Claim → Registered",
+      "item": [
+        {
+          "name": "PATCH /claims/{claimId}/approve → status = Registered",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('status = Registered', () => pm.expect(r.status).to.eql('Registered'));",
+                  "console.log('✅ Claim aprobado por líder. Nuevo status:', r.status);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{leaderToken}}" }],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/approve", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","approve"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-10 — Líder rechaza Claim con motivo",
+      "item": [
+        {
+          "name": "Crear nuevo Claim para rechazar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.id) {",
+                  "  pm.collectionVariables.set('claimId', r.id);",
+                  "  console.log('✅ nuevo claimId para rechazar:', r.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims", "host": ["{{baseUrl}}"], "path": ["claims"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyId\": \"{{policyId}}\",\n  \"type\": \"Theft\",\n  \"claimedAmount\": 200000,\n  \"incidentDate\": \"2026-04-21\",\n  \"description\": \"Robo de celular en transporte público\",\n  \"responsibleUser\": \"advisor01@insuratech.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /claims/{claimId}/reject → status = Rejected + razón",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('status = Rejected', () => pm.expect(r.status).to.eql('Rejected'));",
+                  "pm.test('rejectionReason presente', () => pm.expect(r.rejectionReason).to.not.be.empty);",
+                  "console.log('✅ Claim rechazado. Razón:', r.rejectionReason);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/reject", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","reject"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Documentación insuficiente — falta acta policial\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-11 — Advisor intenta aprobar Claim → 403",
+      "item": [
+        {
+          "name": "Crear claim base para QA-11",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.id) pm.collectionVariables.set('claimId', r.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims", "host": ["{{baseUrl}}"], "path": ["claims"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"policyId\": \"{{policyId}}\",\n  \"type\": \"Fire\",\n  \"claimedAmount\": 100000,\n  \"incidentDate\": \"2026-04-22\",\n  \"description\": \"Incendio en bodega\",\n  \"responsibleUser\": \"advisor01@insuratech.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PATCH /claims/{claimId}/approve con advisorToken → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 403 — Advisor no puede aprobar', () => pm.response.to.have.status(403));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/approve", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","approve"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "QA-14 — Perfil propio (GET y PUT /users/me)",
+      "item": [
+        {
+          "name": "GET /users/me → perfil completo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('profile presente', () => pm.expect(r.profile).to.not.be.undefined);",
+                  "console.log('👤 Perfil:', r.profile.firstName, r.profile.lastName, '| Rol:', r.role);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users","me"] }
+          }
+        },
+        {
+          "name": "PUT /users/me/profile → actualizar perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('officeLocation actualizado', () => pm.expect(r.profile.officeLocation).to.eql('Bogotá - Sede Centro'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/users/me/profile", "host": ["{{baseUrl}}"], "path": ["users","me","profile"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Carlos\",\n  \"lastName\": \"Ramos\",\n  \"nationality\": \"Colombiano\",\n  \"birthDate\": \"1992-06-15\",\n  \"yearsInCompany\": 3,\n  \"photoUrl\": \"\",\n  \"officeLocation\": \"Bogotá - Sede Centro\",\n  \"workSchedule\": \"Lun-Vie 8am-5pm\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📋 Claims — Flujo completo (existente)",
+      "item": [
+        {
+          "name": "GET /claims → lista con filtros opcionales",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/claims?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["claims"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "status", "value": "PendingApproval", "disabled": true },
+                { "key": "policyId", "value": "{{policyId}}", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /claims/{claimId}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{leaderToken}}" }],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}"] }
+          }
+        },
+        {
+          "name": "PUT /claims/{claimId}/investigate",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/investigate", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","investigate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"claimId\": \"{{claimId}}\",\n  \"responsibleUser\": \"lider@insuratech.com\",\n  \"observations\": \"Iniciando investigación del siniestro\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /claims/{claimId}/approve (proceso normal)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/approve", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","approve"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"claimId\": \"{{claimId}}\",\n  \"approvedAmount\": 450000,\n  \"responsibleUser\": \"lider@insuratech.com\",\n  \"observations\": \"Documentación completa verificada\"\n}"
+            }
+          }
+        },
+        {
+          "name": "PUT /claims/{claimId}/pay",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{leaderToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/claims/{{claimId}}/pay", "host": ["{{baseUrl}}"], "path": ["claims","{{claimId}}","pay"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"claimId\": \"{{claimId}}\",\n  \"responsibleUser\": \"lider@insuratech.com\",\n  \"observations\": \"Pago procesado vía transferencia\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📄 Policies — Todas las pólizas (existente)",
+      "item": [
+        {
+          "name": "GET /policies → lista con filtros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/policies?page=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "status", "value": "Active", "disabled": true },
+                { "key": "type", "value": "Health", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /policies/{policyId}",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/policies/{{policyId}}", "host": ["{{baseUrl}}"], "path": ["policies","{{policyId}}"] }
+          }
+        },
+        {
+          "name": "PUT /policies/{policyId}/activate",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/policies/{{policyId}}/activate", "host": ["{{baseUrl}}"], "path": ["policies","{{policyId}}","activate"] }
+          }
+        },
+        {
+          "name": "POST /policies — Life Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{advisorToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/policies", "host": ["{{baseUrl}}"], "path": ["policies"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Life\",\n  \"insured\": {\n    \"firstName\": \"Pedro\",\n    \"lastName\": \"Silva\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"9876543210\",\n    \"birthDate\": \"1980-08-22\",\n    \"gender\": \"Male\",\n    \"address\": \"Av. Eldorado #50-40\",\n    \"cityName\": \"Bogotá\",\n    \"postalCode\": \"110221\",\n    \"department\": \"Cundinamarca\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-05-01\",\n    \"endDate\": \"2031-05-01\"\n  },\n  \"lifePlanId\": \"LIFE-PLUS\"\n}"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏥 Plans — Cálculos (existente)",
+      "item": [
+        {
+          "name": "GET /health-plans",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/health-plans", "host": ["{{baseUrl}}"], "path": ["health-plans"] }
+          }
+        },
+        {
+          "name": "GET /life-plans",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
+            "url": { "raw": "{{baseUrl}}/life-plans", "host": ["{{baseUrl}}"], "path": ["life-plans"] }
+          }
+        },
+        {
+          "name": "GET /travel-plans/calculate?tripType=Nacional&durationDays=10",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
             "url": {
               "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=10",
               "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
+              "path": ["travel-plans","calculate"],
               "query": [
                 { "key": "tripType", "value": "Nacional" },
                 { "key": "durationDays", "value": "10" }
@@ -28,307 +858,43 @@
           }
         },
         {
-          "name": "Calculate — Nacional (30 días — techo COP $37.000)",
+          "name": "GET /vehicle-plans/calculate?commercialValue=50000000&vehicleYear=2020&brand=Toyota",
           "request": {
             "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
             "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=30",
+              "raw": "{{baseUrl}}/vehicle-plans/calculate?commercialValue=50000000&vehicleYear=2020&brand=Toyota",
               "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
+              "path": ["vehicle-plans","calculate"],
               "query": [
-                { "key": "tripType", "value": "Nacional" },
-                { "key": "durationDays", "value": "30" }
+                { "key": "commercialValue", "value": "50000000" },
+                { "key": "vehicleYear", "value": "2020" },
+                { "key": "brand", "value": "Toyota" }
               ]
             }
           }
         },
         {
-          "name": "Calculate — Nacional (180 días — mismo precio que 30)",
+          "name": "GET /home-plans/calculate?propertyValue=200000000&constructionYear=2010&stratum=3&occupants=4&propertyType=Apartment",
           "request": {
             "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{advisorToken}}" }],
             "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=180",
+              "raw": "{{baseUrl}}/home-plans/calculate?propertyValue=200000000&constructionYear=2010&stratum=3&occupants=4&propertyType=Apartment",
               "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
+              "path": ["home-plans","calculate"],
               "query": [
-                { "key": "tripType", "value": "Nacional" },
-                { "key": "durationDays", "value": "180" }
+                { "key": "propertyValue", "value": "200000000" },
+                { "key": "constructionYear", "value": "2010" },
+                { "key": "stratum", "value": "3" },
+                { "key": "occupants", "value": "4" },
+                { "key": "propertyType", "value": "Apartment" }
               ]
-            }
-          }
-        },
-        {
-          "name": "Calculate — Internacional Europa (10 días)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Internacional&durationDays=10&continent=Europe",
-              "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
-              "query": [
-                { "key": "tripType", "value": "Internacional" },
-                { "key": "durationDays", "value": "10" },
-                { "key": "continent", "value": "Europe" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Calculate — Internacional América (30 días)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Internacional&durationDays=30&continent=America",
-              "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
-              "query": [
-                { "key": "tripType", "value": "Internacional" },
-                { "key": "durationDays", "value": "30" },
-                { "key": "continent", "value": "America" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Calculate — Error 422: duración excedida (181 días)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=181",
-              "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
-              "query": [
-                { "key": "tripType", "value": "Nacional" },
-                { "key": "durationDays", "value": "181" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Calculate — Error 422: duración inválida (0 días)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/travel-plans/calculate?tripType=Nacional&durationDays=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["travel-plans", "calculate"],
-              "query": [
-                { "key": "tripType", "value": "Nacional" },
-                { "key": "durationDays", "value": "0" }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Policies",
-      "item": [
-        {
-          "name": "List Policies",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            }
-          }
-        },
-        {
-          "name": "Get Policy by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/policies/{{policyId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies", "{{policyId}}"]
-            }
-          }
-        },
-        {
-          "name": "Create — Travel Nacional (10 días)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Carlos\",\n    \"lastName\": \"Viajero\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"987654321\",\n    \"birthDate\": \"1990-05-15\",\n    \"email\": \"carlos@ejemplo.com\",\n    \"phone\": \"+57 300 111 2222\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-10\",\n    \"endDate\": \"2026-04-19\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Nacional\",\n  \"durationDays\": 10\n}"
-            }
-          }
-        },
-        {
-          "name": "Create — Travel Internacional Europa (10 días)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"María\",\n    \"lastName\": \"Internacional\",\n    \"documentType\": \"PP\",\n    \"documentId\": \"111222333\",\n    \"birthDate\": \"1985-08-20\",\n    \"email\": \"maria@ejemplo.com\",\n    \"phone\": \"+57 301 555 6666\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-05-01\",\n    \"endDate\": \"2026-05-10\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Internacional\",\n  \"continent\": \"Europe\",\n  \"durationDays\": 10\n}"
-            }
-          }
-        },
-        {
-          "name": "Create — Travel Internacional Asia (30 días)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Pedro\",\n    \"lastName\": \"Asia\",\n    \"documentType\": \"CE\",\n    \"documentId\": \"444555666\",\n    \"birthDate\": \"1978-03-10\",\n    \"email\": \"pedro@ejemplo.com\",\n    \"phone\": \"+57 302 777 8888\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-06-01\",\n    \"endDate\": \"2026-06-30\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Internacional\",\n  \"continent\": \"Asia\",\n  \"durationDays\": 30\n}"
-            }
-          }
-        },
-        {
-          "name": "Create — Life",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Life\",\n  \"insured\": {\n    \"firstName\": \"Luis\",\n    \"lastName\": \"Vida\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"123123123\",\n    \"birthDate\": \"1980-07-25\",\n    \"email\": \"luis@ejemplo.com\",\n    \"phone\": \"+57 315 000 0002\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2027-04-01\"\n  },\n  \"insuredAmount\": 100000000,\n  \"monthlyPremium\": 250000\n}"
-            }
-          }
-        },
-        {
-          "name": "Create — Error 422: Travel duración excedida (181 días)",
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Travel\",\n  \"insured\": {\n    \"firstName\": \"Test\",\n    \"lastName\": \"Error\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"000000001\",\n    \"birthDate\": \"1990-01-01\",\n    \"email\": \"test@error.com\",\n    \"phone\": \"\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2026-10-01\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"tripType\": \"Nacional\",\n  \"durationDays\": 181\n}"
-            }
-          }
-        },
-        {
-          "name": "Activate Policy",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/policies/{{policyId}}/activate",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies", "{{policyId}}", "activate"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Health Plans",
-      "item": [
-        {
-          "name": "List Health Plans",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/health-plans",
-              "host": ["{{baseUrl}}"],
-              "path": ["health-plans"]
-            }
-          }
-        },
-        {
-          "name": "Calculate Health Plan",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/health-plans/calculate?planId=REEMPLAZA_CON_ID_REAL&birthDate=1990-01-01",
-              "host": ["{{baseUrl}}"],
-              "path": ["health-plans", "calculate"],
-              "query": [
-                { "key": "planId", "value": "REEMPLAZA_CON_ID_REAL" },
-                { "key": "birthDate", "value": "1990-01-01" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create — Health",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const res = pm.response.json();",
-                  "if (res.id) pm.collectionVariables.set('policyId', res.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": {
-              "raw": "{{baseUrl}}/policies",
-              "host": ["{{baseUrl}}"],
-              "path": ["policies"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"type\": \"Health\",\n  \"insured\": {\n    \"firstName\": \"Ana\",\n    \"lastName\": \"Salud\",\n    \"documentType\": \"CC\",\n    \"documentId\": \"555444333\",\n    \"birthDate\": \"1995-01-01\",\n    \"email\": \"ana@ejemplo.com\",\n    \"phone\": \"+57 310 000 0001\"\n  },\n  \"coveragePeriod\": {\n    \"startDate\": \"2026-04-01\",\n    \"endDate\": \"2027-04-01\"\n  },\n  \"insuredAmount\": 0,\n  \"monthlyPremium\": 0,\n  \"healthPlanId\": \"REEMPLAZA_CON_ID_REAL\"\n}"
             }
           }
         }
       ]
     }
+
   ]
 }
