@@ -1,41 +1,82 @@
 :host { display: block; }
 
-/* ── Links de navegación ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   SIDENAV — InsuraTech
+   ═══════════════════════════════════════════════════════════════ */
 
-/* Estado activo — naranja marca */
-.active-link {
-  background-color: #FFF3ED !important;
-  border-right: 3px solid #FF6B2C;
+/* ── Base de todos los ítems ──────────────────────────────────────────────── */
+a[mat-list-item] {
+  height: 48px !important;
+  border-radius: 10px;
+  margin: 2px 8px;
+  transition: background 0.15s ease;
+  position: relative;
 }
 
-.active-link .mat-icon,
-.active-link [matListItemIcon] {
-  color: #FF6B2C !important;
-}
-
-.active-link [matListItemTitle] {
-  color: #FF6B2C !important;
-  font-weight: 600;
-}
-
-/* Estado hover */
+/* ── Estado hover ─────────────────────────────────────────────────────────── */
 a[mat-list-item]:hover:not(.active-link) {
   background-color: #F5F5F5 !important;
 }
 
-/* Iconos por defecto */
-a[mat-list-item] .mat-icon {
-  color: #616161;
+a[mat-list-item]:hover:not(.active-link) .mat-icon {
+  color: #333333;
+}
+
+/* ── Estado activo ────────────────────────────────────────────────────────── */
+.active-link {
+  background-color: #FFF3ED !important;
+}
+
+/* Borde izquierdo naranja del ítem activo */
+.active-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: #FF6B2C;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Icon bubble en estado activo */
+.active-link [matListItemIcon],
+.active-link .mat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px;
+  background: rgba(255,107,44,0.15);
+  color: #FF6B2C !important;
+  font-size: 20px;
+}
+
+/* Texto en estado activo */
+.active-link [matListItemTitle] {
+  color: #FF6B2C !important;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* ── Íconos en estado inactivo ───────────────────────────────────────────── */
+a[mat-list-item]:not(.active-link) [matListItemIcon],
+a[mat-list-item]:not(.active-link) .mat-icon {
+  color: #757575;
   transition: color 0.15s ease;
+  font-size: 20px;
 }
 
-a[mat-list-item]:hover .mat-icon {
-  color: #111111;
+a[mat-list-item]:hover:not(.active-link) [matListItemIcon],
+a[mat-list-item]:hover:not(.active-link) .mat-icon {
+  color: #333333;
 }
 
-/* Texto de los links */
+/* ── Texto en estado inactivo ────────────────────────────────────────────── */
 a[mat-list-item] [matListItemTitle] {
   font-size: 14px;
   font-weight: 500;
-  color: #111111;
+  color: #333333;
+  transition: color 0.15s ease;
 }

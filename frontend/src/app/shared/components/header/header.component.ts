@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { PoliciesCoreService } from '../../../features/policies/core/service/policies.service';
 import { ClaimsCoreService } from '../../../features/claims/core/service/claims.service';
+import { NotificationsCoreService } from '../../../features/notifications/core/service/notifications.service';
+import { Notification } from '../../../features/notifications/core/models/notification.model';
 import { PolicyResponse } from '../../../features/policies/core/resource/policy-response.resource';
 import {
   PolicySearchResult,
@@ -49,10 +51,11 @@ const DOC_TYPES = ['CC', 'CE', 'TI', 'PP', 'RC'] as const;
   styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  private readonly auth        = inject(AuthService);
-  private readonly router      = inject(Router);
-  private readonly policiesSvc = inject(PoliciesCoreService);
-  private readonly claimsSvc   = inject(ClaimsCoreService);
+  private readonly auth          = inject(AuthService);
+  private readonly router        = inject(Router);
+  private readonly policiesSvc   = inject(PoliciesCoreService);
+  private readonly claimsSvc     = inject(ClaimsCoreService);
+  private readonly notifSvc      = inject(NotificationsCoreService);
 
   // ── Salida para toggle del sidenav ─────────────────────────────────────────
   readonly menuToggle = output<void>();
@@ -97,6 +100,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // ── Badge de claims pendientes (solo Líder) ────────────────────────────────
   readonly pendingCount = signal(0);
 
+  // ── Campana de notificaciones (solo Asesor) ────────────────────────────────
+  readonly notifications    = signal<Notification[]>([]);
+  readonly hasNotifications = computed(() => this.notifications().length > 0);
+
   // ── Lifecycle ──────────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.nameSubject$.pipe(
@@ -119,6 +126,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     if (this.role() === 'Leader') {
       this.loadPendingCount();
+    }
+
+    if (this.role() === 'Advisor') {
+      this.loadNotifications();
     }
   }
 
@@ -199,5 +210,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private loadPendingCount(): void {
     this.claimsSvc.getAll({ status: 'PendingApproval', page: 1, pageSize: 1 })
       .subscribe({ next: res => this.pendingCount.set(res.totalCount) });
+  }
+
+  private loadNotifications(): void {
+    this.notifSvc.getNotifications({ page: 1, pageSize: 10 })
+      .subscribe({ next: res => this.notifications.set(res.items) });
+  }
+
+  notifEventIcon(event: string): string {
+    const icons: Record<string, string> = {
+      PolicyActivated:    'check_circle',
+      PolicyExpiringSoon: 'timer',
+      ClaimRegistered:    'assignment_add',
+      ClaimStatusChanged: 'sync',
+    };
+    return icons[event] ?? 'notifications';
+  }
+
+  formatNotifDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'short',
+      hour: '2-digit', minute: '2-digit',
+    });
   }
 }

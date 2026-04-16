@@ -1,7 +1,7 @@
 <mat-toolbar class="toolbar">
 
   <!-- ── Zona izquierda: toggle + marca ──────────────────────────────────── -->
-  <button mat-icon-button (click)="menuToggle.emit()" aria-label="Toggle menu">
+  <button mat-icon-button (click)="menuToggle.emit()" aria-label="Toggle menu" class="menu-btn">
     <mat-icon>menu</mat-icon>
   </button>
   <span class="brand">Insure<span class="brand-accent">Tech</span></span>
@@ -9,90 +9,85 @@
   <!-- ── Zona central: contenido por rol ────────────────────────────────── -->
   <div class="center-zone">
 
-    <!-- ASESOR: buscador de clientes -->
+    <!-- ASESOR: search bar unificada + link Mis Clientes -->
     @if (role() === 'Advisor') {
-      <div class="search-zone">
 
-        <!-- Toggle modo búsqueda -->
-        <div class="mode-toggle">
-          <button mat-button
-                  [class.mode-active]="searchMode() === 'name'"
-                  (click)="setSearchMode('name')">
-            <mat-icon>person_search</mat-icon> Por nombre
+      <!-- Search bar unificada: toggle + campo en un solo pill -->
+      <div class="search-bar">
+
+        <!-- Tabs de modo dentro del pill -->
+        <div class="mode-tabs">
+          <button class="mode-tab" [class.mode-tab--active]="searchMode() === 'name'"
+                  (click)="setSearchMode('name')" matTooltip="Buscar por nombre o apellido">
+            <mat-icon>person_search</mat-icon>
+            <span>Nombre</span>
           </button>
-          <button mat-button
-                  [class.mode-active]="searchMode() === 'document'"
-                  (click)="setSearchMode('document')">
-            <mat-icon>badge</mat-icon> Por documento
+          <button class="mode-tab" [class.mode-tab--active]="searchMode() === 'document'"
+                  (click)="setSearchMode('document')" matTooltip="Buscar por tipo y número de documento">
+            <mat-icon>badge</mat-icon>
+            <span>Documento</span>
           </button>
         </div>
 
-        <!-- Búsqueda por nombre -->
+        <!-- Divisor vertical -->
+        <div class="bar-divider"></div>
+
+        <!-- Input por nombre -->
         @if (searchMode() === 'name') {
-          <div class="search-field-wrap">
-            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-              <mat-icon matPrefix>search</mat-icon>
-              <input matInput
-                     placeholder="Buscar por nombre o apellido..."
-                     [value]="nameQuery()"
-                     (input)="onNameInput($any($event.target).value)" />
-            </mat-form-field>
-            @if (showOverlay() || searching()) {
-              <app-search-result-overlay
-                [results]="results()"
-                [loading]="searching()"
-                (resultClick)="onResultClick($event)" />
-            }
+          <div class="bar-input-wrap">
+            <mat-icon class="bar-icon">search</mat-icon>
+            <input class="bar-input"
+                   placeholder="Buscar por nombre o apellido..."
+                   [value]="nameQuery()"
+                   (input)="onNameInput($any($event.target).value)" />
           </div>
         }
 
-        <!-- Búsqueda por documento -->
+        <!-- Input por documento -->
         @if (searchMode() === 'document') {
-          <div class="doc-search-wrap">
-            <mat-form-field appearance="outline" class="doc-type-field" subscriptSizing="dynamic">
-              <mat-select placeholder="Tipo"
-                          [value]="docType()"
-                          (valueChange)="docType.set($event)">
-                @for (t of docTypes; track t) {
-                  <mat-option [value]="t">{{ t }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            <div class="search-field-wrap">
-              <mat-form-field appearance="outline" class="doc-id-field" subscriptSizing="dynamic">
-                <input matInput
-                       placeholder="N° documento"
-                       [value]="docId()"
-                       (input)="docId.set($any($event.target).value)"
-                       (keyup.enter)="onDocumentSearch()" />
-              </mat-form-field>
-              @if (showOverlay() || searching()) {
-                <app-search-result-overlay
-                  [results]="results()"
-                  [loading]="searching()"
-                  (resultClick)="onResultClick($event)" />
+          <div class="bar-input-wrap bar-input-wrap--doc">
+            <select class="bar-select"
+                    [value]="docType()"
+                    (change)="docType.set($any($event.target).value)">
+              <option value="" disabled selected>Tipo</option>
+              @for (t of docTypes; track t) {
+                <option [value]="t">{{ t }}</option>
               }
-            </div>
-
-            <button mat-flat-button class="search-btn" (click)="onDocumentSearch()">
-              <mat-icon>search</mat-icon>
+            </select>
+            <div class="bar-divider bar-divider--sm"></div>
+            <mat-icon class="bar-icon">tag</mat-icon>
+            <input class="bar-input"
+                   placeholder="N° documento"
+                   [value]="docId()"
+                   (input)="docId.set($any($event.target).value)"
+                   (keyup.enter)="onDocumentSearch()" />
+            <button class="bar-search-btn" (click)="onDocumentSearch()" matTooltip="Buscar">
+              <mat-icon>arrow_forward</mat-icon>
             </button>
           </div>
         }
-
       </div>
 
-      <!-- Link Mis Clientes -->
-      <a mat-button routerLink="/clients" class="nav-link">
+      <!-- Overlay de resultados — fuera del pill para posicionamiento absoluto -->
+      <div class="overlay-anchor">
+        @if (showOverlay() || searching()) {
+          <app-search-result-overlay
+            [results]="results()"
+            [loading]="searching()"
+            (resultClick)="onResultClick($event)" />
+        }
+      </div>
+
+      <!-- Mis Clientes chip -->
+      <a class="clients-chip" routerLink="/clients" matTooltip="Ver lista de mis clientes">
         <mat-icon>people</mat-icon>
-        Mis Clientes
+        <span>Mis Clientes</span>
       </a>
     }
 
-    <!-- LÍDER: Mi Equipo + badge claims pendientes -->
+    <!-- LÍDER: Mi Equipo + badge claims -->
     @if (role() === 'Leader') {
-      <a mat-button routerLink="/users/team" class="nav-link">
+      <a mat-button routerLink="/users/team" class="role-link">
         <mat-icon>group</mat-icon>
         Mi Equipo
       </a>
@@ -102,14 +97,14 @@
               [matBadge]="pendingCount()"
               [matBadgeHidden]="pendingCount() === 0"
               matBadgeColor="warn"
-              class="badge-btn">
+              class="pending-btn">
         <mat-icon>assignment_late</mat-icon>
       </button>
     }
 
     <!-- ADMIN: Panel Admin -->
     @if (role() === 'Admin') {
-      <a mat-button routerLink="/users/admin" class="nav-link">
+      <a mat-button routerLink="/users/admin" class="role-link">
         <mat-icon>admin_panel_settings</mat-icon>
         Panel Admin
       </a>
@@ -119,24 +114,82 @@
 
   <span class="spacer"></span>
 
-  <!-- ── Zona derecha: avatar + menú de usuario ──────────────────────────── -->
+  <!-- ── Zona derecha: bell (Asesor) + nombre + avatar ──────────────────── -->
+
+  <!-- Campana de notificaciones — solo Asesor -->
+  @if (role() === 'Advisor') {
+    <button mat-icon-button
+            [matMenuTriggerFor]="notifMenu"
+            class="notif-btn"
+            matTooltip="Notificaciones"
+            aria-label="Notificaciones">
+      <mat-icon>notifications</mat-icon>
+      @if (hasNotifications()) {
+        <span class="notif-dot"></span>
+      }
+    </button>
+  }
+
+  <!-- Nombre del usuario visible en el header -->
+  <span class="user-name">{{ displayName() }}</span>
+
   <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-btn" aria-label="Menú de usuario">
     <span class="avatar">{{ userInitials() }}</span>
   </button>
 
-  <mat-menu #userMenu="matMenu" class="user-menu">
-    <div class="menu-header" (click)="$event.stopPropagation()">
-      <div class="menu-name">{{ displayName() }}</div>
-      <div class="menu-email">{{ currentUser()?.email }}</div>
-      <span class="role-badge">{{ roleLabel() }}</span>
+  <!-- ── Menú de notificaciones ─────────────────────────────────────────── -->
+  <mat-menu #notifMenu="matMenu" xPosition="before">
+    <div class="notif-panel-header" (click)="$event.stopPropagation()">
+      <mat-icon class="notif-panel-icon">notifications</mat-icon>
+      <span class="notif-panel-title">Notificaciones</span>
     </div>
+
     <mat-divider />
-    <button mat-menu-item routerLink="/users/profile">
-      <mat-icon>person</mat-icon>
+
+    @if (notifications().length === 0) {
+      <div class="notif-empty" (click)="$event.stopPropagation()">
+        <mat-icon>notifications_none</mat-icon>
+        <span>Sin notificaciones recientes</span>
+      </div>
+    }
+
+    @for (n of notifications().slice(0, 5); track n.id) {
+      <button mat-menu-item class="notif-item">
+        <mat-icon class="notif-event-icon">{{ notifEventIcon(n.event) }}</mat-icon>
+        <div class="notif-item-body">
+          <span class="notif-item-subject">{{ n.subject }}</span>
+          <span class="notif-item-date">{{ formatNotifDate(n.createdAt) }}</span>
+        </div>
+      </button>
+    }
+
+    <mat-divider />
+
+    <button mat-menu-item routerLink="/notifications" class="notif-see-all">
+      <mat-icon>open_in_new</mat-icon>
+      Ver todas las notificaciones
+    </button>
+  </mat-menu>
+
+  <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
+    <!-- Header con marca -->
+    <div class="dropdown-brand" (click)="$event.stopPropagation()">
+      <div class="dropdown-avatar">{{ userInitials() }}</div>
+      <div class="dropdown-info">
+        <div class="dropdown-name">{{ displayName() }}</div>
+        <div class="dropdown-email">{{ currentUser()?.email }}</div>
+        <span class="dropdown-role">{{ roleLabel() }}</span>
+      </div>
+    </div>
+
+    <mat-divider />
+
+    <button mat-menu-item routerLink="/users/profile" class="menu-action">
+      <mat-icon class="menu-icon">person_outline</mat-icon>
       Mi Perfil
     </button>
-    <button mat-menu-item (click)="logout()" class="logout-item">
-      <mat-icon>logout</mat-icon>
+    <button mat-menu-item (click)="logout()" class="menu-action menu-action--danger">
+      <mat-icon class="menu-icon">logout</mat-icon>
       Cerrar Sesión
     </button>
   </mat-menu>
