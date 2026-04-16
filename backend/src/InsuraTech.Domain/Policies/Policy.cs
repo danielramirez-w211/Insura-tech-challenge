@@ -29,6 +29,9 @@ namespace InsuraTech.Domain.Policies
         public VehiclePlanSelection? VehiclePlan { get; private set; }
         public HomePlanSelection?    HomePlan    { get; private set; }
 
+        /// <summary>Id del asesor que creó la póliza. Null si fue creada directamente por Admin/Leader.</summary>
+        public Guid? CreatedByAdvisorId { get; private set; }
+
         private readonly List<PolicyStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<PolicyStatusHistory> StatusHistory =>
             _statusHistory.AsReadOnly();
@@ -330,8 +333,8 @@ namespace InsuraTech.Domain.Policies
         public bool IsActiveOn(DateOnly date) =>
             Status == PolicyStatus.Active && Coverage.IsActive(date);
 
-
-
+        /// <summary>Registra el asesor que creó la póliza. Se invoca desde el handler tras la creación.</summary>
+        public void SetCreatedByAdvisor(Guid? advisorId) => CreatedByAdvisorId = advisorId;
 
         private void AddStatusHistory(PolicyStatus status, string notes) =>
                 _statusHistory.Add(PolicyStatusHistory.Create(Id, status, notes));

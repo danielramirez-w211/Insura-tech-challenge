@@ -8,6 +8,7 @@ namespace InsuraTech.Domain.Claims
 {
     public enum ClaimStatus
     {
+        PendingApproval = 0,
         Registered = 1,
         UnderInvestigation = 2,
         Approved = 3,

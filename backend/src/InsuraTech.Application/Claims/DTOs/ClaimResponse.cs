@@ -18,6 +18,7 @@ namespace InsuraTech.Application.Claims.DTOs
         public string Description { get; init; } = null!;
         public bool HasBeenAppealed { get; init; }
         public string? RejectionReason { get; init; }
+        public Guid? CreatedByAdvisorId { get; init; }
         public DateTime CreatedAt { get; init; }
         public DateTime? UpdatedAt { get; init; }
         public IEnumerable<ClaimStatusHistoryResponse> StatusHistory { get; init; } = [];
