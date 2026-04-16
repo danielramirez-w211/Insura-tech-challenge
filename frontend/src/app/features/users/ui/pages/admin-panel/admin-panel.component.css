@@ -1,0 +1,19 @@
+.panel-layout { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+.actions-bar { display: flex; justify-content: flex-end; }
+
+.form-card { max-width: 700px; }
+
+mat-table { width: 100%; }
+
+.chip-active {
+  background: #e8f5e9; color: #2e7d32;
+  border-radius: 12px; padding: 2px 10px;
+  font-size: 13px; font-weight: 500;
+}
+.chip-inactive {
+  background: #fce4ec; color: #c62828;
+  border-radius: 12px; padding: 2px 10px;
+  font-size: 13px; font-weight: 500;
+}
+.empty { text-align: center; padding: 48px; color: #999; font-size: 15px; }

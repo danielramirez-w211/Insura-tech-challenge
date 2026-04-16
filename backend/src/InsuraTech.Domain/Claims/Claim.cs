@@ -22,6 +22,7 @@ namespace InsuraTech.Domain.Claims
         public string Description { get; private set; } = null!;
         public bool HasBeenAppealed { get; private set; }
         public string? RejectionReason { get; private set; }
+        public Guid? CreatedByAdvisorId { get; private set; }
 
         private readonly List<ClaimStatusHistory> _statusHistory = new();
         public IReadOnlyCollection<ClaimStatusHistory> StatusHistory =>
@@ -37,7 +38,8 @@ namespace InsuraTech.Domain.Claims
         DateOnly policyEndDate,
         decimal availableInsuredAmount,
         int currentOpenClaimsCount,
-        string responsibleUser)
+        string responsibleUser,
+        Guid? createdByAdvisorId = null)
         {
             if (currentOpenClaimsCount >= MaxOpenClaimsPerPolicy)
                 throw new ClaimLimitExceededException(policyId);
@@ -59,15 +61,50 @@ namespace InsuraTech.Domain.Claims
                 ClaimedAmount = claimedAmount,
                 IncidentDate = incidentDate,
                 Description = description.Trim(),
-                Status = ClaimStatus.Registered,
+                Status = ClaimStatus.PendingApproval,
                 HasBeenAppealed = false,
+                CreatedByAdvisorId = createdByAdvisorId,
             };
 
-            claim.AddStatusHistory(ClaimStatus.Registered, responsibleUser, "Claim registered.");
+            claim.AddStatusHistory(ClaimStatus.PendingApproval, responsibleUser, "Claim pending leader approval.");
             claim.AddDomainEvent(new ClaimRegisteredEvent(
                 claim.Id, policyId, string.Empty, claimedAmount));
 
             return claim;
+        }
+
+        /// <summary>Leader approves the claim — moves from PendingApproval into the normal workflow (Registered).</summary>
+        public void ApprovePending(string responsibleUser, string? observations = null)
+        {
+            if (Status != ClaimStatus.PendingApproval)
+                throw new InvalidClaimStateException(Status.ToString(), nameof(ApprovePending));
+
+            var previous = Status;
+            Status = ClaimStatus.Registered;
+            MarkAsUpdated();
+            IncrementVersion();
+
+            AddStatusHistory(ClaimStatus.Registered, responsibleUser, observations ?? "Claim approved by leader.");
+            AddDomainEvent(new ClaimStatusChangedEvent(Id, PolicyId, previous, Status, responsibleUser, observations));
+        }
+
+        /// <summary>Leader rejects the claim — moves from PendingApproval to Rejected.</summary>
+        public void RejectPending(string reason, string responsibleUser)
+        {
+            if (Status != ClaimStatus.PendingApproval)
+                throw new InvalidClaimStateException(Status.ToString(), nameof(RejectPending));
+
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Rejection reason is required.", nameof(reason));
+
+            var previous = Status;
+            Status = ClaimStatus.Rejected;
+            RejectionReason = reason;
+            MarkAsUpdated();
+            IncrementVersion();
+
+            AddStatusHistory(ClaimStatus.Rejected, responsibleUser, reason);
+            AddDomainEvent(new ClaimStatusChangedEvent(Id, PolicyId, previous, Status, responsibleUser, reason));
         }
 
         public void StartInvestigation(string responsibleUser, string? observations = null)
@@ -160,6 +197,7 @@ namespace InsuraTech.Domain.Claims
         }
 
         public bool IsOpen() => Status is
+        ClaimStatus.PendingApproval or
         ClaimStatus.Registered or
         ClaimStatus.UnderInvestigation or
         ClaimStatus.Appealed;

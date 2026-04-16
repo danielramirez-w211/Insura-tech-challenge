@@ -7,3 +7,17 @@
 }
 .detail-item { display: flex; flex-direction: column; gap: 4px; }
 .label { font-size: 12px; color: #666; text-transform: uppercase; }
+
+.rejection-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fce4ec;
+  border-radius: 8px;
+  border-left: 4px solid #d32f2f;
+}
+.rejection-icon { color: #d32f2f; margin-top: 2px; }
+.rejection-reason .label { color: #b71c1c; }
+.rejection-reason p { margin: 4px 0 0; font-size: 14px; color: #c62828; }

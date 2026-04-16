@@ -114,6 +114,15 @@ public sealed class PolicyRepository : IPolicyRepository
         return result["seq"].AsInt64;
     }
 
+    public async Task<int> CountByAdvisorIdAsync(Guid advisorId, CancellationToken cancellationToken = default)
+    {
+        var filter = Builders<Policy>.Filter.And(
+            Builders<Policy>.Filter.Eq(p => p.CreatedByAdvisorId, advisorId),
+            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false));
+
+        return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+    }
+
     // ------------------------------------------------------------------
     private static FilterDefinition<Policy> BuildFilter(
         PolicyStatus? status, PolicyType? type, string? documentId,

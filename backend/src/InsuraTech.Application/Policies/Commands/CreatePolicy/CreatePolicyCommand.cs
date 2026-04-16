@@ -62,5 +62,8 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
         public string? HomePropertyType { get; init; }
         /// <summary>Coberturas seleccionadas como strings del enum HomeCoverage. Solo para pólizas Home.</summary>
         public IReadOnlyList<string>? HomeSelectedCoverages { get; init; }
+
+        /// <summary>Id del asesor autenticado. Se inyecta desde el controller vía JWT — no viene en el body.</summary>
+        public Guid? CreatedByAdvisorId { get; init; }
     }
 }

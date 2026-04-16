@@ -33,5 +33,8 @@ namespace InsuraTech.Domain.Interfaces
 
         Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default);
         void SetIdempotencyKey(Policy policy, string idempotencyKey);
+
+        /// <summary>Cuenta pólizas creadas por un asesor específico (para salesCount del dashboard de líder).</summary>
+        Task<int> CountByAdvisorIdAsync(Guid advisorId, CancellationToken cancellationToken = default);
     }
 }

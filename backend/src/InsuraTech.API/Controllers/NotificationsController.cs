@@ -6,9 +6,11 @@ using InsuraTech.Application.Notifications.DTOs;
 using InsuraTech.Application.Notifications.Queries.GetNotifications;
 using InsuraTech.Domain.Notifications;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class NotificationsController : ControllerBase

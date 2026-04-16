@@ -1,65 +1,97 @@
 <app-page-header title="Siniestros" />
 
-    <div class="filters">
-      <mat-form-field appearance="outline">
-        <mat-label>Estado</mat-label>
-        <mat-select [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()">
-          <mat-option [value]="undefined">Todos</mat-option>
-          @for (s of statusOptions; track s) {
-            <mat-option [value]="s">{{ s | statusLabel }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
+<div class="filters">
+  <mat-form-field appearance="outline">
+    <mat-label>Estado</mat-label>
+    <mat-select [(ngModel)]="filters.status" (ngModelChange)="onFilterChange()">
+      <mat-option [value]="undefined">Todos</mat-option>
+      @for (s of statusOptions; track s) {
+        <mat-option [value]="s">{{ s | statusLabel }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
 
-    @if (service.loading()) {
-      <app-loading-spinner [loading]="true" />
-    } @else {
-      <mat-table [dataSource]="dataSource">
-        <ng-container matColumnDef="claimNumber">
-          <mat-header-cell *matHeaderCellDef>Número</mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.claimNumber }}</mat-cell>
-        </ng-container>
+@if (service.loading()) {
+  <app-loading-spinner [loading]="true" />
+} @else {
+  <mat-table [dataSource]="dataSource">
+    <ng-container matColumnDef="claimNumber">
+      <mat-header-cell *matHeaderCellDef>Número</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.claimNumber }}</mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="policy">
-          <mat-header-cell *matHeaderCellDef>Póliza</mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.policyNumber }}</mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="policy">
+      <mat-header-cell *matHeaderCellDef>Póliza</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.policyNumber }}</mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="description">
-          <mat-header-cell *matHeaderCellDef>Descripción</mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.description }}</mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="description">
+      <mat-header-cell *matHeaderCellDef>Descripción</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.description }}</mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="claimAmount">
-          <mat-header-cell *matHeaderCellDef>Monto</mat-header-cell>
-          <mat-cell *matCellDef="let row">{{ row.claimAmount | currency:'USD' }}</mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="claimAmount">
+      <mat-header-cell *matHeaderCellDef>Monto</mat-header-cell>
+      <mat-cell *matCellDef="let row">{{ row.claimAmount | currency:'USD' }}</mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="status">
-          <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            <app-status-badge [status]="row.status" />
-          </mat-cell>
-        </ng-container>
+    <ng-container matColumnDef="status">
+      <mat-header-cell *matHeaderCellDef>Estado</mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <app-status-badge [status]="row.status" />
+      </mat-cell>
+    </ng-container>
 
-        <ng-container matColumnDef="actions">
-          <mat-header-cell *matHeaderCellDef></mat-header-cell>
-          <mat-cell *matCellDef="let row">
-            <button mat-icon-button (click)="router.navigate(['/claims', row.id])" aria-label="Ver detalle">
-              <mat-icon>visibility</mat-icon>
+    <ng-container matColumnDef="actions">
+      <mat-header-cell *matHeaderCellDef></mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <!-- Ver detalle -->
+        <button mat-icon-button matTooltip="Ver detalle"
+                (click)="router.navigate(['/claims', row.id])">
+          <mat-icon>visibility</mat-icon>
+        </button>
+
+        <!-- Aprobar / Rechazar — solo Leader en PendingApproval -->
+        @if (isLeader && row.status === 'PendingApproval') {
+          @if (rejectingId() === row.id) {
+            <!-- Inline: razón de rechazo -->
+            <mat-form-field appearance="outline" class="reject-input">
+              <mat-label>Motivo de rechazo</mat-label>
+              <input matInput [value]="rejectReason()"
+                     (input)="rejectReason.set($any($event.target).value)"
+                     (keyup.enter)="confirmReject(row)" />
+            </mat-form-field>
+            <button mat-icon-button color="warn" matTooltip="Confirmar rechazo"
+                    [disabled]="!rejectReason().trim()"
+                    (click)="confirmReject(row)">
+              <mat-icon>check</mat-icon>
             </button>
-          </mat-cell>
-        </ng-container>
+            <button mat-icon-button matTooltip="Cancelar" (click)="cancelReject()">
+              <mat-icon>close</mat-icon>
+            </button>
+          } @else {
+            <button mat-icon-button color="primary" matTooltip="Aprobar"
+                    (click)="approvePending(row)">
+              <mat-icon>check_circle</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" matTooltip="Rechazar"
+                    (click)="startReject(row)">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          }
+        }
+      </mat-cell>
+    </ng-container>
 
-        <mat-header-row *matHeaderRowDef="displayedColumns" />
-        <mat-row *matRowDef="let row; columns: displayedColumns;" />
-      </mat-table>
+    <mat-header-row *matHeaderRowDef="displayedColumns" />
+    <mat-row *matRowDef="let row; columns: displayedColumns;" />
+  </mat-table>
 
-      <mat-paginator
-        [length]="service.totalCount()"
-        [pageSize]="filters.pageSize"
-        [pageSizeOptions]="[10, 25, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons />
-    }
+  <mat-paginator
+    [length]="service.totalCount()"
+    [pageSize]="filters.pageSize"
+    [pageSizeOptions]="[10, 25, 50]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons />
+}

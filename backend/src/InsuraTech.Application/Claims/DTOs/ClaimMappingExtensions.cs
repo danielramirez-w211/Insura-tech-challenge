@@ -20,9 +20,10 @@ namespace InsuraTech.Application.Claims.DTOs
                 ApprovedAmount = claim.ApprovedAmount,
                 IncidentDate = claim.IncidentDate,
                 Description = claim.Description,
-                HasBeenAppealed = claim.HasBeenAppealed,
-                RejectionReason = claim.RejectionReason,
-                CreatedAt = claim.CreatedAt,
+                HasBeenAppealed    = claim.HasBeenAppealed,
+                RejectionReason    = claim.RejectionReason,
+                CreatedByAdvisorId = claim.CreatedByAdvisorId,
+                CreatedAt          = claim.CreatedAt,
                 UpdatedAt = claim.UpdatedAt,
                 StatusHistory = claim.StatusHistory.Select(h => new ClaimStatusHistoryResponse
                 {

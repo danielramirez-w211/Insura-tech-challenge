@@ -1,5 +1,7 @@
 export type ClaimStatus =
+  | 'PendingApproval'
   | 'Registered'
+  | 'UnderInvestigation'
   | 'Approved'
   | 'Rejected'
   | 'Appealed'
@@ -22,6 +24,8 @@ export interface Claim {
   status: ClaimStatus;
   statusHistory: ClaimStatusHistory[];
   createdAt: string;
+  createdByAdvisorId?: string;
+  rejectionReason?: string;
 }
 
 export interface ClaimFilters {

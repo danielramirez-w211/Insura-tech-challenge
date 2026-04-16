@@ -53,7 +53,8 @@ namespace InsuraTech.Application.Claims.Commands.RegisterClaim
                 policy.Coverage.EndDate,
                 policy.AvailableInsuredAmount,
                 openClaimsCount,
-                request.ResponsibleUser);
+                request.ResponsibleUser,
+                request.CreatedByAdvisorId);
 
             await _claimRepository.AddAsync(claim, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

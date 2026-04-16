@@ -1,11 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatButtonModule,
     MatCardModule,
     MatIconModule,
+    MatProgressSpinnerModule,
   ],
   template: `
     <div class="login-container">
@@ -29,26 +33,43 @@ import { MatIconModule } from '@angular/material/icon';
           </mat-card-title>
           <mat-card-subtitle>Sistema de Gestión de Seguros</mat-card-subtitle>
         </mat-card-header>
+
         <mat-card-content>
-          <form [formGroup]="form">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Email</mat-label>
               <input matInput formControlName="email" type="email" autocomplete="email" />
             </mat-form-field>
+
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Contraseña</mat-label>
-              <input matInput formControlName="password" type="password" autocomplete="current-password" />
+              <input matInput formControlName="password"
+                     [type]="showPassword() ? 'text' : 'password'"
+                     autocomplete="current-password" />
+              <button mat-icon-button matSuffix type="button"
+                      (click)="showPassword.set(!showPassword())">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
             </mat-form-field>
+
+            @if (errorMessage()) {
+              <p class="error-msg">{{ errorMessage() }}</p>
+            }
+
+            <mat-card-actions>
+              <button mat-raised-button color="primary" class="full-width"
+                      type="submit"
+                      [disabled]="form.invalid || loading()">
+                @if (loading()) {
+                  <mat-spinner diameter="20" />
+                  Ingresando...
+                } @else {
+                  Iniciar Sesión
+                }
+              </button>
+            </mat-card-actions>
           </form>
         </mat-card-content>
-        <mat-card-actions>
-          <button mat-raised-button color="primary" class="full-width" [disabled]="form.invalid">
-            Iniciar Sesión
-          </button>
-        </mat-card-actions>
-        <mat-card-footer>
-          <p class="hint">Autenticación disponible en SPEC-003</p>
-        </mat-card-footer>
       </mat-card>
     </div>
   `,
@@ -57,21 +78,52 @@ import { MatIconModule } from '@angular/material/icon';
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 70vh;
+      min-height: 100vh;
+      background: #f5f5f5;
     }
     .login-card { width: 100%; max-width: 420px; padding: 16px; }
     mat-card-header { margin-bottom: 16px; }
     mat-card-title { display: flex; align-items: center; gap: 8px; font-size: 22px; }
     .full-width { width: 100%; }
-    mat-card-actions { padding: 0 16px 16px; }
-    .hint { text-align: center; color: #999; font-size: 12px; padding: 8px; }
+    mat-card-actions { padding: 0 0 8px; }
+    .error-msg { color: #f44336; font-size: 13px; margin: 0 0 8px; text-align: center; }
   `],
 })
 export class LoginComponent {
-  private fb = inject(FormBuilder);
+  private auth   = inject(AuthService);
+  private router = inject(Router);
+  private fb     = inject(FormBuilder);
+
+  loading      = signal(false);
+  showPassword = signal(false);
+  errorMessage = signal('');
 
   form = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
+    email:    ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
+
+  onSubmit(): void {
+    if (this.form.invalid || this.loading()) return;
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    const { email, password } = this.form.value;
+
+    this.auth.login(email!, password!).subscribe({
+      next: (res) => {
+        this.loading.set(false);
+        const destination =
+          res.role === 'Admin'   ? '/users/admin' :
+          res.role === 'Leader'  ? '/users/team'  :
+                                   '/dashboard';
+        this.router.navigate([destination]);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.errorMessage.set('Email o contraseña incorrectos.');
+      },
+    });
+  }
 }

@@ -1,5 +1,6 @@
 ﻿namespace InsuraTech.API.Controllers;
 
+using System.Security.Claims;
 using InsuraTech.API.Models;
 using InsuraTech.Application.Claims.DTOs;
 using InsuraTech.Application.Claims.Queries.GetClaimsByPolicy;
@@ -14,19 +15,23 @@ using InsuraTech.Application.Policies.Queries.GetPolicyById;
 using InsuraTech.Application.Common.Models;
 using InsuraTech.Domain.Policies;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class PoliciesController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public PoliciesController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    public PoliciesController(IMediator mediator) => _mediator = mediator;
+
+    private Guid?  CurrentAdvisorId =>
+        User.FindFirstValue(ClaimTypes.Role) == "Advisor"
+            ? Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+            : null;
 
     /// <summary>Creates a new insurance policy.</summary>
     [HttpPost]
@@ -41,6 +46,7 @@ public sealed class PoliciesController : ControllerBase
         var command = new CreatePolicyCommand
         {
             IdempotencyKey      = idempotencyKey ?? Guid.NewGuid().ToString(),
+            CreatedByAdvisorId  = CurrentAdvisorId,
             Type                = request.Type,
             InsuredFirstName    = request.Insured.FirstName,
             InsuredLastName     = request.Insured.LastName,

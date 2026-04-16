@@ -39,6 +39,16 @@ export class ClaimsCoreService {
     return this.http.put<Claim>(`${this.baseUrl}/${id}/reject`, request);
   }
 
+  /** PATCH — aprueba un claim en estado PendingApproval (flujo Líder) */
+  approvePending(id: string) {
+    return this.http.patch<Claim>(`${this.baseUrl}/${id}/approve`, {});
+  }
+
+  /** PATCH — rechaza un claim en estado PendingApproval con motivo (flujo Líder) */
+  rejectPending(id: string, reason: string) {
+    return this.http.patch<Claim>(`${this.baseUrl}/${id}/reject`, { reason });
+  }
+
   appeal(id: string, request: ClaimActionRequest) {
     return this.http.put<Claim>(`${this.baseUrl}/${id}/appeal`, request);
   }

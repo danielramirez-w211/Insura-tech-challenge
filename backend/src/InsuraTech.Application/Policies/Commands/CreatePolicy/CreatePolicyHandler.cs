@@ -130,6 +130,9 @@ namespace InsuraTech.Application.Policies.Commands.CreatePolicy
                     request.MonthlyPremium, request.InsuredAmount);
             }
 
+            if (request.CreatedByAdvisorId.HasValue)
+                policy.SetCreatedByAdvisor(request.CreatedByAdvisorId.Value);
+
             await _policyRepository.AddAsync(policy, cancellationToken);
             _policyRepository.SetIdempotencyKey(policy, request.IdempotencyKey);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
