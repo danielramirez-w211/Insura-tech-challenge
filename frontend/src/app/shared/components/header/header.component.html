@@ -1,0 +1,144 @@
+<mat-toolbar class="toolbar">
+
+  <!-- ── Zona izquierda: toggle + marca ──────────────────────────────────── -->
+  <button mat-icon-button (click)="menuToggle.emit()" aria-label="Toggle menu">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="brand">Insure<span class="brand-accent">Tech</span></span>
+
+  <!-- ── Zona central: contenido por rol ────────────────────────────────── -->
+  <div class="center-zone">
+
+    <!-- ASESOR: buscador de clientes -->
+    @if (role() === 'Advisor') {
+      <div class="search-zone">
+
+        <!-- Toggle modo búsqueda -->
+        <div class="mode-toggle">
+          <button mat-button
+                  [class.mode-active]="searchMode() === 'name'"
+                  (click)="setSearchMode('name')">
+            <mat-icon>person_search</mat-icon> Por nombre
+          </button>
+          <button mat-button
+                  [class.mode-active]="searchMode() === 'document'"
+                  (click)="setSearchMode('document')">
+            <mat-icon>badge</mat-icon> Por documento
+          </button>
+        </div>
+
+        <!-- Búsqueda por nombre -->
+        @if (searchMode() === 'name') {
+          <div class="search-field-wrap">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+              <mat-icon matPrefix>search</mat-icon>
+              <input matInput
+                     placeholder="Buscar por nombre o apellido..."
+                     [value]="nameQuery()"
+                     (input)="onNameInput($any($event.target).value)" />
+            </mat-form-field>
+            @if (showOverlay() || searching()) {
+              <app-search-result-overlay
+                [results]="results()"
+                [loading]="searching()"
+                (resultClick)="onResultClick($event)" />
+            }
+          </div>
+        }
+
+        <!-- Búsqueda por documento -->
+        @if (searchMode() === 'document') {
+          <div class="doc-search-wrap">
+            <mat-form-field appearance="outline" class="doc-type-field" subscriptSizing="dynamic">
+              <mat-select placeholder="Tipo"
+                          [value]="docType()"
+                          (valueChange)="docType.set($event)">
+                @for (t of docTypes; track t) {
+                  <mat-option [value]="t">{{ t }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <div class="search-field-wrap">
+              <mat-form-field appearance="outline" class="doc-id-field" subscriptSizing="dynamic">
+                <input matInput
+                       placeholder="N° documento"
+                       [value]="docId()"
+                       (input)="docId.set($any($event.target).value)"
+                       (keyup.enter)="onDocumentSearch()" />
+              </mat-form-field>
+              @if (showOverlay() || searching()) {
+                <app-search-result-overlay
+                  [results]="results()"
+                  [loading]="searching()"
+                  (resultClick)="onResultClick($event)" />
+              }
+            </div>
+
+            <button mat-flat-button class="search-btn" (click)="onDocumentSearch()">
+              <mat-icon>search</mat-icon>
+            </button>
+          </div>
+        }
+
+      </div>
+
+      <!-- Link Mis Clientes -->
+      <a mat-button routerLink="/clients" class="nav-link">
+        <mat-icon>people</mat-icon>
+        Mis Clientes
+      </a>
+    }
+
+    <!-- LÍDER: Mi Equipo + badge claims pendientes -->
+    @if (role() === 'Leader') {
+      <a mat-button routerLink="/users/team" class="nav-link">
+        <mat-icon>group</mat-icon>
+        Mi Equipo
+      </a>
+      <button mat-icon-button
+              routerLink="/claims"
+              matTooltip="Claims pendientes de aprobación"
+              [matBadge]="pendingCount()"
+              [matBadgeHidden]="pendingCount() === 0"
+              matBadgeColor="warn"
+              class="badge-btn">
+        <mat-icon>assignment_late</mat-icon>
+      </button>
+    }
+
+    <!-- ADMIN: Panel Admin -->
+    @if (role() === 'Admin') {
+      <a mat-button routerLink="/users/admin" class="nav-link">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Panel Admin
+      </a>
+    }
+
+  </div>
+
+  <span class="spacer"></span>
+
+  <!-- ── Zona derecha: avatar + menú de usuario ──────────────────────────── -->
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-btn" aria-label="Menú de usuario">
+    <span class="avatar">{{ userInitials() }}</span>
+  </button>
+
+  <mat-menu #userMenu="matMenu" class="user-menu">
+    <div class="menu-header" (click)="$event.stopPropagation()">
+      <div class="menu-name">{{ displayName() }}</div>
+      <div class="menu-email">{{ currentUser()?.email }}</div>
+      <span class="role-badge">{{ roleLabel() }}</span>
+    </div>
+    <mat-divider />
+    <button mat-menu-item routerLink="/users/profile">
+      <mat-icon>person</mat-icon>
+      Mi Perfil
+    </button>
+    <button mat-menu-item (click)="logout()" class="logout-item">
+      <mat-icon>logout</mat-icon>
+      Cerrar Sesión
+    </button>
+  </mat-menu>
+
+</mat-toolbar>

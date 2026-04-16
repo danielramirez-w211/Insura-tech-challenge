@@ -31,9 +31,9 @@ public sealed class GetPoliciesHandlerTests
     {
         // GIVEN
         var policy = BuildActivePolicy();
-        _policyRepository.GetAllAsync(null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _policyRepository.GetAllAsync(null, null, null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
             .Returns(new[] { policy });
-        _policyRepository.CountAsync(null, null, null, null, null, Arg.Any<CancellationToken>())
+        _policyRepository.CountAsync(null, null, null, null, null, null, null, Arg.Any<CancellationToken>())
             .Returns(1);
 
         // WHEN
@@ -49,9 +49,9 @@ public sealed class GetPoliciesHandlerTests
     public async Task Handle_WhenNoPoliciesExist_ShouldReturnEmptyPagedResult()
     {
         // GIVEN
-        _policyRepository.GetAllAsync(null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _policyRepository.GetAllAsync(null, null, null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
             .Returns(Array.Empty<Policy>());
-        _policyRepository.CountAsync(null, null, null, null, null, Arg.Any<CancellationToken>())
+        _policyRepository.CountAsync(null, null, null, null, null, null, null, Arg.Any<CancellationToken>())
             .Returns(0);
 
         // WHEN
@@ -67,9 +67,9 @@ public sealed class GetPoliciesHandlerTests
     public async Task Handle_ShouldCallGetAllAndCount()
     {
         // GIVEN
-        _policyRepository.GetAllAsync(null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
+        _policyRepository.GetAllAsync(null, null, null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>())
             .Returns(Array.Empty<Policy>());
-        _policyRepository.CountAsync(null, null, null, null, null, Arg.Any<CancellationToken>())
+        _policyRepository.CountAsync(null, null, null, null, null, null, null, Arg.Any<CancellationToken>())
             .Returns(0);
 
         // WHEN
@@ -77,8 +77,8 @@ public sealed class GetPoliciesHandlerTests
 
         // THEN
         await _policyRepository.Received(1)
-            .GetAllAsync(null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>());
+            .GetAllAsync(null, null, null, null, null, null, null, 1, 10, Arg.Any<CancellationToken>());
         await _policyRepository.Received(1)
-            .CountAsync(null, null, null, null, null, Arg.Any<CancellationToken>());
+            .CountAsync(null, null, null, null, null, null, null, Arg.Any<CancellationToken>());
     }
 }

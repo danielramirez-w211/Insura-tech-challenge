@@ -12,20 +12,24 @@ namespace InsuraTech.Domain.Interfaces
         Task<Policy?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<Policy?> GetByNumberAsync(string policyNumber, CancellationToken cancellationToken = default);
         Task<IEnumerable<Policy>> GetAllAsync(
-        PolicyStatus? status,
-        PolicyType? type,
-        string? documentId,
-        DateOnly? startDate,
-        DateOnly? endDate,
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken = default);
+            PolicyStatus? status,
+            PolicyType? type,
+            string? documentId,
+            DateOnly? startDate,
+            DateOnly? endDate,
+            string? insuredSearch,
+            string? insuredDocumentType,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
         Task<int> CountAsync(
             PolicyStatus? status,
             PolicyType? type,
             string? documentId,
             DateOnly? startDate,
             DateOnly? endDate,
+            string? insuredSearch,
+            string? insuredDocumentType,
             CancellationToken cancellationToken = default);
         Task AddAsync(Policy policy, CancellationToken cancellationToken = default);
         Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default);
@@ -36,5 +40,16 @@ namespace InsuraTech.Domain.Interfaces
 
         /// <summary>Cuenta pólizas creadas por un asesor específico (para salesCount del dashboard de líder).</summary>
         Task<int> CountByAdvisorIdAsync(Guid advisorId, CancellationToken cancellationToken = default);
+
+        /// <summary>Devuelve clientes únicos (agrupados por documentId) de las pólizas del asesor.</summary>
+        Task<IEnumerable<ClientSummaryProjection>> GetMyClientsAsync(Guid advisorId, CancellationToken cancellationToken = default);
     }
+
+    public sealed record ClientSummaryProjection(
+        string DocumentId,
+        string DocumentType,
+        string FirstName,
+        string LastName,
+        string CityName,
+        int PolicyCount);
 }
