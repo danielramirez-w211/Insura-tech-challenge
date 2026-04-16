@@ -157,6 +157,7 @@
       <button mat-menu-item class="notif-item">
         <mat-icon class="notif-event-icon">{{ notifEventIcon(n.event) }}</mat-icon>
         <div class="notif-item-body">
+          <span class="notif-item-subject">{{ n.recipientName }}</span>
           <span class="notif-item-subject">{{ n.subject }}</span>
           <span class="notif-item-date">{{ formatNotifDate(n.createdAt) }}</span>
         </div>
