@@ -5,6 +5,7 @@ using InsuraTech.Domain.Policies;
 using InsuraTech.Domain.Policies.HealthPlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using InsuraTech.Domain.Policies.ValueObjects;
+using InsuraTech.Domain.Users;
 using MediatR;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -24,6 +25,7 @@ public sealed class MongoDbContext
     public IMongoCollection<Notification> Notifications => _database.GetCollection<Notification>("notifications");
     public IMongoCollection<BsonDocument> PolicyIdempotencyKeys => _database.GetCollection<BsonDocument>("policy_idempotency_keys");
     public IMongoCollection<BsonDocument> Counters => _database.GetCollection<BsonDocument>("counters");
+    public IMongoCollection<User> Users => _database.GetCollection<User>("users");
 
     public IMongoClient Client { get; }
 
@@ -61,6 +63,13 @@ public sealed class MongoDbContext
         await PolicyIdempotencyKeys.Indexes.CreateOneAsync(
             new CreateIndexModel<BsonDocument>(
                 new BsonDocument("key", 1),
+                new CreateIndexOptions { Unique = true }),
+            cancellationToken: CancellationToken.None);
+
+        // Users: unique index on email
+        await Users.Indexes.CreateOneAsync(
+            new CreateIndexModel<User>(
+                Builders<User>.IndexKeys.Ascending(u => u.Email),
                 new CreateIndexOptions { Unique = true }),
             cancellationToken: CancellationToken.None);
     }
@@ -206,6 +215,29 @@ public sealed class MongoDbContext
 
             // ---- Notification ----
             BsonClassMap.RegisterClassMap<Notification>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
+            });
+
+            // ---- UserProfile ----
+            BsonClassMap.RegisterClassMap<UserProfile>(cm =>
+            {
+                cm.MapProperty(p => p.FirstName);
+                cm.MapProperty(p => p.LastName);
+                cm.MapProperty(p => p.Nationality);
+                cm.MapProperty(p => p.BirthDate);
+                cm.MapProperty(p => p.YearsInCompany);
+                cm.MapProperty(p => p.PhotoUrl);
+                cm.MapProperty(p => p.OfficeLocation);
+                cm.MapProperty(p => p.WorkSchedule);
+                cm.MapCreator(p => new UserProfile(
+                    p.FirstName, p.LastName, p.Nationality, p.BirthDate,
+                    p.YearsInCompany, p.PhotoUrl, p.OfficeLocation, p.WorkSchedule));
+            });
+
+            // ---- User ----
+            BsonClassMap.RegisterClassMap<User>(cm =>
             {
                 cm.AutoMap();
                 cm.SetIgnoreExtraElements(true);

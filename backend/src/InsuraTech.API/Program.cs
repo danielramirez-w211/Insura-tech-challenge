@@ -1,8 +1,12 @@
+using System.Text;
 using InsuraTech.API.Middleware;
 using InsuraTech.Application;
+using InsuraTech.Domain.Users;
 using InsuraTech.Infrastructure;
 using InsuraTech.Infrastructure.Persistence;
 using InsuraTech.Infrastructure.Persistence.Seeds;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +14,28 @@ var builder = WebApplication.CreateBuilder(args);
 // ─── Capas ────────────────────────────────────────────────────────────────────
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// ─── JWT Authentication ────────────────────────────────────────────────────────
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("Jwt:Secret not configured.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer           = true,
+            ValidIssuer              = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience         = true,
+            ValidAudience            = builder.Configuration["Jwt:Audience"],
+            ValidateLifetime         = true,
+            ClockSkew                = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
@@ -38,11 +64,22 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Sistema de Gestión de Pólizas y Siniestros — InsuraTech S.A."
     });
 
+    // JWT Bearer en Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.Http,
+        Scheme       = "Bearer",
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Ingresa el token JWT. Ejemplo: Bearer eyJ..."
+    });
+
     c.AddSecurityDefinition("Idempotency-Key", new OpenApiSecurityScheme
     {
-        Name = "Idempotency-Key",
-        Type = SecuritySchemeType.ApiKey,
-        In = ParameterLocation.Header,
+        Name        = "Idempotency-Key",
+        Type        = SecuritySchemeType.ApiKey,
+        In          = ParameterLocation.Header,
         Description = "Idempotency key for safe retries on POST requests."
     });
 
@@ -67,9 +104,11 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
-// ─── Ensure MongoDB indexes on startup ────────────────────────────────────────
+// ─── Startup: indexes + seeds ──────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var ctx    = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
@@ -79,6 +118,11 @@ using (var scope = app.Services.CreateScope())
     var databaseName = builder.Configuration["MongoDb:DatabaseName"] ?? "InsuraTechDb";
     var database     = client.GetDatabase(databaseName);
     await CitiesSeed.SeedAsync(database);
+
+    var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+    var hasher   = scope.ServiceProvider.GetRequiredService<InsuraTech.Application.Auth.Services.IPasswordHasher>();
+    var logger   = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await AdminSeed.SeedAsync(userRepo, hasher, logger);
 }
 
 await app.RunAsync();

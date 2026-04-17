@@ -1,0 +1,478 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER — InsuraTech
+   Paleta: #111111 (negro marca) · #FF6B2C (naranja) · #1E1E1E (hover fondo)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Toolbar base ──────────────────────────────────────────────────────────── */
+.toolbar {
+  position: fixed;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 68px;
+  background-color: #111111 !important;
+  color: #ffffff !important;
+  /* Separador sutil inferior */
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  gap: 8px;
+}
+
+/* ── Botón hamburguesa ────────────────────────────────────────────────────── */
+.menu-btn {
+  color: rgba(255,255,255,0.75) !important;
+  transition: color 0.15s;
+}
+.menu-btn:hover { color: #ffffff !important; }
+
+/* ── Marca ──────────────────────────────────────────────────────────────────── */
+.brand {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin-left: 4px;
+  color: #ffffff;
+  white-space: nowrap;
+  user-select: none;
+}
+.brand-accent { color: #FF6B2C; }
+
+/* ── Zona central ───────────────────────────────────────────────────────────── */
+.center-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  margin: 0 20px;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SEARCH BAR UNIFICADA — un solo pill con toggle + input integrados
+   ══════════════════════════════════════════════════════════════════ */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  height: 40px;
+  overflow: visible;
+  transition: border-color 0.2s, background 0.2s;
+  flex: 1;
+  max-width: 580px;
+}
+
+.search-bar:focus-within {
+  border-color: rgba(255,107,44,0.5);
+  background: rgba(255,255,255,0.10);
+}
+
+/* ── Mode tabs dentro del pill ───────────────────────────────────────────── */
+.mode-tabs {
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 10px;
+  height: 32px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.mode-tab mat-icon {
+  font-size: 15px;
+  height: 15px;
+  width: 15px;
+  line-height: 15px;
+}
+
+.mode-tab:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+}
+
+.mode-tab--active {
+  background: rgba(255,107,44,0.18) !important;
+  color: #FF6B2C !important;
+}
+
+/* ── Divisor vertical ────────────────────────────────────────────────────── */
+.bar-divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,0.12);
+  flex-shrink: 0;
+}
+.bar-divider--sm { height: 18px; }
+
+/* ── Input area ──────────────────────────────────────────────────────────── */
+.bar-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  padding: 0 12px;
+  min-width: 0;
+}
+
+.bar-input-wrap--doc {
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.bar-icon {
+  font-size: 17px;
+  height: 17px;
+  width: 17px;
+  line-height: 17px;
+  color: rgba(255,255,255,0.4);
+  flex-shrink: 0;
+}
+
+.bar-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.bar-input::placeholder { color: rgba(255,255,255,0.38); }
+
+/* Select nativo de tipo de documento */
+.bar-select {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 56px;
+}
+
+.bar-select option {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+/* Botón flecha de búsqueda por documento */
+.bar-search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #FF6B2C;
+  color: #ffffff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.bar-search-btn:hover { background: #e55a1c; }
+.bar-search-btn mat-icon { font-size: 16px; height: 16px; width: 16px; line-height: 16px; }
+
+/* ── Overlay anchor ──────────────────────────────────────────────────────── */
+.overlay-anchor {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 580px;
+  max-width: 580px;
+  z-index: 1200;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   "MIS CLIENTES" CHIP
+   ══════════════════════════════════════════════════════════════════ */
+.clients-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 36px;
+  border: 1.5px solid rgba(255,107,44,0.45);
+  border-radius: 100px;
+  background: rgba(255,107,44,0.08);
+  color: rgba(255,255,255,0.85);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.clients-chip mat-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  line-height: 16px;
+  color: #FF6B2C;
+}
+.clients-chip:hover {
+  background: rgba(255,107,44,0.18);
+  border-color: #FF6B2C;
+  color: #ffffff;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   LINKS DE ROL (Líder / Admin)
+   ══════════════════════════════════════════════════════════════════ */
+.role-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.8) !important;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 36px;
+  transition: background 0.15s, color 0.15s;
+}
+.role-link mat-icon { font-size: 18px; color: rgba(255,255,255,0.6); }
+.role-link:hover {
+  background: rgba(255,255,255,0.08) !important;
+  color: #ffffff !important;
+}
+
+.pending-btn { color: rgba(255,255,255,0.8) !important; }
+
+/* ── Spacer ─────────────────────────────────────────────────────────────────── */
+.spacer { flex: 1; }
+
+/* ── Campana de notificaciones ──────────────────────────────────────────────── */
+.notif-btn {
+  position: relative;
+  color: rgba(255,255,255,0.75) !important;
+  transition: color 0.15s;
+  margin-right: 2px;
+}
+.notif-btn:hover { color: #ffffff !important; }
+
+/* Punto rojo indicador — sin número */
+.notif-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f44336;
+  border: 2px solid #111111;
+  pointer-events: none;
+}
+
+/* ── Panel de notificaciones (dropdown) ─────────────────────────────────────── */
+.notif-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px 12px;
+  min-width: 320px;
+  pointer-events: none;
+}
+.notif-panel-icon { color: #FF6B2C; font-size: 20px; }
+.notif-panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111111;
+  letter-spacing: 0.2px;
+}
+
+.notif-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 24px 18px;
+  color: #999;
+  font-size: 13px;
+  pointer-events: none;
+}
+.notif-empty mat-icon { font-size: 32px; color: #ccc; }
+
+.notif-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px;
+  padding: 10px 16px !important;
+  height: auto !important;
+  min-height: 52px;
+}
+.notif-event-icon {
+  font-size: 20px;
+  color: #FF6B2C;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.notif-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.notif-item-subject {
+  font-size: 13px;
+  font-weight: 500;
+  color: #222;
+  white-space: normal;
+  line-height: 1.3;
+}
+.notif-item-date {
+  font-size: 11px;
+  color: #999;
+}
+
+.notif-see-all {
+  font-size: 13px !important;
+  color: #FF6B2C !important;
+  font-weight: 500 !important;
+}
+.notif-see-all mat-icon { color: #FF6B2C; font-size: 16px; }
+
+/* ── Nombre del usuario ─────────────────────────────────────────────────────── */
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+  margin-right: 8px;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AVATAR
+   ══════════════════════════════════════════════════════════════════ */
+.avatar-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  transition: box-shadow 0.2s;
+}
+.avatar-btn:hover {
+  box-shadow: 0 0 0 2.5px #FF6B2C;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B2C 0%, #e04e14 100%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MENÚ DESPLEGABLE DE USUARIO
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Header de marca dentro del dropdown */
+.dropdown-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 14px;
+  min-width: 240px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2218 100%);
+  border-bottom: 2px solid #FF6B2C;
+  pointer-events: none;
+}
+
+.dropdown-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF6B2C 0%, #e04e14 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.dropdown-info { flex: 1; min-width: 0; }
+
+.dropdown-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-email {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-role {
+  display: inline-block;
+  margin-top: 6px;
+  background: rgba(255,107,44,0.2);
+  color: #FF6B2C;
+  border: 1px solid rgba(255,107,44,0.35);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Ítems del menú */
+.menu-action {
+  font-size: 14px;
+  color: #333 !important;
+  transition: background 0.15s;
+}
+.menu-action .menu-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  color: #555;
+}
+.menu-action:hover { background: #f9f9f9 !important; }
+
+.menu-action--danger { color: #d32f2f !important; }
+.menu-action--danger .menu-icon { color: #d32f2f !important; }
+.menu-action--danger:hover { background: #fef2f2 !important; }

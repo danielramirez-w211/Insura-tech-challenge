@@ -1,0 +1,198 @@
+<mat-toolbar class="toolbar">
+
+  <!-- ── Zona izquierda: toggle + marca ──────────────────────────────────── -->
+  <button mat-icon-button (click)="menuToggle.emit()" aria-label="Toggle menu" class="menu-btn">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <span class="brand">Insure<span class="brand-accent">Tech</span></span>
+
+  <!-- ── Zona central: contenido por rol ────────────────────────────────── -->
+  <div class="center-zone">
+
+    <!-- ASESOR: search bar unificada + link Mis Clientes -->
+    @if (role() === 'Advisor') {
+
+      <!-- Search bar unificada: toggle + campo en un solo pill -->
+      <div class="search-bar">
+
+        <!-- Tabs de modo dentro del pill -->
+        <div class="mode-tabs">
+          <button class="mode-tab" [class.mode-tab--active]="searchMode() === 'name'"
+                  (click)="setSearchMode('name')" matTooltip="Buscar por nombre o apellido">
+            <mat-icon>person_search</mat-icon>
+            <span>Nombre</span>
+          </button>
+          <button class="mode-tab" [class.mode-tab--active]="searchMode() === 'document'"
+                  (click)="setSearchMode('document')" matTooltip="Buscar por tipo y número de documento">
+            <mat-icon>badge</mat-icon>
+            <span>Documento</span>
+          </button>
+        </div>
+
+        <!-- Divisor vertical -->
+        <div class="bar-divider"></div>
+
+        <!-- Input por nombre -->
+        @if (searchMode() === 'name') {
+          <div class="bar-input-wrap">
+            <mat-icon class="bar-icon">search</mat-icon>
+            <input class="bar-input"
+                   placeholder="Nombre o Apellido..."
+                   [value]="nameQuery()"
+                   (input)="onNameInput($any($event.target).value)" />
+          </div>
+        }
+
+        <!-- Input por documento -->
+        @if (searchMode() === 'document') {
+          <div class="bar-input-wrap bar-input-wrap--doc">
+            <select class="bar-select"
+                    [value]="docType()"
+                    (change)="docType.set($any($event.target).value)">
+              <option value="" disabled selected>Tipo</option>
+              @for (t of docTypes; track t) {
+                <option [value]="t">{{ t }}</option>
+              }
+            </select>
+            <div class="bar-divider bar-divider--sm"></div>
+            <mat-icon class="bar-icon">tag</mat-icon>
+            <input class="bar-input"
+                   placeholder="N° documento"
+                   [value]="docId()"
+                   (input)="docId.set($any($event.target).value)"
+                   (keyup.enter)="onDocumentSearch()" />
+            <button class="bar-search-btn" (click)="onDocumentSearch()" matTooltip="Buscar">
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Overlay de resultados — fuera del pill para posicionamiento absoluto -->
+      <div class="overlay-anchor">
+        @if (showOverlay() || searching()) {
+          <app-search-result-overlay
+            [results]="results()"
+            [loading]="searching()"
+            (resultClick)="onResultClick($event)" />
+        }
+      </div>
+
+      <!-- Mis Clientes chip -->
+      <a class="clients-chip" routerLink="/clients" matTooltip="Ver lista de mis clientes">
+        <mat-icon>people</mat-icon>
+        <span>Mis Clientes</span>
+      </a>
+    }
+
+    <!-- LÍDER: Mi Equipo + badge claims -->
+    @if (role() === 'Leader') {
+      <a mat-button routerLink="/users/team" class="role-link">
+        <mat-icon>group</mat-icon>
+        Mi Equipo
+      </a>
+      <button mat-icon-button
+              routerLink="/claims"
+              matTooltip="Claims pendientes de aprobación"
+              [matBadge]="pendingCount()"
+              [matBadgeHidden]="pendingCount() === 0"
+              matBadgeColor="warn"
+              class="pending-btn">
+        <mat-icon>assignment_late</mat-icon>
+      </button>
+    }
+
+    <!-- ADMIN: Panel Admin -->
+    @if (role() === 'Admin') {
+      <a mat-button routerLink="/users/admin" class="role-link">
+        <mat-icon>admin_panel_settings</mat-icon>
+        Panel Admin
+      </a>
+    }
+
+  </div>
+
+  <span class="spacer"></span>
+
+  <!-- ── Zona derecha: bell (Asesor) + nombre + avatar ──────────────────── -->
+
+  <!-- Campana de notificaciones — solo Asesor -->
+  @if (role() === 'Advisor') {
+    <button mat-icon-button
+            [matMenuTriggerFor]="notifMenu"
+            class="notif-btn"
+            matTooltip="Notificaciones"
+            aria-label="Notificaciones">
+      <mat-icon>notifications</mat-icon>
+      @if (hasNotifications()) {
+        <span class="notif-dot"></span>
+      }
+    </button>
+  }
+
+  <!-- Nombre del usuario visible en el header -->
+  <span class="user-name">{{ displayName() }}</span>
+
+  <button mat-icon-button [matMenuTriggerFor]="userMenu" class="avatar-btn" aria-label="Menú de usuario">
+    <span class="avatar">{{ userInitials() }}</span>
+  </button>
+
+  <!-- ── Menú de notificaciones ─────────────────────────────────────────── -->
+  <mat-menu #notifMenu="matMenu" xPosition="before">
+    <div class="notif-panel-header" (click)="$event.stopPropagation()">
+      <mat-icon class="notif-panel-icon">notifications</mat-icon>
+      <span class="notif-panel-title">Notificaciones</span>
+    </div>
+
+    <mat-divider />
+
+    @if (notifications().length === 0) {
+      <div class="notif-empty" (click)="$event.stopPropagation()">
+        <mat-icon>notifications_none</mat-icon>
+        <span>Sin notificaciones recientes</span>
+      </div>
+    }
+
+    @for (n of notifications().slice(0, 5); track n.id) {
+      <button mat-menu-item class="notif-item">
+        <mat-icon class="notif-event-icon">{{ notifEventIcon(n.event) }}</mat-icon>
+        <div class="notif-item-body">
+          <span class="notif-item-subject">{{ n.recipientName }}</span>
+          <span class="notif-item-subject">{{ n.subject }}</span>
+          <span class="notif-item-date">{{ formatNotifDate(n.createdAt) }}</span>
+        </div>
+      </button>
+    }
+
+    <mat-divider />
+
+    <button mat-menu-item routerLink="/notifications" class="notif-see-all">
+      <mat-icon>open_in_new</mat-icon>
+      Ver todas las notificaciones
+    </button>
+  </mat-menu>
+
+  <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
+    <!-- Header con marca -->
+    <div class="dropdown-brand" (click)="$event.stopPropagation()">
+      <div class="dropdown-avatar">{{ userInitials() }}</div>
+      <div class="dropdown-info">
+        <div class="dropdown-name">{{ displayName() }}</div>
+        <div class="dropdown-email">{{ currentUser()?.email }}</div>
+        <span class="dropdown-role">{{ roleLabel() }}</span>
+      </div>
+    </div>
+
+    <mat-divider />
+
+    <button mat-menu-item routerLink="/users/profile" class="menu-action">
+      <mat-icon class="menu-icon">person_outline</mat-icon>
+      Mi Perfil
+    </button>
+    <button mat-menu-item (click)="logout()" class="menu-action menu-action--danger">
+      <mat-icon class="menu-icon">logout</mat-icon>
+      Cerrar Sesión
+    </button>
+  </mat-menu>
+
+</mat-toolbar>

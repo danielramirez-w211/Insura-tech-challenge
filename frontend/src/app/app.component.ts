@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
 import { SidenavComponent } from './shared/components/sidenav/sidenav.component';
+import { HeaderComponent } from './shared/components/header/header.component';
 
 @Component({
   selector: 'app-root',
@@ -12,10 +10,8 @@ import { SidenavComponent } from './shared/components/sidenav/sidenav.component'
   imports: [
     RouterOutlet,
     MatSidenavModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
     SidenavComponent,
+    HeaderComponent,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',

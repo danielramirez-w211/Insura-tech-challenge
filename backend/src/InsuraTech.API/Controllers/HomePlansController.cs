@@ -2,11 +2,13 @@ using InsuraTech.Application.HomePlans.DTOs;
 using InsuraTech.Application.HomePlans.Queries.CalculateHomeQuotation;
 using InsuraTech.Application.HomePlans.Queries.GetHomePlans;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/home-plans")]
 [Produces("application/json")]
 public sealed class HomePlansController : ControllerBase

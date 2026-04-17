@@ -361,3 +361,24 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Agentes locales (no subir al repo compartido)
+.github/agents/appsec.agent.md
+.github/agents/compliance.agent.md
+.github/agents/solution-architect.agent.md
+.github/agents/ux-ui-designer.agent.md
+
+# Specs generadas localmente
+.github/specs/authentication-user-system.spec.md
+.github/specs/header-navbar.spec.md
+.github/specs/health-premium-fixed-period.spec.md
+.github/specs/home-quotation-module.spec.md
+.github/specs/insured-form-ux-improvements.spec.md
+.github/specs/life-plan-module.spec.md
+.github/specs/policies-list-visual-upgrade.spec.md
+.github/specs/policy-create-visual-redesign.spec.md
+.github/specs/user-management.spec.md
+
+# Documentos locales
+Reto_Tecnico_InsuraTech_SemiSenior.md
+prompts/

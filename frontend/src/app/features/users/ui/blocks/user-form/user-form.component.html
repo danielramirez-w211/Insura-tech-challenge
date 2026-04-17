@@ -1,0 +1,72 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="user-form">
+
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" />
+      @if (form.get('email')?.hasError('required')) {
+        <mat-error>El email es requerido</mat-error>
+      }
+      @if (form.get('email')?.hasError('email')) {
+        <mat-error>Email inválido</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <div class="form-row two-cols">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="firstName" />
+      @if (form.get('firstName')?.hasError('required')) {
+        <mat-error>Requerido</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Apellido</mat-label>
+      <input matInput formControlName="lastName" />
+      @if (form.get('lastName')?.hasError('required')) {
+        <mat-error>Requerido</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  @if (isAdvisor) {
+    <div class="form-row two-cols">
+      <mat-form-field appearance="outline">
+        <mat-label>Nacionalidad</mat-label>
+        <input matInput formControlName="nationality" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha de nacimiento</mat-label>
+        <input matInput formControlName="birthDate" placeholder="YYYY-MM-DD" />
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Años en la compañía</mat-label>
+        <input matInput type="number" formControlName="yearsInCompany" />
+      </mat-form-field>
+    </div>
+  }
+
+  <div class="form-row two-cols">
+    <mat-form-field appearance="outline">
+      <mat-label>Oficina</mat-label>
+      <input matInput formControlName="officeLocation" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Horario de trabajo</mat-label>
+      <input matInput formControlName="workSchedule" placeholder="Ej: Lun-Vie 8am-5pm" />
+    </mat-form-field>
+  </div>
+
+  <div class="form-actions">
+    <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving">
+      Cancelar
+    </button>
+    <button mat-raised-button color="primary" type="submit"
+            [disabled]="form.invalid || saving">
+      @if (saving) { Guardando... } @else { Crear }
+    </button>
+  </div>
+</form>

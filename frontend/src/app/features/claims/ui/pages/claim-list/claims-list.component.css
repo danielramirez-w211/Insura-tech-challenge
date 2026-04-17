@@ -1,2 +1,9 @@
 .filters { display: flex; gap: 16px; margin-bottom: 16px; }
 mat-table { width: 100%; }
+
+.reject-input {
+  width: 200px;
+  font-size: 13px;
+  margin: 0 4px;
+  --mdc-outlined-text-field-container-height: 36px;
+}

@@ -1,5 +1,6 @@
 ﻿namespace InsuraTech.API.Controllers;
 
+using System.Security.Claims;
 using InsuraTech.API.Models;
 using InsuraTech.Application.Claims.DTOs;
 using InsuraTech.Application.Claims.Queries.GetClaimsByPolicy;
@@ -9,24 +10,29 @@ using InsuraTech.Application.Policies.Commands.CreatePolicy;
 using InsuraTech.Application.Policies.Commands.RenewPolicy;
 using InsuraTech.Application.Policies.Commands.SuspendPolicy;
 using InsuraTech.Application.Policies.DTOs;
+using InsuraTech.Application.Policies.Queries.GetMyClients;
 using InsuraTech.Application.Policies.Queries.GetPolicies;
 using InsuraTech.Application.Policies.Queries.GetPolicyById;
 using InsuraTech.Application.Common.Models;
 using InsuraTech.Domain.Policies;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
 public sealed class PoliciesController : ControllerBase
 {
     private readonly IMediator _mediator;
 
-    public PoliciesController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
+    public PoliciesController(IMediator mediator) => _mediator = mediator;
+
+    private Guid?  CurrentAdvisorId =>
+        User.FindFirstValue(ClaimTypes.Role) == "Advisor"
+            ? Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!)
+            : null;
 
     /// <summary>Creates a new insurance policy.</summary>
     [HttpPost]
@@ -41,6 +47,7 @@ public sealed class PoliciesController : ControllerBase
         var command = new CreatePolicyCommand
         {
             IdempotencyKey      = idempotencyKey ?? Guid.NewGuid().ToString(),
+            CreatedByAdvisorId  = CurrentAdvisorId,
             Type                = request.Type,
             InsuredFirstName    = request.Insured.FirstName,
             InsuredLastName     = request.Insured.LastName,
@@ -75,6 +82,8 @@ public sealed class PoliciesController : ControllerBase
         [FromQuery] string? documentId,
         [FromQuery] DateOnly? startDate,
         [FromQuery] DateOnly? endDate,
+        [FromQuery] string? insuredSearch,
+        [FromQuery] string? insuredDocumentType,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default)
@@ -86,11 +95,25 @@ public sealed class PoliciesController : ControllerBase
             DocumentId = documentId,
             StartDate = startDate,
             EndDate = endDate,
+            InsuredSearch = insuredSearch,
+            InsuredDocumentType = insuredDocumentType,
             Page = page,
             PageSize = pageSize
         };
 
         var result = await _mediator.Send(query, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>Gets unique clients (insured persons) from the current Advisor's policies.</summary>
+    [HttpGet("my-clients")]
+    [Authorize(Roles = "Advisor")]
+    [ProducesResponseType(typeof(IEnumerable<ClientSummaryResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetMyClients(CancellationToken cancellationToken)
+    {
+        var advisorId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _mediator.Send(new GetMyClientsQuery { AdvisorId = advisorId }, cancellationToken);
         return Ok(result);
     }
 

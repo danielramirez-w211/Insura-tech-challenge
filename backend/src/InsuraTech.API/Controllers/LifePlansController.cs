@@ -2,11 +2,13 @@ using InsuraTech.Application.LifePlans.DTOs;
 using InsuraTech.Application.LifePlans.Queries.CalculateLifePlan;
 using InsuraTech.Application.LifePlans.Queries.GetLifePlans;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/life-plans")]
 [Produces("application/json")]
 public sealed class LifePlansController : ControllerBase

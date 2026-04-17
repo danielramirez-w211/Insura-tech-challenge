@@ -2,11 +2,13 @@ using InsuraTech.Application.TravelPlans.DTOs;
 using InsuraTech.Application.TravelPlans.Queries.CalculateTravelPlan;
 using InsuraTech.Domain.Policies.TravelPlan;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/travel-plans")]
 [Produces("application/json")]
 public sealed class TravelPlansController : ControllerBase

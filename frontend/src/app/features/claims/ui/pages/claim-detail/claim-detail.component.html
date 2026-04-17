@@ -34,6 +34,17 @@
                 <span>{{ claim.createdAt | date:'dd/MM/yyyy' }}</span>
               </div>
             </div>
+
+            @if (claim.status === 'Rejected' && claim.rejectionReason) {
+              <div class="rejection-reason">
+                <mat-icon class="rejection-icon">cancel</mat-icon>
+                <div>
+                  <span class="label">Razón de rechazo</span>
+                  <p>{{ claim.rejectionReason }}</p>
+                </div>
+              </div>
+            }
+
           </mat-card-content>
         </mat-card>
 

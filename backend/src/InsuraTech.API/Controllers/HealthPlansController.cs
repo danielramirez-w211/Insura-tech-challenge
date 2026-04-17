@@ -2,11 +2,13 @@ using InsuraTech.Application.HealthPlans.DTOs;
 using InsuraTech.Application.HealthPlans.Queries.CalculateHealthPlan;
 using InsuraTech.Application.HealthPlans.Queries.GetHealthPlans;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InsuraTech.API.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/v1/health-plans")]
 [Produces("application/json")]
 public sealed class HealthPlansController : ControllerBase

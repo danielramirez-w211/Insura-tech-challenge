@@ -17,6 +17,8 @@ namespace InsuraTech.Application.Policies.Queries.GetPolicies
         public string? DocumentId { get; init; }
         public DateOnly? StartDate { get; init; }
         public DateOnly? EndDate { get; init; }
+        public string? InsuredSearch { get; init; }
+        public string? InsuredDocumentType { get; init; }
         public int Page { get; init; } = 1;
         public int PageSize { get; init; } = 10;
     }
