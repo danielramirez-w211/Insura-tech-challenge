@@ -1,20 +1,18 @@
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
+using InsuraTech.Infrastructure.Persistence.Repositories.Base;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace InsuraTech.Infrastructure.Persistence.Repositories;
 
-public sealed class PolicyRepository : IPolicyRepository
+public sealed class PolicyRepository : MongoRepository<Policy>, IPolicyRepository
 {
-    private readonly MongoDbContext _context;
-
-    public PolicyRepository(MongoDbContext context) => _context = context;
+    public PolicyRepository(MongoDbContext context) : base(context) { }
 
     public async Task<Policy?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Policies
+        return await Context.Policies
             .Find(p => p.Id == id && !p.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -23,14 +21,14 @@ public sealed class PolicyRepository : IPolicyRepository
     {
         var filter = Builders<Policy>.Filter.And(
             Builders<Policy>.Filter.Eq("number.value", policyNumber),
-            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false));
+            NotDeleted());
 
-        return await _context.Policies.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        return await Context.Policies.Find(filter).FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<Policy?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken = default)
     {
-        var keyDoc = await _context.PolicyIdempotencyKeys
+        var keyDoc = await Context.PolicyIdempotencyKeys
             .Find(Builders<BsonDocument>.Filter.Eq("key", idempotencyKey))
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -54,11 +52,9 @@ public sealed class PolicyRepository : IPolicyRepository
     {
         var filter = BuildFilter(status, type, documentId, startDate, endDate, insuredSearch, insuredDocumentType);
 
-        return await _context.Policies
-            .Find(filter)
-            .SortByDescending(p => p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Limit(pageSize)
+        return await ApplyPagination(
+                Context.Policies.Find(filter).SortByDescending(p => p.CreatedAt),
+                page, pageSize)
             .ToListAsync(cancellationToken);
     }
 
@@ -73,49 +69,48 @@ public sealed class PolicyRepository : IPolicyRepository
         CancellationToken cancellationToken = default)
     {
         var filter = BuildFilter(status, type, documentId, startDate, endDate, insuredSearch, insuredDocumentType);
-        return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)await Context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
     public async Task AddAsync(Policy policy, CancellationToken cancellationToken = default)
     {
-        await _context.Policies.InsertOneAsync(policy, cancellationToken: cancellationToken);
-        await _context.PublishDomainEventsAsync(policy, cancellationToken);
+        await Context.Policies.InsertOneAsync(policy, cancellationToken: cancellationToken);
+        await Context.PublishDomainEventsAsync(policy, cancellationToken);
     }
 
     public void SetIdempotencyKey(Policy policy, string idempotencyKey)
     {
-        // Fire-and-forget insert; the caller always does SaveChangesAsync after this.
-        // We store the key asynchronously — safe because AddAsync already persisted the policy.
+        // Fire-and-forget insert; safe because AddAsync already persisted the policy.
         var doc = new BsonDocument
         {
-            ["key"] = idempotencyKey,
+            ["key"]      = idempotencyKey,
             ["policyId"] = policy.Id.ToString()
         };
-        _ = _context.PolicyIdempotencyKeys.InsertOneAsync(doc);
+        _ = Context.PolicyIdempotencyKeys.InsertOneAsync(doc);
     }
 
     public async Task UpdateAsync(Policy policy, CancellationToken cancellationToken = default)
     {
-        await _context.Policies.ReplaceOneAsync(
+        await Context.Policies.ReplaceOneAsync(
             p => p.Id == policy.Id,
             policy,
             new ReplaceOptions { IsUpsert = false },
             cancellationToken);
 
-        await _context.PublishDomainEventsAsync(policy, cancellationToken);
+        await Context.PublishDomainEventsAsync(policy, cancellationToken);
     }
 
     public async Task<long> GetNextSequenceAsync(CancellationToken cancellationToken = default)
     {
-        var filter = Builders<BsonDocument>.Filter.Eq("_id", "policies");
-        var update = Builders<BsonDocument>.Update.Inc("seq", 1L);
+        var filter  = Builders<BsonDocument>.Filter.Eq("_id", "policies");
+        var update  = Builders<BsonDocument>.Update.Inc("seq", 1L);
         var options = new FindOneAndUpdateOptions<BsonDocument>
         {
-            IsUpsert = true,
+            IsUpsert       = true,
             ReturnDocument = ReturnDocument.After
         };
 
-        var result = await _context.Counters.FindOneAndUpdateAsync(filter, update, options, cancellationToken);
+        var result = await Context.Counters.FindOneAndUpdateAsync(filter, update, options, cancellationToken);
         return result["seq"].AsInt64;
     }
 
@@ -123,9 +118,9 @@ public sealed class PolicyRepository : IPolicyRepository
     {
         var filter = Builders<Policy>.Filter.And(
             Builders<Policy>.Filter.Eq(p => p.CreatedByAdvisorId, advisorId),
-            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false));
+            NotDeleted());
 
-        return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)await Context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
     public async Task<IEnumerable<ClientSummaryProjection>> GetMyClientsAsync(
@@ -144,7 +139,7 @@ public sealed class PolicyRepository : IPolicyRepository
 
         var sortStage = new BsonDocument("$sort", new BsonDocument("lastName", 1));
 
-        var results = await _context.Policies
+        var results = await Context.Policies
             .Aggregate()
             .Match(p => p.CreatedByAdvisorId == (Guid?)advisorId && !p.IsDeleted)
             .AppendStage<BsonDocument>(groupStage)
@@ -169,10 +164,7 @@ public sealed class PolicyRepository : IPolicyRepository
         DateOnly? startDate, DateOnly? endDate,
         string? insuredSearch = null, string? insuredDocumentType = null)
     {
-        var filters = new List<FilterDefinition<Policy>>
-        {
-            Builders<Policy>.Filter.Eq(p => p.IsDeleted, false)
-        };
+        var filters = new List<FilterDefinition<Policy>> { NotDeleted() };
 
         if (status.HasValue)
             filters.Add(Builders<Policy>.Filter.Eq(p => p.Status, status.Value));
@@ -192,10 +184,10 @@ public sealed class PolicyRepository : IPolicyRepository
         if (!string.IsNullOrWhiteSpace(insuredSearch))
         {
             var escaped = System.Text.RegularExpressions.Regex.Escape(insuredSearch.Trim());
-            var regex = new BsonRegularExpression($"^{escaped}", "i");
+            var regex   = new BsonRegularExpression($"^{escaped}", "i");
             filters.Add(Builders<Policy>.Filter.Or(
                 Builders<Policy>.Filter.Regex("insured.FirstName", regex),
-                Builders<Policy>.Filter.Regex("insured.LastName", regex)
+                Builders<Policy>.Filter.Regex("insured.LastName",  regex)
             ));
         }
 

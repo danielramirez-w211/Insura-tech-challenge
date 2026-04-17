@@ -7,17 +7,13 @@ namespace InsuraTech.Infrastructure.Persistence.Repositories;
 
 public sealed class CityRepository : ICityRepository
 {
-    private readonly IMongoCollection<CityDocument> _collection;
+    private readonly MongoDbContext _context;
 
-    public CityRepository(IMongoClient client, string databaseName)
-    {
-        var database = client.GetDatabase(databaseName);
-        _collection  = database.GetCollection<CityDocument>("cities");
-    }
+    public CityRepository(MongoDbContext context) => _context = context;
 
     public async Task<IEnumerable<CityInfo>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var documents = await _collection
+        var documents = await _context.Cities
             .Find(Builders<CityDocument>.Filter.Empty)
             .SortBy(c => c.Name)
             .ToListAsync(cancellationToken);

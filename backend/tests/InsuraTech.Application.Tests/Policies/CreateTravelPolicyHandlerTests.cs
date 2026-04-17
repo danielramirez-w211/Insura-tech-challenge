@@ -2,6 +2,7 @@ namespace InsuraTech.Application.Tests.Policies;
 
 using FluentAssertions;
 using InsuraTech.Application.Policies.Commands.CreatePolicy;
+using InsuraTech.Application.Policies.Commands.CreatePolicy.Strategies;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Exceptions;
 using InsuraTech.Domain.Interfaces;
@@ -11,9 +12,9 @@ using NSubstitute;
 
 public sealed class CreateTravelPolicyHandlerTests
 {
-    private readonly IPolicyRepository _policyRepository;
-    private readonly IUnitOfWork       _unitOfWork;
-    private readonly ITrmService       _trmService;
+    private readonly IPolicyRepository   _policyRepository;
+    private readonly IUnitOfWork         _unitOfWork;
+    private readonly ITrmService         _trmService;
     private readonly CreatePolicyHandler _handler;
 
     private static readonly TrmResult FakeTrm = new(4_200m, new DateOnly(2026, 4, 7));
@@ -23,7 +24,17 @@ public sealed class CreateTravelPolicyHandlerTests
         _policyRepository = Substitute.For<IPolicyRepository>();
         _unitOfWork       = Substitute.For<IUnitOfWork>();
         _trmService       = Substitute.For<ITrmService>();
-        _handler          = new CreatePolicyHandler(_policyRepository, _unitOfWork, _trmService);
+
+        var strategies = new ICreatePolicyStrategy[]
+        {
+            new CreateHealthPolicyStrategy(),
+            new CreateLifePolicyStrategy(),
+            new CreateVehiclePolicyStrategy(),
+            new CreateHomePolicyStrategy(),
+            new CreateTravelPolicyStrategy(_trmService),
+        };
+
+        _handler = new CreatePolicyHandler(_policyRepository, _unitOfWork, strategies);
 
         _policyRepository.GetByIdempotencyKeyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((Policy?)null);
@@ -59,8 +70,6 @@ public sealed class CreateTravelPolicyHandlerTests
         DurationDays      = days
     };
 
-    // ─── AT-01 ────────────────────────────────────────────────────────────────
-
     [Fact]
     public async Task Handle_TravelNacional_CreatesPolicy_WithCorrectTotal()
     {
@@ -80,8 +89,6 @@ public sealed class CreateTravelPolicyHandlerTests
         result.InsuredAmount.Should().Be(13_000m);
     }
 
-    // ─── AT-02 ────────────────────────────────────────────────────────────────
-
     [Fact]
     public async Task Handle_TravelInternacional_FetchesTrm_AndCreatesPolicy()
     {
@@ -96,12 +103,10 @@ public sealed class CreateTravelPolicyHandlerTests
         result.TravelPlan.Should().NotBeNull();
         result.TravelPlan!.TripType.Should().Be("Internacional");
         result.TravelPlan.Continent.Should().Be("Europe");
-        result.TravelPlan.TotalPriceCop.Should().Be(315_000m); // 75 USD × 4200
+        result.TravelPlan.TotalPriceCop.Should().Be(315_000m);
         result.TravelPlan.TrmUsed.Should().Be(4_200m);
         await _trmService.Received(1).GetCurrentTrmAsync(Arg.Any<CancellationToken>());
     }
-
-    // ─── AT-03 ────────────────────────────────────────────────────────────────
 
     [Fact]
     public async Task Handle_TrmUnavailable_ThrowsAndDoesNotPersist()
@@ -120,8 +125,6 @@ public sealed class CreateTravelPolicyHandlerTests
             .AddAsync(Arg.Any<Policy>(), Arg.Any<CancellationToken>());
     }
 
-    // ─── AT-04 ────────────────────────────────────────────────────────────────
-
     [Fact]
     public async Task Handle_DurationExceeded_ThrowsAndDoesNotPersist()
     {
@@ -137,12 +140,10 @@ public sealed class CreateTravelPolicyHandlerTests
             .AddAsync(Arg.Any<Policy>(), Arg.Any<CancellationToken>());
     }
 
-    // ─── AT-05 ────────────────────────────────────────────────────────────────
-
     [Fact]
     public async Task Handle_NonTravelPolicy_DoesNotCallTrmService()
     {
-        // GIVEN — póliza Life (no Travel) con todos los campos Travel ausentes
+        // GIVEN — póliza Life (no Travel)
         var command = new CreatePolicyCommand
         {
             IdempotencyKey    = Guid.NewGuid().ToString(),

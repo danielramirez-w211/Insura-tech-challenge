@@ -1,7 +1,8 @@
-﻿namespace InsuraTech.Application.Tests.Policies;
+namespace InsuraTech.Application.Tests.Policies;
 
 using FluentAssertions;
 using InsuraTech.Application.Policies.Commands.CreatePolicy;
+using InsuraTech.Application.Policies.Commands.CreatePolicy.Strategies;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
@@ -10,38 +11,47 @@ using NSubstitute;
 
 public sealed class CreatePolicyHandlerTests
 {
-    private readonly IPolicyRepository _policyRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ITrmService _trmService;
+    private readonly IPolicyRepository   _policyRepository;
+    private readonly IUnitOfWork         _unitOfWork;
     private readonly CreatePolicyHandler _handler;
 
     public CreatePolicyHandlerTests()
     {
         _policyRepository = Substitute.For<IPolicyRepository>();
         _unitOfWork       = Substitute.For<IUnitOfWork>();
-        _trmService       = Substitute.For<ITrmService>();
-        _handler          = new CreatePolicyHandler(_policyRepository, _unitOfWork, _trmService);
+
+        var trmService = Substitute.For<ITrmService>();
+        var strategies = new ICreatePolicyStrategy[]
+        {
+            new CreateHealthPolicyStrategy(),
+            new CreateLifePolicyStrategy(),
+            new CreateVehiclePolicyStrategy(),
+            new CreateHomePolicyStrategy(),
+            new CreateTravelPolicyStrategy(trmService),
+        };
+
+        _handler = new CreatePolicyHandler(_policyRepository, _unitOfWork, strategies);
     }
 
     private static CreatePolicyCommand BuildCommand(string idempotencyKey = "key-001") =>
         new()
         {
-            IdempotencyKey = idempotencyKey,
-            Type = PolicyType.Life,
-            InsuredFirstName = "John",
-            InsuredLastName = "Doe",
+            IdempotencyKey      = idempotencyKey,
+            Type                = PolicyType.Life,
+            InsuredFirstName    = "John",
+            InsuredLastName     = "Doe",
             InsuredDocumentType = "CC",
-            InsuredDocumentId = "123456789",
-            InsuredBirthDate = new DateOnly(1990, 1, 1),
-            InsuredGender = "Masculino",
-            InsuredAddress = "Calle 123 # 45-67",
-            InsuredCityName = "Bogotá",
-            InsuredPostalCode = "110111",
-            InsuredDepartment = "Cundinamarca",
-            CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),
-            CoverageEndDate = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1),
-            MonthlyPremium = 100m,
-            InsuredAmount = 10_000m
+            InsuredDocumentId   = "123456789",
+            InsuredBirthDate    = new DateOnly(1990, 1, 1),
+            InsuredGender       = "Masculino",
+            InsuredAddress      = "Calle 123 # 45-67",
+            InsuredCityName     = "Bogotá",
+            InsuredPostalCode   = "110111",
+            InsuredDepartment   = "Cundinamarca",
+            CoverageStartDate   = DateOnly.FromDateTime(DateTime.UtcNow),
+            CoverageEndDate     = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1),
+            MonthlyPremium      = 100m,
+            InsuredAmount       = 10_000m
         };
 
     [Fact]

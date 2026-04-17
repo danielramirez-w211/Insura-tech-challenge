@@ -1,26 +1,25 @@
 using InsuraTech.Domain.Claims;
 using InsuraTech.Domain.Interfaces;
+using InsuraTech.Infrastructure.Persistence.Repositories.Base;
 using MongoDB.Driver;
 using DomainClaim = InsuraTech.Domain.Claims.Claim;
 
 namespace InsuraTech.Infrastructure.Persistence.Repositories;
 
-public sealed class ClaimRepository : IClaimRepository
+public sealed class ClaimRepository : MongoRepository<DomainClaim>, IClaimRepository
 {
-    private readonly MongoDbContext _context;
-
-    public ClaimRepository(MongoDbContext context) => _context = context;
+    public ClaimRepository(MongoDbContext context) : base(context) { }
 
     public async Task<DomainClaim?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Claims
+        return await Context.Claims
             .Find(c => c.Id == id && !c.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<DomainClaim>> GetByPolicyIdAsync(Guid policyId, CancellationToken cancellationToken = default)
     {
-        return await _context.Claims
+        return await Context.Claims
             .Find(c => c.PolicyId == policyId && !c.IsDeleted)
             .SortByDescending(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -31,18 +30,16 @@ public sealed class ClaimRepository : IClaimRepository
         CancellationToken cancellationToken = default)
     {
         var filter = BuildFilter(status, policyId);
-        return await _context.Claims
-            .Find(filter)
-            .SortByDescending(c => c.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Limit(pageSize)
+        return await ApplyPagination(
+                Context.Claims.Find(filter).SortByDescending(c => c.CreatedAt),
+                page, pageSize)
             .ToListAsync(cancellationToken);
     }
 
     public async Task<int> CountAsync(ClaimStatus? status, Guid? policyId, CancellationToken cancellationToken = default)
     {
         var filter = BuildFilter(status, policyId);
-        return (int)await _context.Claims.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return (int)await Context.Claims.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
     public async Task<int> CountOpenClaimsByPolicyIdAsync(Guid policyId, CancellationToken cancellationToken = default)
@@ -52,38 +49,38 @@ public sealed class ClaimRepository : IClaimRepository
         var filter = Builders<DomainClaim>.Filter.And(
             Builders<DomainClaim>.Filter.Eq(c => c.PolicyId, policyId),
             Builders<DomainClaim>.Filter.In(c => c.Status, openStatuses),
-            Builders<DomainClaim>.Filter.Eq(c => c.IsDeleted, false));
+            NotDeleted());
 
-        return (int)await _context.Claims.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
-    }
-
-    private static FilterDefinition<DomainClaim> BuildFilter(ClaimStatus? status, Guid? policyId)
-    {
-        var filters = new List<FilterDefinition<DomainClaim>>
-        {
-            Builders<DomainClaim>.Filter.Eq(c => c.IsDeleted, false)
-        };
-        if (status.HasValue)
-            filters.Add(Builders<DomainClaim>.Filter.Eq(c => c.Status, status.Value));
-        if (policyId.HasValue)
-            filters.Add(Builders<DomainClaim>.Filter.Eq(c => c.PolicyId, policyId.Value));
-        return Builders<DomainClaim>.Filter.And(filters);
+        return (int)await Context.Claims.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
     public async Task AddAsync(DomainClaim claim, CancellationToken cancellationToken = default)
     {
-        await _context.Claims.InsertOneAsync(claim, cancellationToken: cancellationToken);
-        await _context.PublishDomainEventsAsync(claim, cancellationToken);
+        await Context.Claims.InsertOneAsync(claim, cancellationToken: cancellationToken);
+        await Context.PublishDomainEventsAsync(claim, cancellationToken);
     }
 
     public async Task UpdateAsync(DomainClaim claim, CancellationToken cancellationToken = default)
     {
-        await _context.Claims.ReplaceOneAsync(
+        await Context.Claims.ReplaceOneAsync(
             c => c.Id == claim.Id,
             claim,
             new ReplaceOptions { IsUpsert = false },
             cancellationToken);
 
-        await _context.PublishDomainEventsAsync(claim, cancellationToken);
+        await Context.PublishDomainEventsAsync(claim, cancellationToken);
+    }
+
+    private static FilterDefinition<DomainClaim> BuildFilter(ClaimStatus? status, Guid? policyId)
+    {
+        var filters = new List<FilterDefinition<DomainClaim>> { NotDeleted() };
+
+        if (status.HasValue)
+            filters.Add(Builders<DomainClaim>.Filter.Eq(c => c.Status, status.Value));
+
+        if (policyId.HasValue)
+            filters.Add(Builders<DomainClaim>.Filter.Eq(c => c.PolicyId, policyId.Value));
+
+        return Builders<DomainClaim>.Filter.And(filters);
     }
 }

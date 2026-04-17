@@ -2,6 +2,7 @@ namespace InsuraTech.Application.Tests.Policies;
 
 using FluentAssertions;
 using InsuraTech.Application.Policies.Commands.CreatePolicy;
+using InsuraTech.Application.Policies.Commands.CreatePolicy.Strategies;
 using InsuraTech.Application.Common.Interfaces;
 using InsuraTech.Domain.Exceptions;
 using InsuraTech.Domain.Interfaces;
@@ -10,17 +11,26 @@ using NSubstitute;
 
 public sealed class CreateHealthPolicyHandlerTests
 {
-    private readonly IPolicyRepository _policyRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly ITrmService _trmService;
+    private readonly IPolicyRepository   _policyRepository;
+    private readonly IUnitOfWork         _unitOfWork;
     private readonly CreatePolicyHandler _handler;
 
     public CreateHealthPolicyHandlerTests()
     {
         _policyRepository = Substitute.For<IPolicyRepository>();
         _unitOfWork       = Substitute.For<IUnitOfWork>();
-        _trmService       = Substitute.For<ITrmService>();
-        _handler          = new CreatePolicyHandler(_policyRepository, _unitOfWork, _trmService);
+
+        var trmService = Substitute.For<ITrmService>();
+        var strategies = new ICreatePolicyStrategy[]
+        {
+            new CreateHealthPolicyStrategy(),
+            new CreateLifePolicyStrategy(),
+            new CreateVehiclePolicyStrategy(),
+            new CreateHomePolicyStrategy(),
+            new CreateTravelPolicyStrategy(trmService),
+        };
+
+        _handler = new CreatePolicyHandler(_policyRepository, _unitOfWork, strategies);
 
         _policyRepository.GetByIdempotencyKeyAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns((Policy?)null);
@@ -38,7 +48,7 @@ public sealed class CreateHealthPolicyHandlerTests
             InsuredBirthDate  = birthDate ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-40),
             CoverageStartDate = DateOnly.FromDateTime(DateTime.UtcNow),
             CoverageEndDate   = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(1),
-            MonthlyPremium    = 5_000m,   // < 5% de cualquier plan (min base: $300.000 → max prima $15.000)
+            MonthlyPremium    = 5_000m,
             HealthPlanId      = planId
         };
 
@@ -57,7 +67,7 @@ public sealed class CreateHealthPolicyHandlerTests
         result.Status.Should().Be("Pending");
         result.HealthPlan.Should().NotBeNull();
         result.HealthPlan!.PlanId.Should().Be("salud-premium");
-        result.InsuredAmount.Should().Be(468_000m);   // 450_000 * 1.04
+        result.InsuredAmount.Should().Be(468_000m);
     }
 
     [Fact]
