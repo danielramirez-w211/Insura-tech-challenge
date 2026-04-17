@@ -16,7 +16,7 @@ handoffs:
     send: false
   - label: Generar Spec
     agent: Spec Generator
-    prompt: El diseño UX/UI está listo. Genera la spec ASDD con los flujos, componentes y contratos de API derivados del diseño.
+    prompt: El diseño UX/UI está listo. Genera la spec con los flujos, componentes y contratos de API derivados del diseño.
     send: false
 ---
 
