@@ -132,30 +132,23 @@ public sealed class PolicyRepository : IPolicyRepository
         Guid advisorId,
         CancellationToken cancellationToken = default)
     {
-        var pipeline = new[]
+        var groupStage = new BsonDocument("$group", new BsonDocument
         {
-            // 1. Match: pólizas del asesor, no eliminadas
-            new BsonDocument("$match", new BsonDocument
-            {
-                { "createdByAdvisorId", advisorId.ToString() },
-                { "isDeleted", false }
-            }),
-            // 2. Agrupar por documentId del asegurado
-            new BsonDocument("$group", new BsonDocument
-            {
-                { "_id", "$insured.documentId" },
-                { "documentType", new BsonDocument("$first", "$insured.documentType") },
-                { "firstName",    new BsonDocument("$first", "$insured.firstName") },
-                { "lastName",     new BsonDocument("$first", "$insured.lastName") },
-                { "cityName",     new BsonDocument("$first", "$insured.cityName") },
-                { "policyCount",  new BsonDocument("$sum", 1) }
-            }),
-            // 3. Ordenar por apellido
-            new BsonDocument("$sort", new BsonDocument("lastName", 1))
-        };
+            { "_id",          "$insured.DocumentId" },
+            { "documentType", new BsonDocument("$first", "$insured.DocumentType") },
+            { "firstName",    new BsonDocument("$first", "$insured.FirstName") },
+            { "lastName",     new BsonDocument("$first", "$insured.LastName") },
+            { "cityName",     new BsonDocument("$first", "$insured.CityName") },
+            { "policyCount",  new BsonDocument("$sum", 1) }
+        });
+
+        var sortStage = new BsonDocument("$sort", new BsonDocument("lastName", 1));
 
         var results = await _context.Policies
-            .Aggregate<BsonDocument>(pipeline, cancellationToken: cancellationToken)
+            .Aggregate()
+            .Match(p => p.CreatedByAdvisorId == (Guid?)advisorId && !p.IsDeleted)
+            .AppendStage<BsonDocument>(groupStage)
+            .AppendStage<BsonDocument>(sortStage)
             .ToListAsync(cancellationToken);
 
         return results.Select(doc => new ClientSummaryProjection(
@@ -188,7 +181,7 @@ public sealed class PolicyRepository : IPolicyRepository
             filters.Add(Builders<Policy>.Filter.Eq(p => p.Type, type.Value));
 
         if (!string.IsNullOrWhiteSpace(documentId))
-            filters.Add(Builders<Policy>.Filter.Eq("insured.documentId", documentId));
+            filters.Add(Builders<Policy>.Filter.Eq("insured.DocumentId", documentId));
 
         if (startDate.HasValue)
             filters.Add(Builders<Policy>.Filter.Gte("coverage.startDate", startDate.Value.ToString("yyyy-MM-dd")));
@@ -198,15 +191,16 @@ public sealed class PolicyRepository : IPolicyRepository
 
         if (!string.IsNullOrWhiteSpace(insuredSearch))
         {
-            var regex = new BsonRegularExpression(insuredSearch, "i");
+            var escaped = System.Text.RegularExpressions.Regex.Escape(insuredSearch.Trim());
+            var regex = new BsonRegularExpression($"^{escaped}", "i");
             filters.Add(Builders<Policy>.Filter.Or(
-                Builders<Policy>.Filter.Regex("insured.firstName", regex),
-                Builders<Policy>.Filter.Regex("insured.lastName", regex)
+                Builders<Policy>.Filter.Regex("insured.FirstName", regex),
+                Builders<Policy>.Filter.Regex("insured.LastName", regex)
             ));
         }
 
         if (!string.IsNullOrWhiteSpace(insuredDocumentType))
-            filters.Add(Builders<Policy>.Filter.Eq("insured.documentType", insuredDocumentType));
+            filters.Add(Builders<Policy>.Filter.Eq("insured.DocumentType", insuredDocumentType));
 
         return Builders<Policy>.Filter.And(filters);
     }

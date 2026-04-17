@@ -109,7 +109,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.nameSubject$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      filter(q => q.length >= 2),
+      filter(q => q.trim().length >= 3),
       switchMap(q => {
         this.searching.set(true);
         return this.policiesSvc.getAll({ insuredSearch: q, page: 1, pageSize: 10 });
@@ -141,25 +141,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // ── Búsqueda por nombre ────────────────────────────────────────────────────
   onNameInput(value: string): void {
     this.nameQuery.set(value);
-    if (value.length < 2) {
+    if (value.trim().length < 3) {
       this.showOverlay.set(false);
       this.results.set([]);
       return;
     }
-    this.nameSubject$.next(value);
+    this.nameSubject$.next(value.trim());
   }
 
   // ── Búsqueda por documento (acción explícita) ──────────────────────────────
   onDocumentSearch(): void {
     const type = this.docType();
-    const id   = this.docId();
-    if (!type || !id) return;
+    const id   = this.docId().trim();
+    if (!id) return;
     this.searching.set(true);
     this.policiesSvc.getAll({
-      insuredDocumentType: type,
-      documentId:          id,
-      page:                1,
-      pageSize:            20,
+      ...(type ? { insuredDocumentType: type } : {}),
+      documentId: id,
+      page:       1,
+      pageSize:   20,
     }).subscribe({
       next: res => {
         this.results.set(res.items.map(this.toSearchResult));
