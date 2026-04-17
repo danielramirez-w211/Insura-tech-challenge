@@ -103,5 +103,14 @@ export const routes: Routes = [
       ),
   },
 
+  {
+    path: 'clients',
+    canActivate: [authGuard, roleGuard('Advisor')],
+    loadComponent: () =>
+      import('./features/clients/ui/pages/clients-list/clients-list.component').then(
+        (m) => m.ClientsListComponent
+      ),
+  },
+
   { path: '**', redirectTo: 'dashboard' },
 ];

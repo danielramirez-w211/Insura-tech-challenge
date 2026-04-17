@@ -1,6 +1,7 @@
 using InsuraTech.Domain.Interfaces;
 using InsuraTech.Domain.Policies;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace InsuraTech.Infrastructure.Persistence.Repositories;
@@ -45,11 +46,13 @@ public sealed class PolicyRepository : IPolicyRepository
         string? documentId,
         DateOnly? startDate,
         DateOnly? endDate,
+        string? insuredSearch,
+        string? insuredDocumentType,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var filter = BuildFilter(status, type, documentId, startDate, endDate);
+        var filter = BuildFilter(status, type, documentId, startDate, endDate, insuredSearch, insuredDocumentType);
 
         return await _context.Policies
             .Find(filter)
@@ -65,9 +68,11 @@ public sealed class PolicyRepository : IPolicyRepository
         string? documentId,
         DateOnly? startDate,
         DateOnly? endDate,
+        string? insuredSearch,
+        string? insuredDocumentType,
         CancellationToken cancellationToken = default)
     {
-        var filter = BuildFilter(status, type, documentId, startDate, endDate);
+        var filter = BuildFilter(status, type, documentId, startDate, endDate, insuredSearch, insuredDocumentType);
         return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
@@ -123,10 +128,46 @@ public sealed class PolicyRepository : IPolicyRepository
         return (int)await _context.Policies.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
     }
 
+    public async Task<IEnumerable<ClientSummaryProjection>> GetMyClientsAsync(
+        Guid advisorId,
+        CancellationToken cancellationToken = default)
+    {
+        var groupStage = new BsonDocument("$group", new BsonDocument
+        {
+            { "_id",          "$insured.DocumentId" },
+            { "documentType", new BsonDocument("$first", "$insured.DocumentType") },
+            { "firstName",    new BsonDocument("$first", "$insured.FirstName") },
+            { "lastName",     new BsonDocument("$first", "$insured.LastName") },
+            { "cityName",     new BsonDocument("$first", "$insured.CityName") },
+            { "policyCount",  new BsonDocument("$sum", 1) }
+        });
+
+        var sortStage = new BsonDocument("$sort", new BsonDocument("lastName", 1));
+
+        var results = await _context.Policies
+            .Aggregate()
+            .Match(p => p.CreatedByAdvisorId == (Guid?)advisorId && !p.IsDeleted)
+            .AppendStage<BsonDocument>(groupStage)
+            .AppendStage<BsonDocument>(sortStage)
+            .ToListAsync(cancellationToken);
+
+        return results.Select(doc => new ClientSummaryProjection(
+            DocumentId:   doc["_id"].AsString,
+            DocumentType: doc["documentType"].AsString,
+            FirstName:    doc["firstName"].AsString,
+            LastName:     doc["lastName"].AsString,
+            CityName:     doc.Contains("cityName") && doc["cityName"] != BsonNull.Value
+                              ? doc["cityName"].AsString
+                              : string.Empty,
+            PolicyCount:  doc["policyCount"].AsInt32
+        ));
+    }
+
     // ------------------------------------------------------------------
     private static FilterDefinition<Policy> BuildFilter(
         PolicyStatus? status, PolicyType? type, string? documentId,
-        DateOnly? startDate, DateOnly? endDate)
+        DateOnly? startDate, DateOnly? endDate,
+        string? insuredSearch = null, string? insuredDocumentType = null)
     {
         var filters = new List<FilterDefinition<Policy>>
         {
@@ -140,13 +181,26 @@ public sealed class PolicyRepository : IPolicyRepository
             filters.Add(Builders<Policy>.Filter.Eq(p => p.Type, type.Value));
 
         if (!string.IsNullOrWhiteSpace(documentId))
-            filters.Add(Builders<Policy>.Filter.Eq("insured.documentId", documentId));
+            filters.Add(Builders<Policy>.Filter.Eq("insured.DocumentId", documentId));
 
         if (startDate.HasValue)
             filters.Add(Builders<Policy>.Filter.Gte("coverage.startDate", startDate.Value.ToString("yyyy-MM-dd")));
 
         if (endDate.HasValue)
             filters.Add(Builders<Policy>.Filter.Lte("coverage.endDate", endDate.Value.ToString("yyyy-MM-dd")));
+
+        if (!string.IsNullOrWhiteSpace(insuredSearch))
+        {
+            var escaped = System.Text.RegularExpressions.Regex.Escape(insuredSearch.Trim());
+            var regex = new BsonRegularExpression($"^{escaped}", "i");
+            filters.Add(Builders<Policy>.Filter.Or(
+                Builders<Policy>.Filter.Regex("insured.FirstName", regex),
+                Builders<Policy>.Filter.Regex("insured.LastName", regex)
+            ));
+        }
+
+        if (!string.IsNullOrWhiteSpace(insuredDocumentType))
+            filters.Add(Builders<Policy>.Filter.Eq("insured.DocumentType", insuredDocumentType));
 
         return Builders<Policy>.Filter.And(filters);
     }

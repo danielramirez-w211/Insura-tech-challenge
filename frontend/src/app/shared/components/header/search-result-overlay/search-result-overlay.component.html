@@ -1,0 +1,23 @@
+@if (loading()) {
+  <div class="overlay-loading">
+    <mat-spinner diameter="20" />
+    <span>Buscando...</span>
+  </div>
+} @else if (results().length === 0) {
+  <div class="overlay-empty">
+    <mat-icon>search_off</mat-icon>
+    <span>Sin resultados</span>
+  </div>
+} @else {
+  <mat-nav-list>
+    @for (item of results(); track item.id) {
+      <a mat-list-item class="result-item" (click)="resultClick.emit(item)">
+        <mat-icon matListItemIcon class="result-icon">person</mat-icon>
+        <span matListItemTitle>{{ item.insuredName }}</span>
+        <span matListItemLine class="result-meta">
+          {{ item.documentType }} {{ item.documentId }} &nbsp;·&nbsp; {{ item.policyType }} · {{ item.status }}
+        </span>
+      </a>
+    }
+  </mat-nav-list>
+}

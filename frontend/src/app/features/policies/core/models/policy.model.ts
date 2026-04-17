@@ -24,6 +24,8 @@ export interface PolicyFilters {
   status?: PolicyStatus;
   type?: PolicyType;
   documentId?: string;
+  insuredSearch?: string;
+  insuredDocumentType?: string;
   page: number;
   pageSize: number;
 }

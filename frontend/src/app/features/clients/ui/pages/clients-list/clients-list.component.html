@@ -1,0 +1,63 @@
+<app-page-header title="Mis Clientes" />
+
+@if (loading()) {
+  <app-loading-spinner [loading]="true" />
+} @else if (error()) {
+  <div class="error-msg">
+    <mat-icon>error_outline</mat-icon>
+    {{ error() }}
+  </div>
+} @else {
+  <div class="table-container">
+    <mat-table [dataSource]="dataSource">
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef>Cliente</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="documentType">
+        <mat-header-cell *matHeaderCellDef>Tipo Doc.</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="doc-chip">{{ row.documentType }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="documentId">
+        <mat-header-cell *matHeaderCellDef>N° Documento</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.documentId }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="city">
+        <mat-header-cell *matHeaderCellDef>Ciudad</mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.cityName }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="policyCount">
+        <mat-header-cell *matHeaderCellDef>Pólizas</mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <span class="policy-badge">{{ row.policyCount }}</span>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef></mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <button mat-button color="primary"
+                  matTooltip="Ver pólizas de este cliente"
+                  (click)="viewPolicies(row)">
+            <mat-icon>policy</mat-icon>
+            Ver Pólizas
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns" />
+      <mat-row *matRowDef="let row; columns: displayedColumns;" />
+    </mat-table>
+
+    @if (dataSource.data.length === 0) {
+      <div class="empty">No tienes clientes registrados aún.</div>
+    }
+  </div>
+}

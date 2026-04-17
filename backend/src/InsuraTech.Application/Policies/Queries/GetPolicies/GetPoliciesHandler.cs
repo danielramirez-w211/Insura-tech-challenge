@@ -21,6 +21,8 @@ namespace InsuraTech.Application.Policies.Queries.GetPolicies
                 request.DocumentId,
                 request.StartDate,
                 request.EndDate,
+                request.InsuredSearch,
+                request.InsuredDocumentType,
                 request.Page,
                 request.PageSize,
                 cancellationToken
@@ -32,6 +34,8 @@ namespace InsuraTech.Application.Policies.Queries.GetPolicies
                 request.DocumentId,
                 request.StartDate,
                 request.EndDate,
+                request.InsuredSearch,
+                request.InsuredDocumentType,
                 cancellationToken);
 
             var item = policies.Select(p => p.ToResponse());
