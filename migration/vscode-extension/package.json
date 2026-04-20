@@ -1,0 +1,97 @@
+{
+  "name": "insuratech-migration",
+  "displayName": "InsuraTech Migration",
+  "description": "Migra código C# .NET 8 a Java 21 Spring Boot usando skills especializadas con Claude AI",
+  "version": "1.0.0",
+  "publisher": "insuratech",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onLanguage:csharp", "onView:migrationSkills"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "insuratech-migration",
+          "title": "InsuraTech Migration",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "insuratech-migration": [
+        {
+          "id": "migrationSkills",
+          "name": "Skills disponibles",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "migration.runSkill",
+        "title": "Ejecutar skill de migración",
+        "icon": "$(play)"
+      },
+      {
+        "command": "migration.showPanel",
+        "title": "Mostrar panel de migración",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "migration.refreshSkills",
+        "title": "Refrescar skills",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "migration.refreshSkills",
+          "when": "view == migrationSkills",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "migration.runSkill",
+          "when": "view == migrationSkills && viewItem == skill",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "InsuraTech Migration",
+      "properties": {
+        "insuratech.migration.anthropicApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key de Anthropic para llamadas a Claude AI (https://console.anthropic.com/)"
+        },
+        "insuratech.migration.model": {
+          "type": "string",
+          "default": "claude-sonnet-4-6",
+          "enum": ["claude-sonnet-4-6", "claude-opus-4-7", "claude-haiku-4-5-20251001"],
+          "description": "Modelo Claude a usar para las migraciones"
+        },
+        "insuratech.migration.specsFolder": {
+          "type": "string",
+          "default": "asd/.github/specs",
+          "description": "Ruta relativa a la carpeta de specs ASDD desde la raíz del workspace"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "npm run build && vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "esbuild": "^0.20.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}
