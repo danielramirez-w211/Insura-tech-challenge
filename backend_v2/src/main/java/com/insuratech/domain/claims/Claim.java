@@ -33,7 +33,7 @@ public class Claim extends AggregateRoot {
     private final List<ClaimStatusHistory> statusHistory = new ArrayList<>();
 
     private static final Set<ClaimStatus> CLOSED_STATUSES = Set.of(
-        ClaimStatus.PAID, ClaimStatus.REJECTED, ClaimStatus.CLOSED
+        ClaimStatus.PAID, ClaimStatus.CLOSED
     );
 
     protected Claim() { super(); }
@@ -96,6 +96,37 @@ public class Claim extends AggregateRoot {
         addDomainEvent(new ClaimStatusChangedEvent(getId(), previous.name(), status.name()));
     }
 
+    public void appeal(String appealedBy, String reason) {
+        assertNotClosed();
+        assertValidTransition(ClaimStatus.APPEALED);
+        ClaimStatus previous = this.status;
+        this.status = ClaimStatus.APPEALED;
+        statusHistory.add(new ClaimStatusHistory(ClaimStatus.APPEALED, appealedBy, reason));
+        markAsUpdated();
+        addDomainEvent(new ClaimStatusChangedEvent(getId(), previous.name(), status.name()));
+    }
+
+    public void approvePending(String approvedBy) {
+        if (this.status != ClaimStatus.PENDING_APPROVAL)
+            throw new InvalidClaimTransitionException(status.name(), ClaimStatus.REGISTERED.name());
+        ClaimStatus previous = this.status;
+        this.status = ClaimStatus.REGISTERED;
+        statusHistory.add(new ClaimStatusHistory(ClaimStatus.REGISTERED, approvedBy, "Approved by leader"));
+        markAsUpdated();
+        addDomainEvent(new ClaimStatusChangedEvent(getId(), previous.name(), status.name()));
+    }
+
+    public void rejectPending(String rejectedBy, String reason) {
+        if (this.status != ClaimStatus.PENDING_APPROVAL)
+            throw new InvalidClaimTransitionException(status.name(), ClaimStatus.REJECTED.name());
+        ClaimStatus previous = this.status;
+        this.status = ClaimStatus.REJECTED;
+        this.rejectionReason = reason;
+        statusHistory.add(new ClaimStatusHistory(ClaimStatus.REJECTED, rejectedBy, reason));
+        markAsUpdated();
+        addDomainEvent(new ClaimStatusChangedEvent(getId(), previous.name(), status.name()));
+    }
+
     public void close(String closedBy, String notes) {
         assertNotClosed();
         ClaimStatus previous = this.status;
@@ -111,8 +142,10 @@ public class Claim extends AggregateRoot {
 
     private void assertValidTransition(ClaimStatus target) {
         boolean valid = switch (target) {
+            case REGISTERED  -> status == ClaimStatus.PENDING_APPROVAL;
             case UNDER_REVIEW -> status == ClaimStatus.REGISTERED;
             case APPROVED, REJECTED -> status == ClaimStatus.UNDER_REVIEW;
+            case APPEALED -> status == ClaimStatus.REJECTED;
             case PAID -> status == ClaimStatus.APPROVED;
             default -> false;
         };

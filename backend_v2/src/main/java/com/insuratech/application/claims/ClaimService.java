@@ -85,6 +85,30 @@ public class ClaimService {
             .map(ClaimMapper::toResponse).toList();
     }
 
+    @Transactional
+    public ClaimResponse appeal(AppealClaimCommand cmd) {
+        var claim = findOrThrow(cmd.claimId());
+        claim.appeal(cmd.appealedBy(), cmd.reason());
+        claimRepository.save(claim);
+        return ClaimMapper.toResponse(claim);
+    }
+
+    @Transactional
+    public ClaimResponse approvePending(ApprovePendingClaimCommand cmd) {
+        var claim = findOrThrow(cmd.claimId());
+        claim.approvePending(cmd.responsibleUser());
+        claimRepository.save(claim);
+        return ClaimMapper.toResponse(claim);
+    }
+
+    @Transactional
+    public ClaimResponse rejectPending(RejectPendingClaimCommand cmd) {
+        var claim = findOrThrow(cmd.claimId());
+        claim.rejectPending(cmd.responsibleUser(), cmd.reason());
+        claimRepository.save(claim);
+        return ClaimMapper.toResponse(claim);
+    }
+
     public List<ClaimResponse> getAll() {
         return claimRepository.findByStatus(ClaimStatus.REGISTERED).stream()
             .map(ClaimMapper::toResponse).toList();
