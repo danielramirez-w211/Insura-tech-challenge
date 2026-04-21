@@ -1,0 +1,79 @@
+{
+  "name": "insuratech-spec-tracker",
+  "displayName": "InsuraTech Spec Tracker",
+  "version": "1.0.0",
+  "publisher": "example",
+  "description": "Panel lateral para rastrear el estado de los specs ASDD",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "spec-tracker",
+          "title": "Spec Tracker",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "spec-tracker": [
+        {
+          "id": "specList",
+          "name": "Specs del proyecto"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "specTracker.refresh",
+        "title": "Refrescar specs",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "specTracker.filterByStatus",
+        "title": "Filtrar por estado",
+        "icon": "$(filter)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "specTracker.refresh",
+          "when": "view == specList",
+          "group": "navigation"
+        },
+        {
+          "command": "specTracker.filterByStatus",
+          "when": "view == specList",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Spec Tracker",
+      "properties": {
+        "specTracker.specsFolder": {
+          "type": "string",
+          "default": "asd/.github/specs",
+          "description": "Ruta relativa al workspace donde están los archivos .spec.md"
+        }
+      }
+    }
+  },
+
+  "scripts": {
+  "build": "node esbuild.js",
+  "watch": "node esbuild.js --watch",
+  "package": "vsce package --no-dependencies"
+    },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "esbuild": "^0.20.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}

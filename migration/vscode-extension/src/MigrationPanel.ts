@@ -38,7 +38,7 @@ export class MigrationPanel {
     return MigrationPanel.current;
   }
 
-  private constructor(panel: vscode.WebviewPanel, _context: vscode.ExtensionContext) {
+  private constructor(panel: vscode.WebviewPanel, _ctx: vscode.ExtensionContext) {
     this.panel = panel;
     this.panel.webview.html = this.getLoadingHtml();
 

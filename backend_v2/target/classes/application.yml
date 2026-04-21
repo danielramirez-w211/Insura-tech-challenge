@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: insuratech-backend
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/insuratech}
+      database: ${MONGODB_DATABASE:insuratech}
+
+server:
+  port: ${PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET:change-this-secret-in-production}
+  expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-credentials.json}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.insuratech: DEBUG
+    org.springframework.data.mongodb: INFO

@@ -18,23 +18,8 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
 
     vscode.commands.registerCommand('migration.runSkill', async (skillId: string) => {
-      const cfg     = vscode.workspace.getConfiguration('insuratech.migration');
-      const apiKey  = cfg.get<string>('anthropicApiKey') ?? '';
-      const model   = cfg.get<string>('model') ?? 'claude-sonnet-4-6';
-
-      if (!apiKey) {
-        const action = await vscode.window.showErrorMessage(
-          'API Key de Anthropic no configurada.',
-          'Abrir Configuración'
-        );
-        if (action === 'Abrir Configuración') {
-          vscode.commands.executeCommand(
-            'workbench.action.openSettings',
-            'insuratech.migration.anthropicApiKey'
-          );
-        }
-        return;
-      }
+      const cfg   = vscode.workspace.getConfiguration('insuratech.migration');
+      const model = cfg.get<string>('model') ?? 'claude-sonnet-4-6';
 
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -71,7 +56,7 @@ export function activate(context: vscode.ExtensionContext): void {
         },
         async () => {
           try {
-            const client = new AnthropicClient(apiKey);
+            const client = new AnthropicClient();
             const result = await client.migrate({
               skillInstructions: skill.instructions,
               csharpCode,
@@ -103,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {}
 
-async function loadSpecContext(context: vscode.ExtensionContext): Promise<string> {
+async function loadSpecContext(_ctx: vscode.ExtensionContext): Promise<string> {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) { return ''; }
 
